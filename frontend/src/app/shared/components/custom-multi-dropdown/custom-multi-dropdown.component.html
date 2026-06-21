@@ -1,0 +1,43 @@
+<div
+  class="custom-dropdown-container"
+  [class.open]="isOpen"
+  [class.disabled]="isDisabled"
+>
+  <div class="dropdown-trigger" (click)="toggleDropdown($event)">
+    <span
+      class="dropdown-value"
+      [class.placeholder]="selectedValues.length === 0"
+      >{{ displayValue }}</span
+    >
+    <svg
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      stroke-width="2.5"
+      class="dropdown-arrow"
+    >
+      <polyline points="6 9 12 15 18 9"></polyline>
+    </svg>
+  </div>
+
+  <div class="dropdown-menu" *ngIf="isOpen">
+    <div
+      class="dropdown-option"
+      *ngFor="let opt of options"
+      [class.selected]="isSelected(opt)"
+      (click)="toggleOption($event, opt)"
+    >
+      <span class="option-label">{{ getLabel(opt) }}</span>
+      <svg
+        *ngIf="isSelected(opt)"
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        stroke-width="3"
+        class="option-check"
+      >
+        <polyline points="20 6 9 17 4 12"></polyline>
+      </svg>
+    </div>
+  </div>
+</div>

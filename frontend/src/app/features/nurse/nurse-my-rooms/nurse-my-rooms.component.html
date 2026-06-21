@@ -1,0 +1,79 @@
+<div class="rooms-container">
+  <!-- Hero Section -->
+  <section class="rooms-hero">
+    <div class="container-max">
+      <div class="hero-content">
+        <div class="hero-identity">
+          <h1>My Assigned Rooms</h1>
+          <p>Overview of clinical spaces under your direct care for this shift</p>
+        </div>
+        <div class="hero-stats" *ngIf="assignedRooms.length > 0">
+          <div class="mini-stat">
+            <span class="val">{{ assignedRooms.length }}</span>
+            <span class="lbl">Total Units</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="rooms-workspace">
+    <div class="container-max">
+
+      <!-- Loading State -->
+      <div *ngIf="loading" class="state-container">
+        <div class="spinner"></div>
+        <p>Syncing room data...</p>
+      </div>
+
+      <!-- Error State -->
+      <div *ngIf="error" class="state-container error">
+        <i class="fas fa-exclamation-triangle"></i>
+        <h3>Sync Error</h3>
+        <p>{{ error }}</p>
+        <button (click)="loadMyRooms()" class="btn-retry">Retry Sync</button>
+      </div>
+
+      <!-- Empty State -->
+      <div *ngIf="!loading && !error && assignedRooms.length === 0" class="state-container empty">
+        <div class="empty-icon"><i class="fas fa-bed-pulse"></i></div>
+        <h3>No Assigned Rooms</h3>
+        <p>You currently have no rooms assigned to your profile for this shift.</p>
+        <a routerLink="/nurse/dashboard" class="btn-link">Return to Dashboard</a>
+      </div>
+
+      <!-- Rooms Grid -->
+      <div class="rooms-grid" *ngIf="!loading && !error && assignedRooms.length > 0">
+        <div class="room-card" *ngFor="let room of assignedRooms" [routerLink]="['/nurse/rooms', room.id]">
+          <div class="card-header">
+            <div class="header-main">
+              <h3 class="card-title">Room {{ room.roomNumber }}</h3>
+              <span class="type-badge">{{ room.departmentName || 'General' }}</span>
+            </div>
+          </div>
+
+          <div class="card-meta">
+            <span class="status-indicator" [class]="getStatusClass(room.status)"></span>
+            <span>{{ room.status | titlecase }}</span>
+          </div>
+
+          <div class="card-footer">
+            <div class="bed-summary">
+              <div class="bed-count">
+                <i class="fas fa-bed"></i>
+                <span>{{ room.capacity }} Units</span>
+              </div>
+              <div class="floor-info">
+                <i class="fas fa-layer-group"></i>
+                <span>{{ room.floorName || 'Main Floor' }}</span>
+              </div>
+            </div>
+            <div class="card-arrow">
+              <i class="fas fa-chevron-right"></i>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+</div>

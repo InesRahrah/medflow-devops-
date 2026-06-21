@@ -1,0 +1,1143 @@
+<!-- ═══════════════════════════════════════════════════════════ HERO SECTION -->
+<section class="doctor-hero">
+  <div class="container">
+    <div class="section-header doctor-hero__header">
+      <span class="section-label">DOCTOR WORKSPACE</span>
+      <h1 class="section-title">Patient Care Board</h1>
+      <p class="section-subtitle">
+        Coordinate consultations, lab, and prescriptions in one focused
+        workspace while keeping each patient profile and case timeline
+        organized.
+      </p>
+    </div>
+
+    <div class="doctor-hero__inner">
+      <button
+        class="btn-primary doctor-hero__cta"
+        type="button"
+        (click)="openAddPatientModal()"
+        [disabled]="submitting"
+      >
+        {{ submitting ? "Working..." : "Enter Patient Code" }}
+      </button>
+    </div>
+  </div>
+</section>
+
+<!-- ══════════════════════════════════════════════════ ADD PATIENT MODAL -->
+<div
+  *ngIf="showAddPatientModal"
+  class="add-patient-modal"
+  (click)="onAddPatientModalBackdropClick($event)"
+>
+  <div class="add-patient-modal__dialog" role="dialog" aria-modal="true">
+    <div class="add-patient-modal__glow"></div>
+
+    <header class="add-patient-modal__head">
+      <span class="add-patient-modal__eyebrow">Quick Link</span>
+      <h3>
+        {{
+          addPatientStep === "code"
+            ? "Verify Patient Code"
+            : "Choose Case Action"
+        }}
+      </h3>
+      <p>
+        {{
+          addPatientStep === "code"
+            ? "Enter a valid patient code, then continue to the next step."
+            : "Choose whether to create a new case or join one of this patient's existing cases."
+        }}
+      </p>
+    </header>
+
+    <form
+      class="add-patient-modal__form"
+      (ngSubmit)="submitAddPatientFromModal()"
+    >
+      <label>
+        Patient Access Code
+        <input
+          type="text"
+          name="addPatientCode"
+          [(ngModel)]="addPatientCode"
+          maxlength="5"
+          placeholder="Enter patient code"
+          autocomplete="off"
+          [readonly]="addPatientStep === 'action'"
+        />
+      </label>
+
+      <div
+        *ngIf="addPatientStep === 'action'"
+        class="add-patient-modal__step-two"
+      >
+        <div class="add-patient-choice" role="group" aria-label="Case action">
+          <button
+            type="button"
+            class="add-patient-choice__btn"
+            [class.active]="addPatientAction === 'create'"
+            (click)="setAddPatientAction('create')"
+          >
+            Create New Case
+          </button>
+          <button
+            type="button"
+            class="add-patient-choice__btn"
+            [class.active]="addPatientAction === 'join'"
+            (click)="setAddPatientAction('join')"
+            [disabled]="
+              addPatientExistingCases.length === 0 || addPatientCasesLoading
+            "
+          >
+            Join Existing Case
+          </button>
+        </div>
+
+        <p class="status muted" *ngIf="addPatientCasesLoading">
+          Loading existing cases...
+        </p>
+
+        <p
+          class="status muted"
+          *ngIf="
+            !addPatientCasesLoading &&
+            addPatientAction === 'join' &&
+            addPatientExistingCases.length === 0
+          "
+        >
+          No existing cases found for this patient. Create a new case instead.
+        </p>
+
+        <label *ngIf="addPatientAction === 'create'">
+          Medical Case Name
+          <input
+            type="text"
+            name="addPatientCaseName"
+            [(ngModel)]="addPatientCaseName"
+            maxlength="100"
+            placeholder="e.g. Follow-up Hypertension Case"
+            autocomplete="off"
+          />
+        </label>
+
+        <label
+          *ngIf="
+            addPatientAction === 'join' && addPatientExistingCases.length > 0
+          "
+        >
+          Existing Case
+          <select
+            name="addPatientJoinCaseId"
+            [(ngModel)]="addPatientJoinCaseId"
+          >
+            <option
+              *ngFor="let existingCase of addPatientExistingCases"
+              [value]="existingCase.id"
+            >
+              {{ existingCase.name }} —
+              {{ existingCase.createdAt | date: "MMM d, y" }}
+            </option>
+          </select>
+        </label>
+      </div>
+
+      <p
+        *ngIf="addPatientModalError"
+        class="add-patient-modal__error"
+        role="alert"
+      >
+        {{ addPatientModalError }}
+      </p>
+
+      <div class="add-patient-modal__actions">
+        <button
+          type="button"
+          class="btn-secondary"
+          (click)="
+            addPatientStep === 'code'
+              ? closeAddPatientModal()
+              : goBackToAddPatientCodeStep()
+          "
+          [disabled]="submitting"
+        >
+          {{ addPatientStep === "code" ? "Cancel" : "Back" }}
+        </button>
+        <button type="submit" class="btn-primary" [disabled]="submitting">
+          {{
+            submitting
+              ? "Working..."
+              : addPatientStep === "code"
+                ? "Next"
+                : addPatientAction === "join"
+                  ? "Join Case"
+                  : "Create Case"
+          }}
+        </button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════ CASE EDIT MODAL -->
+<div
+  *ngIf="showCaseEditModal && selectedCase"
+  class="timeline-modal"
+  (click)="onCaseEditModalBackdropClick($event)"
+>
+  <div
+    class="timeline-modal__dialog timeline-modal__dialog--confirm"
+    role="dialog"
+    aria-modal="true"
+  >
+    <header class="timeline-modal__head timeline-modal__head--compact">
+      <span class="timeline-modal__eyebrow">Case Settings</span>
+      <h3>Edit Medical Case</h3>
+      <p>Update the case name.</p>
+    </header>
+
+    <form class="timeline-modal__form" (ngSubmit)="saveMedicalCaseFromModal()">
+      <label>
+        Case Name
+        <input
+          type="text"
+          name="caseEditName"
+          [(ngModel)]="caseEditName"
+          maxlength="150"
+          required
+        />
+      </label>
+
+      <div class="timeline-modal__actions">
+        <button
+          type="button"
+          class="btn-secondary"
+          (click)="closeCaseEditModal()"
+          [disabled]="caseActionSubmitting"
+        >
+          Cancel
+        </button>
+        <button
+          type="submit"
+          class="btn-primary"
+          [disabled]="caseActionSubmitting"
+        >
+          {{ caseActionSubmitting ? "Saving..." : "Save Case" }}
+        </button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════ CASE DELETE MODAL -->
+<div
+  *ngIf="showCaseDeleteModal && selectedCase"
+  class="timeline-modal"
+  (click)="onCaseDeleteModalBackdropClick($event)"
+>
+  <div
+    class="timeline-modal__dialog timeline-modal__dialog--confirm"
+    role="dialog"
+    aria-modal="true"
+  >
+    <header class="timeline-modal__head timeline-modal__head--compact">
+      <span class="timeline-modal__eyebrow">Confirm Delete</span>
+      <h3>Delete Medical Case</h3>
+      <p>
+        Delete case "{{ selectedCase.name }}" and all its related timeline data?
+      </p>
+    </header>
+
+    <div class="timeline-modal__actions timeline-modal__actions--confirm">
+      <button
+        type="button"
+        class="btn-secondary"
+        (click)="closeCaseDeleteModal()"
+        [disabled]="caseActionSubmitting"
+      >
+        No
+      </button>
+      <button
+        type="button"
+        class="timeline-action-btn timeline-action-btn--delete"
+        (click)="confirmDeleteMedicalCase()"
+        [disabled]="caseActionSubmitting"
+      >
+        {{ caseActionSubmitting ? "Deleting..." : "Yes, Delete" }}
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════ TIMELINE EDIT MODAL -->
+<div
+  *ngIf="showTimelineEditModal && activeTimelineDetail"
+  class="timeline-modal"
+  (click)="onTimelineEditModalBackdropClick($event)"
+>
+  <div class="timeline-modal__dialog" role="dialog" aria-modal="true">
+    <div class="timeline-modal__glow"></div>
+
+    <header class="timeline-modal__head">
+      <span class="timeline-modal__eyebrow">Timeline Editor</span>
+      <h3>{{ getTimelineEditModalTitle() }}</h3>
+      <p>Update this entry details and save your changes.</p>
+    </header>
+
+    <form
+      class="timeline-modal__form"
+      (ngSubmit)="saveTimelineDetailFromModal()"
+    >
+      <label *ngIf="activeTimelineDetail.type === 'lab_request'">
+        Service Type
+        <app-custom-dropdown
+          name="timelineTestType"
+          [options]="testTypeOptions"
+          [searchable]="true"
+          [placeholder]="'Search service type...'"
+          [(ngModel)]="editTimelineForm.name"
+          required
+        ></app-custom-dropdown>
+      </label>
+
+      <label *ngIf="activeTimelineDetail.type === 'consultation'">
+        Consultation Date
+        <input
+          type="datetime-local"
+          name="timelineConsultationDate"
+          [(ngModel)]="editTimelineForm.date"
+          required
+        />
+      </label>
+
+      <label>
+        Notes
+        <textarea
+          rows="4"
+          name="timelineNotes"
+          [(ngModel)]="editTimelineForm.additionalInfo"
+          placeholder="Update notes"
+        ></textarea>
+      </label>
+
+      <section
+        *ngIf="activeTimelineDetail.type === 'treatment'"
+        class="timeline-dosage-editor"
+      >
+        <div class="timeline-dosage-editor__head">
+          <h4>Linked Dosages</h4>
+          <span *ngIf="timelineDosagesLoading">Loading...</span>
+        </div>
+
+        <p
+          class="status muted"
+          *ngIf="
+            !timelineDosagesLoading && prescriptionDosagesForEdit.length === 0
+          "
+          style="padding: 1rem 1.1rem"
+        >
+          No dosages found for this prescription.
+        </p>
+
+        <div
+          class="timeline-dosage-list"
+          *ngIf="
+            !timelineDosagesLoading && prescriptionDosagesForEdit.length > 0
+          "
+        >
+          <article
+            class="timeline-dosage-item"
+            *ngFor="let dosage of prescriptionDosagesForEdit; let i = index"
+          >
+            <div class="timeline-dosage-item__head">
+              <div class="timeline-dosage-item__title">
+                {{ dosage.medicineName }}
+              </div>
+              <button
+                type="button"
+                class="timeline-dose-trash"
+                (click)="removePrescriptionDosageRow(i)"
+                [disabled]="timelineActionSubmitting"
+                aria-label="Delete dose"
+              >
+                <svg
+                  class="timeline-dose-trash__icon"
+                  viewBox="18 18 23 22"
+                  preserveAspectRatio="xMidYMid meet"
+                  aria-hidden="true"
+                  focusable="false"
+                >
+                  <path
+                    fill-rule="evenodd"
+                    d="M36 26v10.997c0 1.659-1.337 3.003-3.009 3.003h-9.981c-1.662 0-3.009-1.342-3.009-3.003v-10.997h16zm-2 0v10.998c0 .554-.456 1.002-1.002 1.002h-9.995c-.554 0-1.002-.456-1.002-1.002v-10.998h12zm-9-5c0-.552.451-1 .991-1h4.018c.547 0 .991.444.991 1 0 .552-.451 1-.991 1h-4.018c-.547 0-.991-.444-.991-1zm0 6.997c0-.551.444-.997 1-.997.552 0 1 .453 1 .997v6.006c0 .551-.444.997-1 .997-.552 0-1-.453-1-.997v-6.006zm4 0c0-.551.444-.997 1-.997.552 0 1 .453 1 .997v6.006c0 .551-.444.997-1 .997-.552 0-1-.453-1-.997v-6.006zm-6-5.997h-4.008c-.536 0-.992.448-.992 1 0 .556.444 1 .992 1h18.016c.536 0 .992-.448.992-1 0-.556-.444-1-.992-1h-4.008v-1c0-1.653-1.343-3-3-3h-3.999c-1.652 0-3 1.343-3 3v1z"
+                    fill="currentColor"
+                  />
+                </svg>
+              </button>
+            </div>
+
+            <div class="timeline-dosage-grid">
+              <label>
+                Quantity
+                <input
+                  type="text"
+                  [name]="'dosageQuantity_' + i"
+                  [(ngModel)]="dosage.quantity"
+                />
+              </label>
+
+              <label>
+                Date
+                <input
+                  type="date"
+                  [name]="'dosageDate_' + i"
+                  [(ngModel)]="dosage.dateValue"
+                />
+              </label>
+
+              <label>
+                Period
+                <app-custom-dropdown
+                  [attr.name]="'dosagePeriod_' + i"
+                  [options]="dosagePeriodOptions"
+                  [(ngModel)]="dosage.period"
+                ></app-custom-dropdown>
+              </label>
+            </div>
+
+            <div class="timeline-dosage-foot">
+              <label class="timeline-dosage-notes">
+                <span>Notes</span>
+                <input
+                  type="text"
+                  [name]="'dosageNotes_' + i"
+                  [(ngModel)]="dosage.doseNotes"
+                />
+              </label>
+
+              <span class="timeline-dosage-taken" [class.done]="dosage.taken">
+                {{ dosage.taken ? "Taken" : "Not Taken" }}
+              </span>
+            </div>
+          </article>
+        </div>
+      </section>
+
+      <div class="timeline-modal__actions">
+        <button
+          type="button"
+          class="btn-secondary"
+          (click)="closeTimelineEditModal()"
+          [disabled]="timelineActionSubmitting"
+        >
+          Cancel
+        </button>
+        <button
+          type="submit"
+          class="btn-primary"
+          [disabled]="timelineActionSubmitting"
+        >
+          {{ timelineActionSubmitting ? "Saving..." : "Save Changes" }}
+        </button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════ TIMELINE DELETE MODAL -->
+<div
+  *ngIf="showTimelineDeleteModal && activeTimelineDetail"
+  class="timeline-modal"
+  (click)="onTimelineDeleteModalBackdropClick($event)"
+>
+  <div
+    class="timeline-modal__dialog timeline-modal__dialog--confirm"
+    role="dialog"
+    aria-modal="true"
+  >
+    <header class="timeline-modal__head timeline-modal__head--compact">
+      <span class="timeline-modal__eyebrow">Confirm Delete</span>
+      <h3>Delete Entry</h3>
+      <p>{{ getTimelineDeletePrompt() }}</p>
+    </header>
+
+    <div class="timeline-modal__actions timeline-modal__actions--confirm">
+      <button
+        type="button"
+        class="btn-secondary"
+        (click)="closeTimelineDeleteModal()"
+        [disabled]="timelineActionSubmitting"
+      >
+        No
+      </button>
+      <button
+        type="button"
+        class="timeline-action-btn timeline-action-btn--delete"
+        (click)="confirmTimelineDelete()"
+        [disabled]="timelineActionSubmitting"
+      >
+        {{ timelineActionSubmitting ? "Deleting..." : "Yes, Delete" }}
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════ MAIN PAGE -->
+<section class="doctor-page">
+  <div class="container">
+    <p *ngIf="successMessage" class="status success" role="status">
+      {{ successMessage }}
+    </p>
+    <p *ngIf="errorMessage" class="status error" role="alert">
+      {{ errorMessage }}
+    </p>
+    <p *ngIf="loading" class="status muted">Loading patients...</p>
+
+    <div class="workspace workspace--renewed" *ngIf="!loading">
+      <!-- ─────────────────────────── PATIENTS SIDEBAR -->
+      <aside class="panel panel--patients">
+        <div class="panel__header">
+          <div>
+            <h2>Patients</h2>
+            <p class="panel__subtitle">
+              Choose a patient to open care workflows
+            </p>
+          </div>
+        </div>
+
+        <div class="patient-list" *ngIf="patientRows.length > 0">
+          <button
+            class="patient-card"
+            type="button"
+            *ngFor="let patient of patientRows"
+            (click)="openPatient(patient)"
+            [class.active]="selectedPatient?.patientId === patient.patientId"
+          >
+            <span class="patient-card__accent"></span>
+            <div class="patient-card__header">
+              <div class="patient-avatar" *ngIf="patient.profilePictureUrl">
+                <img
+                  [src]="patient.profilePictureUrl"
+                  [alt]="patient.firstName"
+                />
+              </div>
+              <div
+                class="patient-avatar placeholder"
+                *ngIf="!patient.profilePictureUrl"
+              >
+                {{ getFirstCharacter(patient.firstName) }}
+              </div>
+              <div class="patient-name-wrap">
+                <h3>{{ patient.firstName }} {{ patient.lastName }}</h3>
+                <small class="patient-id">Linked Patient</small>
+              </div>
+            </div>
+            <div class="patient-card__top">
+              <span class="badge badge--soft">
+                {{ patient.totalCases }} case{{
+                  patient.totalCases === 1 ? "" : "s"
+                }}
+              </span>
+            </div>
+            <p>Latest case: {{ patient.latestCaseName }}</p>
+            <small>{{ patient.lastCaseDate | date: "MMM d, y, h:mm a" }}</small>
+          </button>
+        </div>
+
+        <p
+          *ngIf="patientRows.length === 0"
+          class="status muted"
+          style="padding: 1.2rem 1.5rem"
+        >
+          No linked patients yet. Add one using a patient code.
+        </p>
+      </aside>
+
+      <!-- ─────────────────────────── WORKSPACE MAIN -->
+      <main class="panel panel--workspace">
+        <div class="panel__header panel__header--workspace">
+          <div class="workspace-heading">
+            <h2 *ngIf="selectedPatient">
+              {{ selectedPatient.firstName }} {{ selectedPatient.lastName }}
+            </h2>
+            <h2 *ngIf="!selectedPatient">Select a patient</h2>
+            <p class="workspace-heading__subtitle">
+              Review patient details, manage cases, and record clinical actions.
+            </p>
+          </div>
+          <span *ngIf="selectedCase" class="badge case-context-badge"
+            >Case: {{ selectedCase.name }}</span
+          >
+        </div>
+
+        <ng-container *ngIf="selectedPatient; else choosePatient">
+          <!-- View Tabs -->
+          <div class="patient-view-tabs">
+            <button
+              class="view-tab-btn"
+              (click)="showCasesView()"
+              [class.active]="patientViewMode === 'cases'"
+            >
+              Medical Cases
+            </button>
+            <button
+              class="view-tab-btn"
+              (click)="showProfileView()"
+              [class.active]="patientViewMode === 'profile'"
+            >
+              Profile
+            </button>
+          </div>
+
+          <!-- ─── Cases View ─────────────────────────────── -->
+          <div *ngIf="patientViewMode === 'cases'">
+            <section
+              class="cases cases--spotlight"
+              *ngIf="selectedPatient.cases.length > 0"
+            >
+              <div class="cases__top">
+                <span>Medical Cases</span>
+                <div class="cases__actions" *ngIf="selectedCase">
+                  <button
+                    type="button"
+                    class="timeline-action-btn timeline-action-btn--edit"
+                    (click)="openCaseEditModal()"
+                    [disabled]="caseActionSubmitting"
+                  >
+                    Edit Case
+                  </button>
+                  <button
+                    type="button"
+                    class="timeline-action-btn timeline-action-btn--delete"
+                    (click)="openCaseDeleteModal()"
+                    [disabled]="caseActionSubmitting"
+                  >
+                    Delete Case
+                  </button>
+                </div>
+              </div>
+
+              <div class="cases__list expanded">
+                <button
+                  class="case-pill"
+                  type="button"
+                  *ngFor="
+                    let caseItem of selectedPatient.cases;
+                    trackBy: trackByCaseId
+                  "
+                  (click)="openCase(caseItem)"
+                  [class.active]="selectedCase?.id === caseItem.id"
+                >
+                  <strong>{{ caseItem.name }}</strong>
+                  <small>{{ caseItem.createdAt | date: "MMM d, y" }}</small>
+                </button>
+              </div>
+            </section>
+
+            <!-- ─── Care Board ──────────────────────────── -->
+            <section class="workspace-body care-board" *ngIf="selectedCase">
+              <!-- Clinical Activity Composer -->
+              <section class="composer-wrap care-board__panel">
+                <button
+                  type="button"
+                  class="section-toggle"
+                  (click)="
+                    isActivityComposerCollapsed = !isActivityComposerCollapsed
+                  "
+                  [attr.aria-expanded]="!isActivityComposerCollapsed"
+                >
+                  <span class="section-toggle__title">Clinical Activity</span>
+                  <span
+                    class="section-toggle__arrow"
+                    [class.open]="!isActivityComposerCollapsed"
+                    aria-hidden="true"
+                    >&#8250;</span
+                  >
+                </button>
+
+                <div
+                  class="composer-content"
+                  *ngIf="!isActivityComposerCollapsed"
+                >
+                  <nav class="tabs">
+                    <button
+                      type="button"
+                      (click)="activePanel = 'consultation'"
+                      [class.active]="activePanel === 'consultation'"
+                    >
+                      Consultation
+                    </button>
+                    <button
+                      type="button"
+                      (click)="activePanel = 'lab'"
+                      [class.active]="activePanel === 'lab'"
+                    >
+                      Lab
+                    </button>
+                    <button
+                      type="button"
+                      (click)="activePanel = 'prescription'"
+                      [class.active]="activePanel === 'prescription'"
+                    >
+                      Prescription
+                    </button>
+                  </nav>
+
+                  <!-- Consultation Form -->
+                  <form
+                    *ngIf="activePanel === 'consultation'"
+                    class="form form--consultation"
+                    (ngSubmit)="submitConsultation()"
+                  >
+                    <h3 class="form-title">Consultation Log</h3>
+                    <label>
+                      Consultation Date
+                      <input
+                        type="datetime-local"
+                        name="consultationDate"
+                        [(ngModel)]="consultationForm.consultationDate"
+                      />
+                    </label>
+                    <label>
+                      Consultation Notes
+                      <textarea
+                        rows="4"
+                        name="consultationNotes"
+                        [(ngModel)]="consultationForm.notes"
+                        placeholder="Symptoms, findings, recommendations"
+                      ></textarea>
+                    </label>
+                    <button
+                      class="btn-primary"
+                      type="submit"
+                      [disabled]="actionSubmitting"
+                    >
+                      {{ actionSubmitting ? "Saving..." : "Save Consultation" }}
+                    </button>
+                  </form>
+
+                  <!-- Lab Form -->
+                  <form
+                    *ngIf="activePanel === 'lab'"
+                    class="form form--lab"
+                    (ngSubmit)="submitLabRequest()"
+                  >
+                    <h3 class="form-title">Lab Request</h3>
+                    <label>
+                      Service Type
+                      <app-custom-dropdown
+                        name="testType"
+                        [options]="testTypeOptions"
+                        [searchable]="true"
+                        [placeholder]="'Search service type...'"
+                        [(ngModel)]="labForm.testType"
+                      ></app-custom-dropdown>
+                    </label>
+                    <label>
+                      Lab Notes
+                      <textarea
+                        rows="4"
+                        name="labNotes"
+                        [(ngModel)]="labForm.notes"
+                        placeholder="Clinical reason and expected findings"
+                      ></textarea>
+                    </label>
+                    <button
+                      class="btn-primary"
+                      type="submit"
+                      [disabled]="actionSubmitting"
+                    >
+                      {{ actionSubmitting ? "Saving..." : "Save Lab Request" }}
+                    </button>
+                  </form>
+
+                  <!-- Prescription Form -->
+                  <form
+                    *ngIf="activePanel === 'prescription'"
+                    class="form form--prescription"
+                    (ngSubmit)="submitPrescription()"
+                  >
+                    <h3 class="form-title">Prescription Planner</h3>
+
+                    <div class="dose-head">
+                      <h3>Medicine Lines</h3>
+                      <button
+                        class="btn-secondary"
+                        type="button"
+                        (click)="addDosePlan()"
+                      >
+                        + Add Medicine
+                      </button>
+                    </div>
+
+                    <div class="dose-list">
+                      <article
+                        class="dose-item"
+                        *ngFor="
+                          let plan of dosePlans;
+                          let i = index;
+                          trackBy: trackByDosePlan
+                        "
+                        [class.collapsed]="plan.collapsed"
+                      >
+                        <button
+                          class="dose-item__head"
+                          type="button"
+                          (click)="toggleDosePlan(i)"
+                        >
+                          <div>
+                            <h4>Medicine {{ i + 1 }}</h4>
+                            <p>{{ getDoseHeaderSummary(plan) }}</p>
+                          </div>
+                          <span>{{ getDoseHeaderMedicine(plan) }}</span>
+                        </button>
+
+                        <div class="dose-item__body" *ngIf="!plan.collapsed">
+                          <div class="dose-item__actions">
+                            <button
+                              class="text-btn text-btn--danger"
+                              type="button"
+                              (click)="removeDosePlan(i)"
+                            >
+                              Remove
+                            </button>
+                          </div>
+
+                          <label>
+                            Medicine (search and choose one)
+                            <div class="medicine-picker">
+                              <input
+                                type="text"
+                                [name]="'medicineQuery_' + i"
+                                [(ngModel)]="plan.medicineQuery"
+                                (ngModelChange)="
+                                  onDoseMedicineQueryChange(plan, $any($event))
+                                "
+                                (focus)="onDoseMedicineFocus(plan)"
+                                (blur)="onDoseMedicineBlur(plan)"
+                                placeholder="Type medicine name"
+                                autocomplete="off"
+                              />
+                              <div
+                                class="medicine-suggestions"
+                                *ngIf="
+                                  plan.suggestionsOpen &&
+                                  getFilteredMedicines(plan).length > 0
+                                "
+                              >
+                                <button
+                                  type="button"
+                                  class="medicine-suggestion"
+                                  *ngFor="
+                                    let medicine of getFilteredMedicines(plan)
+                                  "
+                                  (mousedown)="$event.preventDefault()"
+                                  (click)="
+                                    selectMedicineSuggestion(plan, medicine)
+                                  "
+                                >
+                                  <span class="medicine-suggestion__name">{{
+                                    medicine.name
+                                  }}</span>
+                                  <span class="medicine-suggestion__desc">{{
+                                    medicine.description || "No description"
+                                  }}</span>
+                                </button>
+                              </div>
+                            </div>
+                          </label>
+
+                          <p class="hint">
+                            {{ plan.medicineDescription || "No description" }}
+                          </p>
+
+                          <div class="grid-3">
+                            <label>
+                              Morning
+                              <input
+                                type="number"
+                                min="0"
+                                [name]="'morning_' + i"
+                                [(ngModel)]="plan.morning"
+                              />
+                            </label>
+                            <label>
+                              Afternoon
+                              <input
+                                type="number"
+                                min="0"
+                                [name]="'afternoon_' + i"
+                                [(ngModel)]="plan.afternoon"
+                              />
+                            </label>
+                            <label>
+                              Night
+                              <input
+                                type="number"
+                                min="0"
+                                [name]="'night_' + i"
+                                [(ngModel)]="plan.night"
+                              />
+                            </label>
+                          </div>
+
+                          <label>
+                            Duration (days)
+                            <input
+                              type="number"
+                              min="1"
+                              [name]="'days_' + i"
+                              [(ngModel)]="plan.days"
+                            />
+                          </label>
+
+                          <label>
+                            Dose Notes
+                            <textarea
+                              rows="2"
+                              [name]="'doseNotes_' + i"
+                              [(ngModel)]="plan.doseNotes"
+                              placeholder="Example: before food / after food"
+                            ></textarea>
+                          </label>
+                        </div>
+                      </article>
+                    </div>
+
+                    <label>
+                      Prescription Summary
+                      <textarea
+                        rows="3"
+                        name="prescriptionSummary"
+                        [(ngModel)]="prescriptionSummary"
+                        placeholder="Overall treatment plan, warnings, and follow-up"
+                      ></textarea>
+                    </label>
+
+                    <button
+                      class="btn-primary"
+                      type="submit"
+                      [disabled]="actionSubmitting"
+                    >
+                      {{ actionSubmitting ? "Saving..." : "Save Prescription" }}
+                    </button>
+                  </form>
+                </div>
+              </section>
+
+              <!-- Case Timeline -->
+              <section class="timeline-wrap care-board__panel">
+                <button
+                  type="button"
+                  class="section-toggle"
+                  (click)="isTimelineCollapsed = !isTimelineCollapsed"
+                  [attr.aria-expanded]="!isTimelineCollapsed"
+                >
+                  <span class="section-toggle__title">Case Timeline</span>
+                  <span class="section-toggle__meta" *ngIf="detailsLoading"
+                    >Refreshing...</span
+                  >
+                  <span
+                    class="section-toggle__arrow"
+                    [class.open]="!isTimelineCollapsed"
+                    aria-hidden="true"
+                    >&#8250;</span
+                  >
+                </button>
+
+                <p
+                  *ngIf="
+                    !isTimelineCollapsed &&
+                    !detailsLoading &&
+                    (!selectedCaseDetails?.details ||
+                      getFilteredDetails().length === 0)
+                  "
+                  class="status muted"
+                  style="padding: 1.2rem 1.5rem"
+                >
+                  No consultation, lab, or prescription activities in this case
+                  yet.
+                </p>
+
+                <div
+                  class="timeline"
+                  *ngIf="
+                    !isTimelineCollapsed &&
+                    selectedCaseDetails?.details &&
+                    getFilteredDetails().length
+                  "
+                >
+                  <article
+                    class="timeline-item"
+                    *ngFor="
+                      let detail of getFilteredDetails();
+                      trackBy: trackByDetail
+                    "
+                  >
+                    <div class="timeline-item__head">
+                      <span [class]="getDetailBadgeClass(detail.type)">{{
+                        getDetailTypeLabel(detail.type)
+                      }}</span>
+                      <time>{{ detail.date | date: "MMM d, y, h:mm a" }}</time>
+                    </div>
+                    <h4>{{ detail.name }}</h4>
+                    <p>{{ detail.additionalInfo || "No additional notes." }}</p>
+
+                    <div class="timeline-item__footer">
+                      <div
+                        class="timeline-item__actions"
+                        *ngIf="
+                          isEditableTimelineEntry(detail) ||
+                          hasTimelineFile(detail)
+                        "
+                      >
+                        <button
+                          *ngIf="hasTimelineFile(detail)"
+                          type="button"
+                          class="timeline-action-btn timeline-action-btn--view"
+                          [class.timeline-action-btn--view-gray]="
+                            detail.type === 'lab_results'
+                          "
+                          (click)="openTimelineFile(detail)"
+                        >
+                          View File
+                        </button>
+
+                        <button
+                          type="button"
+                          class="timeline-action-btn timeline-action-btn--edit"
+                          (click)="openTimelineEditModal(detail)"
+                          [disabled]="timelineActionSubmitting"
+                        >
+                          Edit
+                        </button>
+                        <button
+                          type="button"
+                          class="timeline-action-btn timeline-action-btn--delete"
+                          (click)="openTimelineDeleteModal(detail)"
+                          [disabled]="timelineActionSubmitting"
+                        >
+                          Delete
+                        </button>
+                      </div>
+                      <span class="timeline-doctor-label">{{
+                        getTimelineDoctorLabel(detail)
+                      }}</span>
+                    </div>
+                  </article>
+                </div>
+              </section>
+            </section>
+          </div>
+
+          <!-- ─── Profile View ───────────────────────────── -->
+          <div *ngIf="patientViewMode === 'profile'" class="profile-view">
+            <header class="profile-view__header">
+              <h3>Clinical Baseline</h3>
+            </header>
+
+            <div *ngIf="patientProfileLoading" class="state-card">
+              <p>Loading patient profile...</p>
+            </div>
+
+            <div *ngIf="patientProfileError" class="state-card">
+              <p>{{ patientProfileError }}</p>
+            </div>
+
+            <div
+              *ngIf="
+                !patientProfileLoading &&
+                !patientProfileError &&
+                selectedPatientProfile
+              "
+              class="profile-card"
+            >
+              <h3>Patient Profile</h3>
+              <div class="profile-grid">
+                <div class="profile-item">
+                  <span class="label">First Name</span>
+                  <span class="value">{{
+                    selectedPatientProfile.firstName || "-"
+                  }}</span>
+                </div>
+                <div class="profile-item">
+                  <span class="label">Last Name</span>
+                  <span class="value">{{
+                    selectedPatientProfile.lastName || "-"
+                  }}</span>
+                </div>
+                <div class="profile-item">
+                  <span class="label">Email</span>
+                  <span class="value">{{
+                    selectedPatientProfile.email || "-"
+                  }}</span>
+                </div>
+                <div class="profile-item">
+                  <span class="label">Phone</span>
+                  <span class="value">{{
+                    selectedPatientProfile.phoneNumber || "-"
+                  }}</span>
+                </div>
+                <div class="profile-item">
+                  <span class="label">Date of Birth</span>
+                  <span class="value">{{
+                    selectedPatientProfile.dateOfBirth
+                      ? (selectedPatientProfile.dateOfBirth | date: "MMM d, y")
+                      : "-"
+                  }}</span>
+                </div>
+                <div class="profile-item">
+                  <span class="label">Gender</span>
+                  <span class="value">{{
+                    selectedPatientProfile.gender || "-"
+                  }}</span>
+                </div>
+                <div class="profile-item">
+                  <span class="label">Blood Type</span>
+                  <span class="value">{{
+                    selectedPatientProfile.bloodType || "-"
+                  }}</span>
+                </div>
+                <div class="profile-item">
+                  <span class="label">Height</span>
+                  <span class="value">{{
+                    selectedPatientProfile.height || "-"
+                  }}</span>
+                </div>
+                <div class="profile-item">
+                  <span class="label">Weight</span>
+                  <span class="value">{{
+                    selectedPatientProfile.weight || "-"
+                  }}</span>
+                </div>
+                <div class="profile-item full-width">
+                  <span class="label">Allergies</span>
+                  <span class="value">{{
+                    selectedPatientProfile.allergies || "-"
+                  }}</span>
+                </div>
+                <div class="profile-item full-width">
+                  <span class="label">Chronic Diseases</span>
+                  <span class="value">{{
+                    selectedPatientProfile.chronicDiseases || "-"
+                  }}</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </ng-container>
+
+        <ng-template #choosePatient>
+          <section class="empty-state">
+            <span class="section-label">NO PATIENT SELECTED</span>
+            <h3>Pick a patient to activate this workspace</h3>
+            <p>
+              You can then open medical cases, write consultations, submit lab
+              requests, and build full prescription plans.
+            </p>
+          </section>
+        </ng-template>
+      </main>
+    </div>
+  </div>
+</section>

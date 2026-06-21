@@ -1,0 +1,37 @@
+<div class="admin-page">
+  <header class="page-header">
+    <div class="title-group">
+      <h1>Advanced Analytics</h1>
+      <p>Analyze patient influx, resource distribution, and system performance trends.</p>
+    </div>
+    <div class="header-actions">
+      <button class="btn-primary">
+        <i class="fas fa-calendar-alt"></i>
+        <span>Last 30 Days</span>
+      </button>
+    </div>
+  </header>
+
+  <section class="analytics-grid">
+    <div class="analytics-card" *ngFor="let stat of analyticsStats">
+      <span class="label">{{ stat.label }}</span>
+      <div class="value-row">
+        <span class="value">{{ stat.value }}</span>
+        <span class="trend-indicator" [class.up]="stat.trend === 'up'" [class.down]="stat.trend === 'down'">
+          <i class="fas" [class.fa-caret-up]="stat.trend === 'up'" [class.fa-caret-down]="stat.trend === 'down'"></i>
+          {{ stat.trend === 'up' ? 'Increase' : 'Decrease' }}
+        </span>
+      </div>
+    </div>
+  </section>
+
+  <section class="chart-panel shadow-soft">
+    <div class="panel-header">
+      <h3>Patient Flow Projection</h3>
+    </div>
+    <div class="chart-area-placeholder">
+      <div class="mock-chart-line"></div>
+      <p class="placeholder-text">Chart visualization powered by D3/Recharts coming soon...</p>
+    </div>
+  </section>
+</div>

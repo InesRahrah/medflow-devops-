@@ -1,0 +1,70 @@
+<div class="admin-page">
+  <header class="page-header">
+    <div class="title-group">
+      <h1>Audit & Activity Logs</h1>
+      <p>Monitor all system-wide activities, authentication attempts, and data access events.</p>
+    </div>
+    <div class="header-actions">
+      <!-- Custom Dropdown -->
+      <div class="custom-dropdown" [class.open]="isDropdownOpen">
+        <button class="dropdown-toggle shadow-soft" (click)="toggleDropdown()">
+          <span>{{ selectedFilter }}</span>
+          <i class="fas fa-chevron-down" [class.rotate]="isDropdownOpen"></i>
+        </button>
+        
+        <div class="dropdown-menu shadow-lg" *ngIf="isDropdownOpen">
+          <div 
+            class="dropdown-item" 
+            *ngFor="let opt of filterOptions" 
+            (click)="selectFilter(opt)"
+            [class.selected]="selectedFilter === opt"
+          >
+            {{ opt }}
+          </div>
+        </div>
+      </div>
+
+      <button class="btn-primary shadow-blue">
+        <i class="fas fa-file-export"></i>
+        <span>Export Logs</span>
+      </button>
+    </div>
+  </header>
+
+  <div class="table-container shadow-soft">
+    <table class="admin-table">
+      <thead>
+        <tr>
+          <th>Event Type</th>
+          <th>Description</th>
+          <th>User / Entity</th>
+          <th>Timestamp</th>
+          <th>Execution</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let log of logs">
+          <td>
+            <span class="type-tag" [class.type-error]="log.type === 'Error'" 
+                  [class.type-auth]="log.type === 'Auth'">
+              {{ log.type }}
+            </span>
+          </td>
+          <td>{{ log.description }}</td>
+          <td>
+            <code class="user-code">{{ log.user }}</code>
+          </td>
+          <td>{{ log.time }}</td>
+          <td>
+            <span class="status-chip" [class.success]="log.status === 'Success'"
+                  [class.fail]="log.status === 'Fail'">
+              <i class="fas" [class.fa-check-circle]="log.status === 'Success'"
+                 [class.fa-times-circle]="log.status === 'Fail'"></i>
+              {{ log.status }}
+            </span>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</div>

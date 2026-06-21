@@ -1,0 +1,256 @@
+<div class="articles-container">
+
+  <!-- Header -->
+  <div class="articles-header">
+    <h2>My Articles</h2>
+    <div style="display:flex; gap:0.75rem;">
+      <a routerLink="/blogs" class="btn-browse">
+        <i class="fas fa-newspaper"></i> Browse All Articles
+      </a>
+      <button class="btn-create" (click)="showForm = !showForm">
+        <i class="fas fa-plus"></i> New Article
+      </button>
+    </div>
+  </div>
+
+  <!-- ── CREATE FORM ── -->
+  <div class="create-form" *ngIf="showForm">
+<h3>{{ isEditMode ? 'Edit Article' : 'Write a New Article' }}</h3>
+    <form (ngSubmit)="submitBlog()">
+
+      <!-- Title -->
+      <div class="form-group">
+        <label>Title</label>
+        <input type="text" [(ngModel)]="blog.title" name="title"
+               placeholder="Article title" required />
+      </div>
+
+      <!-- Category -->
+      <div class="form-group">
+        <label>Category</label>
+        <input type="text" [(ngModel)]="blog.category" name="category"
+               placeholder="e.g. Cardiology..." />
+      </div>
+
+      <!-- Summary -->
+      <div class="form-group">
+        <label>Summary</label>
+        <input type="text" [(ngModel)]="blog.summary" name="summary"
+               placeholder="Short description..." />
+      </div>
+
+      <!-- Content -->
+      <div class="form-group">
+        <label>Content</label>
+<quill-editor
+  [(ngModel)]="blog.content"
+  name="content"
+  [modules]="quillModules"
+  placeholder="Write your article here..."
+  [styles]="{'min-height': '300px'}">
+</quill-editor>      </div>
+
+      <!-- Cover Image -->
+      <div class="form-group">
+        <label><i class="fas fa-image"></i> Cover Image URL</label>
+        <input type="url" [(ngModel)]="blog.coverImageUrl" name="coverImageUrl"
+               placeholder="https://example.com/cover.jpg"
+               (input)="onCoverUrlChange()" />
+        <div class="img-preview" *ngIf="coverPreview">
+          <img [src]="coverPreview" alt="Cover preview" />
+        </div>
+      </div>
+
+      <!-- ── Extra Images ── -->
+      <div class="form-group">
+        <label><i class="fas fa-images"></i> Additional Images</label>
+        <div class="mode-toggle">
+          <button type="button" [class.active]="imageMode === 'url'" (click)="imageMode = 'url'">
+            <i class="fas fa-link"></i> URL
+          </button>
+          <button type="button" [class.active]="imageMode === 'file'" (click)="imageMode = 'file'">
+            <i class="fas fa-upload"></i> Upload from PC
+          </button>
+        </div>
+        <div class="input-add-row" *ngIf="imageMode === 'url'">
+          <input type="url" [(ngModel)]="newImageUrl" name="newImageUrl"
+                 placeholder="https://example.com/image.jpg"
+                 [class.input-error]="errors.image" />
+          <button type="button" class="btn-add" (click)="addImage()">
+            <i class="fas fa-plus"></i> Add
+          </button>
+        </div>
+        <span class="error-msg" *ngIf="errors.image">{{ errors.image }}</span>
+        <div class="file-upload-area" *ngIf="imageMode === 'file'">
+          <label class="file-label">
+            <i class="fas fa-cloud-upload-alt"></i>
+            <span>Click to choose an image</span>
+            <input type="file" accept="image/*" hidden
+                   (change)="onFileSelected($event, 'image')" />
+          </label>
+        </div>
+        <div class="media-chips" *ngIf="blog.imageUrls.length > 0">
+          <div class="media-chip" *ngFor="let url of blog.imageUrls; let i = index">
+            <img [src]="url" alt="img" class="chip-thumb" />
+            <span>{{ getFileName(url) }}</span>
+            <button type="button" (click)="removeItem(blog.imageUrls, i)">
+              <i class="fas fa-times"></i>
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- ── Videos ── -->
+      <div class="form-group">
+        <label><i class="fas fa-video"></i> Video Links</label>
+        <div class="mode-toggle">
+          <button type="button" [class.active]="videoMode === 'url'" (click)="videoMode = 'url'">
+            <i class="fas fa-link"></i> URL
+          </button>
+          <button type="button" [class.active]="videoMode === 'file'" (click)="videoMode = 'file'">
+            <i class="fas fa-upload"></i> Upload from PC
+          </button>
+        </div>
+        <div class="input-add-row" *ngIf="videoMode === 'url'">
+          <input type="url" [(ngModel)]="newVideoUrl" name="newVideoUrl"
+                 placeholder="https://youtube.com/watch?v=..."
+                 [class.input-error]="errors.video" />
+          <button type="button" class="btn-add" (click)="addVideo()">
+            <i class="fas fa-plus"></i> Add
+          </button>
+        </div>
+        <span class="error-msg" *ngIf="errors.video">{{ errors.video }}</span>
+        <div class="file-upload-area" *ngIf="videoMode === 'file'">
+          <label class="file-label">
+            <i class="fas fa-cloud-upload-alt"></i>
+            <span>Click to choose a video</span>
+            <input type="file" accept="video/*" hidden
+                   (change)="onFileSelected($event, 'video')" />
+          </label>
+        </div>
+        <div class="media-chips" *ngIf="blog.videoUrls.length > 0">
+          <div class="media-chip" *ngFor="let url of blog.videoUrls; let i = index">
+            <img [src]="getYoutubeThumbnail(url)" alt="video"
+                 class="chip-thumb" *ngIf="getYoutubeThumbnail(url)" />
+            <i class="fas fa-play-circle chip-icon"
+               *ngIf="!getYoutubeThumbnail(url)"></i>
+            <span>{{ getFileName(url) }}</span>
+            <button type="button" (click)="removeItem(blog.videoUrls, i)">
+              <i class="fas fa-times"></i>
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- ── Attachments ── -->
+      <div class="form-group">
+        <label><i class="fas fa-paperclip"></i> Attachments (PDF, Docs)</label>
+        <div class="mode-toggle">
+          <button type="button" [class.active]="attachmentMode === 'url'" (click)="attachmentMode = 'url'">
+            <i class="fas fa-link"></i> URL
+          </button>
+          <button type="button" [class.active]="attachmentMode === 'file'" (click)="attachmentMode = 'file'">
+            <i class="fas fa-upload"></i> Upload from PC
+          </button>
+        </div>
+        <div class="input-add-row" *ngIf="attachmentMode === 'url'">
+          <input type="url" [(ngModel)]="newAttachmentUrl" name="newAttachmentUrl"
+                 placeholder="https://example.com/document.pdf"
+                 [class.input-error]="errors.attachment" />
+          <button type="button" class="btn-add" (click)="addAttachment()">
+            <i class="fas fa-plus"></i> Add
+          </button>
+        </div>
+        <span class="error-msg" *ngIf="errors.attachment">{{ errors.attachment }}</span>
+        <div class="file-upload-area" *ngIf="attachmentMode === 'file'">
+          <label class="file-label">
+            <i class="fas fa-cloud-upload-alt"></i>
+            <span>Click to choose a file</span>
+            <input type="file" accept=".pdf,.doc,.docx" hidden
+                   (change)="onFileSelected($event, 'attachment')" />
+          </label>
+        </div>
+        <div class="media-chips" *ngIf="blog.attachmentUrls.length > 0">
+          <div class="media-chip" *ngFor="let url of blog.attachmentUrls; let i = index">
+            <i class="fas fa-file-pdf chip-icon"></i>
+            <span>{{ getFileName(url) }}</span>
+            <button type="button" (click)="removeItem(blog.attachmentUrls, i)">
+              <i class="fas fa-times"></i>
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- ── Reference Links (URL only) ── -->
+      <div class="form-group">
+        <label><i class="fas fa-link"></i> Reference Links</label>
+        <div class="input-add-row">
+          <input type="url" [(ngModel)]="newReferenceLink" name="newReferenceLink"
+                 placeholder="https://reference-article.com"
+                 [class.input-error]="errors.reference" />
+          <button type="button" class="btn-add" (click)="addReference()">
+            <i class="fas fa-plus"></i> Add
+          </button>
+        </div>
+        <span class="error-msg" *ngIf="errors.reference">{{ errors.reference }}</span>
+        <div class="media-chips" *ngIf="blog.referenceLinks.length > 0">
+          <div class="media-chip" *ngFor="let url of blog.referenceLinks; let i = index">
+            <i class="fas fa-external-link-alt chip-icon"></i>
+            <span>{{ url }}</span>
+            <button type="button" (click)="removeItem(blog.referenceLinks, i)">
+              <i class="fas fa-times"></i>
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Actions -->
+      <div class="form-actions">
+        <button type="submit" class="btn-publish">
+  <i class="fas fa-paper-plane"></i> {{ isEditMode ? 'Save Changes' : 'Publish' }}
+</button>
+
+        <button type="button" class="btn-draft" (click)="saveDraft()">
+          <i class="fas fa-save"></i> Save as Draft
+        </button>
+        <button type="button" class="btn-cancel" (click)="showForm = false; resetForm()">
+          Cancel
+        </button>
+      </div>
+
+    </form>
+  </div>
+
+  <!-- Articles list -->
+
+<div class="articles-list" *ngIf="blogs.length > 0">
+  <div class="article-card" *ngFor="let b of blogs">
+    <div class="article-info">
+      <h4>{{ b.title }}</h4>
+      <p>{{ b.summary }}</p>
+      <span class="badge" [ngClass]="'badge-' + b.status?.toLowerCase()">
+        {{ b.status }}
+      </span>
+    </div>
+    <div class="article-actions">
+      <button class="btn-edit-action" (click)="startEdit(b)" title="Edit">
+        <i class="fas fa-pen"></i>
+      </button>
+      <button class="btn-delete-action" (click)="deleteBlog(b.id)" title="Delete">
+        <i class="fas fa-trash"></i>
+      </button>
+    </div>
+  </div>
+</div>
+
+   
+  
+
+  <!-- Empty state -->
+  <div class="empty-state" *ngIf="blogs.length === 0 && !showForm">
+    <i class="fas fa-newspaper"></i>
+    <p>You haven't written any articles yet.</p>
+    <button class="btn-create" (click)="showForm = true">Write your first article</button>
+  </div>
+
+</div>

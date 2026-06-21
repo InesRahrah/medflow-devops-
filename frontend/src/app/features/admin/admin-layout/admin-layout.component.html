@@ -1,0 +1,177 @@
+<div class="admin-app-container" [class.sidebar-collapsed]="isSidebarCollapsed">
+  <!-- Sidebar - Glassmorphism & Elevated Elements -->
+  <aside class="admin-sidebar shadow-lg">
+    <div class="sidebar-header">
+      <div class="brand-logo-container">
+        <img src="/assets/images/icon-medflow.png" alt="MedFlow" class="brand-img"/>
+      </div>
+      <span class="brand-name">MedFlow Admin</span>
+    </div>
+
+    <nav class="sidebar-nav">
+      <!-- Main Overview -->
+      <div class="nav-section">
+        <label class="section-title">Overview</label>
+        <ul>
+          <li>
+            <a routerLink="dashboard" routerLinkActive="active" [routerLinkActiveOptions]="{ exact: true }" class="nav-item" [title]="isSidebarCollapsed ? 'Dashboard' : ''">
+              <i class="fas fa-layer-group"></i>
+              <span class="nav-label">Dashboard</span>
+            </a>
+          </li>
+          <li>
+            <a routerLink="analytics" routerLinkActive="active" [routerLinkActiveOptions]="{ exact: false }" class="nav-item" [title]="isSidebarCollapsed ? 'Analytics' : ''">
+              <i class="fas fa-wave-square"></i>
+              <span class="nav-label">Analytics</span>
+            </a>
+          </li>
+        </ul>
+      </div>
+
+      <!-- Administration -->
+      <div class="nav-section">
+        <label class="section-title">Administration</label>
+        <ul>
+          <li>
+            <a routerLink="users" routerLinkActive="active" [routerLinkActiveOptions]="{ exact: false }" class="nav-item" [title]="isSidebarCollapsed ? 'Patients & Users' : ''">
+              <i class="fas fa-user-friends"></i>
+              <span class="nav-label">Patients & Users</span>
+            </a>
+          </li>
+          <li>
+            <a routerLink="staff" routerLinkActive="active" [routerLinkActiveOptions]="{ exact: false }" class="nav-item" [title]="isSidebarCollapsed ? 'Healthcare Staff' : ''">
+              <i class="fas fa-user-nurse"></i>
+              <span class="nav-label">Healthcare Staff</span>
+            </a>
+          </li>
+          <li>
+            <a routerLink="departments" routerLinkActive="active" [routerLinkActiveOptions]="{ exact: false }" class="nav-item" [title]="isSidebarCollapsed ? 'Departments' : ''">
+              <i class="fas fa-clinic-medical"></i>
+              <span class="nav-label">Departments</span>
+            </a>
+          </li>
+        </ul>
+      </div>
+
+      <!-- Platform (New) -->
+      <div class="nav-section">
+        <label class="section-title">Platform</label>
+        <ul>
+          <li>
+            <a routerLink="hospitals" routerLinkActive="active" class="nav-item" [title]="isSidebarCollapsed ? 'Hospitals' : ''">
+              <i class="fas fa-hospital"></i>
+              <span class="nav-label">Hospitals</span>
+            </a>
+          </li>
+        </ul>
+      </div>
+
+      <!-- Operations (New) -->
+      <div class="nav-section">
+        <label class="section-title">Operations</label>
+        <ul>
+          <li>
+            <a routerLink="appointments" routerLinkActive="active" class="nav-item" [title]="isSidebarCollapsed ? 'Appointments' : ''">
+              <i class="fas fa-calendar-check"></i>
+              <span class="nav-label">Appointments</span>
+            </a>
+          </li>
+          <li>
+            <a routerLink="insurance" routerLinkActive="active" class="nav-item" [title]="isSidebarCollapsed ? 'Insurance' : ''">
+              <i class="fas fa-shield-alt"></i>
+              <span class="nav-label">Insurance</span>
+            </a>
+          </li>
+        </ul>
+      </div>
+
+      <!-- Supply (New) -->
+      <div class="nav-section">
+        <label class="section-title">Supply</label>
+        <ul>
+          <li>
+            <a routerLink="pct" routerLinkActive="active" class="nav-item" [title]="isSidebarCollapsed ? 'PCT (Suppliers)' : ''">
+              <i class="fas fa-truck-loading"></i>
+              <span class="nav-label">PCT (Suppliers)</span>
+            </a>
+          </li>
+          <li>
+            <a routerLink="pharmacy" routerLinkActive="active" class="nav-item" [title]="isSidebarCollapsed ? 'Pharmacy Insights' : ''">
+              <i class="fas fa-pills"></i>
+              <span class="nav-label">Pharmacy Insights</span>
+            </a>
+          </li>
+        </ul>
+      </div>
+
+      <!-- Infrastructure -->
+      <div class="nav-section">
+        <label class="section-title">System Control</label>
+        <ul>
+          <li>
+            <a routerLink="settings" routerLinkActive="active" [routerLinkActiveOptions]="{ exact: false }" class="nav-item" [title]="isSidebarCollapsed ? 'System Settings' : ''">
+              <i class="fas fa-sliders-h"></i>
+              <span class="nav-label">System Settings</span>
+            </a>
+          </li>
+          <li>
+            <a routerLink="logs" routerLinkActive="active" [routerLinkActiveOptions]="{ exact: false }" class="nav-item" [title]="isSidebarCollapsed ? 'Access Logs' : ''">
+              <i class="fas fa-fingerprint"></i>
+              <span class="nav-label">Access Logs</span>
+            </a>
+          </li>
+        </ul>
+      </div>
+    </nav>
+
+    <div class="sidebar-footer">
+      <button class="btn-logout" (click)="logout()" [title]="isSidebarCollapsed ? 'Sign Out' : ''">
+        <i class="fas fa-power-off"></i>
+        <span class="nav-label">Sign Out</span>
+      </button>
+    </div>
+  </aside>
+
+  <!-- Main Content Area - Blended Header & Breathing Viewport -->
+  <main class="admin-main">
+    <!-- Top Header - Floating Controls -->
+    <header class="admin-header">
+      <div class="header-left">
+        <div class="toggle-btn shadow-sm" (click)="toggleSidebar()">
+          <i class="fas" [class.fa-align-left]="!isSidebarCollapsed" [class.fa-align-justify]="isSidebarCollapsed"></i>
+        </div>
+        <div class="search-wrapper">
+          <i class="fas fa-search"></i>
+          <input type="text" placeholder="Search system resources..." class="search-input" />
+        </div>
+      </div>
+
+      <div class="header-right">
+        <div class="header-actions">
+          <button class="action-btn shadow-sm" title="System Notifications">
+            <i class="fas fa-bell"></i>
+            <span class="btn-badge"></span>
+          </button>
+          <button class="action-btn shadow-sm" title="Calendar">
+            <i class="fas fa-calendar-alt"></i>
+          </button>
+        </div>
+
+        <div class="user-profile shadow-sm">
+          <div class="user-meta">
+            <span class="user-display-name">{{ adminName }}</span>
+            <span class="user-display-role">Super Admin</span>
+          </div>
+          <div class="user-avatar">
+            {{ adminName.charAt(0) }}
+          </div>
+        </div>
+      </div>
+    </header>
+
+    <!-- Content Viewport -->
+    <div class="admin-content-viewport">
+      <router-outlet></router-outlet>
+    </div>
+  </main>
+</div>

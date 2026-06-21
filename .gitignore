@@ -1,0 +1,23 @@
+# IntelliJ
+.idea/
+*.iml
+
+# Angular
+frontend/node_modules/
+frontend/dist/
+frontend/.angular/
+
+# Spring Boot
+**/target/
+
+# Logs
+*.log
+
+# Windows
+Thumbs.db
+
+# VS Code
+.vscode/
+
+# Uploads temporaires
+backend/uploads/

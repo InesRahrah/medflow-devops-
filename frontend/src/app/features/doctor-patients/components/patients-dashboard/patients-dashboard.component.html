@@ -1,0 +1,294 @@
+<div class="dashboard-container">
+  <!-- Header Section -->
+  <div class="page-header">
+    <div>
+      <h1>Patient Care Board</h1>
+      <p>Manage and monitor your patients</p>
+    </div>
+    <button
+      class="primary-btn"
+      type="button"
+      (click)="openAddPatientModal()"
+      [disabled]="addPatientSubmitting"
+    >
+      {{ addPatientSubmitting ? "Working..." : "Enter Patient Code" }}
+    </button>
+  </div>
+
+  <!-- Search Section -->
+  <div class="app-card filters-bar">
+    <div class="search-bar">
+      <input
+        type="text"
+        class="search-input"
+        placeholder="Search patients by name..."
+        [value]="searchQuery"
+        (input)="onSearchChange($any($event.target).value)"
+        aria-label="Search patients"
+      />
+      <svg
+        class="search-icon"
+        width="20"
+        height="20"
+        viewBox="0 0 24 24"
+        fill="none"
+      >
+        <circle cx="11" cy="11" r="8" stroke="currentColor" stroke-width="2" />
+        <path
+          d="M21 21L16.5 16.5"
+          stroke="currentColor"
+          stroke-width="2"
+          stroke-linecap="round"
+        />
+      </svg>
+    </div>
+  </div>
+
+  <!-- Loading State -->
+  <div *ngIf="loading" class="loading-state">
+    <div class="spinner"></div>
+    <p>Loading patients...</p>
+  </div>
+
+  <!-- Error State -->
+  <div *ngIf="errorMessage && !loading" class="error-banner">
+    <p>{{ errorMessage }}</p>
+  </div>
+
+  <div *ngIf="successMessage && !loading" class="success-banner">
+    <p>{{ successMessage }}</p>
+  </div>
+
+  <!-- Patients Rows -->
+  <div *ngIf="!loading && !errorMessage" class="patients-board">
+    <div class="patient-list" *ngIf="filteredPatients.length > 0">
+      <div class="patients-header" aria-hidden="true">
+        <div>Patient</div>
+        <div>Status</div>
+        <div>Latest Case</div>
+        <div>Last Activity</div>
+        <div>Cases</div>
+        <div></div>
+      </div>
+
+      <button
+        type="button"
+        *ngFor="let patient of filteredPatients"
+        class="patient-row"
+        [class.urgent]="getPriorityClass(patient.caseStatus) === 'urgent'"
+        [class.warning]="getPriorityClass(patient.caseStatus) === 'warning'"
+        (click)="selectPatient(patient)"
+      >
+        <div class="patient-info">
+          <div
+            class="avatar"
+            [style.background-image]="
+              patient.profilePictureUrl
+                ? 'url(' + patient.profilePictureUrl + ')'
+                : 'none'
+            "
+            [class.avatar--image]="!!patient.profilePictureUrl"
+          >
+            <span *ngIf="!patient.profilePictureUrl">{{
+              getPatientInitials(patient)
+            }}</span>
+          </div>
+          <div class="patient-text">
+            <strong>{{ patient.firstName }} {{ patient.lastName }}</strong>
+            <span class="sub">{{ patient.latestCaseName }}</span>
+          </div>
+        </div>
+
+        <div class="status-wrap">
+          <span
+            class="status"
+            [class.status--active]="patient.caseStatus === 'active'"
+            [class.status--urgent]="patient.caseStatus === 'urgent'"
+            [class.status--waiting]="patient.caseStatus === 'waiting'"
+            [class.status--follow-up]="patient.caseStatus === 'follow-up'"
+          >
+            {{ getStatusLabel(patient.caseStatus) }}
+          </span>
+        </div>
+
+        <div class="case">{{ patient.latestCaseName }}</div>
+
+        <div class="activity">{{ patient.lastCaseDate }}</div>
+
+        <div class="cases-count">{{ patient.totalCases }}</div>
+
+        <div class="arrow" aria-hidden="true">›</div>
+      </button>
+    </div>
+
+    <!-- Empty State -->
+    <div *ngIf="filteredPatients.length === 0" class="empty-state">
+      <svg width="64" height="64" viewBox="0 0 24 24" fill="none">
+        <circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="2" />
+        <path
+          d="M12 7v5l3 2"
+          stroke="currentColor"
+          stroke-width="2"
+          stroke-linecap="round"
+        />
+      </svg>
+      <h3>No Patients Found</h3>
+      <p *ngIf="searchQuery">Try adjusting your search or filters</p>
+      <p *ngIf="!searchQuery && patients.length === 0">
+        No patients assigned to you yet
+      </p>
+    </div>
+  </div>
+</div>
+
+<!-- Add Patient Modal -->
+<div
+  *ngIf="showAddPatientModal"
+  class="add-patient-modal"
+  (click)="onAddPatientModalBackdropClick($event)"
+>
+  <div class="add-patient-modal__dialog" role="dialog" aria-modal="true">
+    <header class="add-patient-modal__head">
+      <h3>
+        {{
+          addPatientStep === "code"
+            ? "Verify Patient Code"
+            : "Choose Case Action"
+        }}
+      </h3>
+      <p>
+        {{
+          addPatientStep === "code"
+            ? "Enter the patient access code generated for the patient."
+            : "Create a new case or join one of this patient's existing cases."
+        }}
+      </p>
+    </header>
+
+    <form
+      class="add-patient-modal__form"
+      (ngSubmit)="submitAddPatientFromModal()"
+    >
+      <label>
+        Patient Access Code
+        <input
+          type="text"
+          name="addPatientCode"
+          [(ngModel)]="addPatientCode"
+          maxlength="5"
+          placeholder="Enter patient code"
+          autocomplete="off"
+          [readonly]="addPatientStep === 'action'"
+        />
+      </label>
+
+      <div
+        *ngIf="addPatientStep === 'action'"
+        class="add-patient-modal__step-two"
+      >
+        <div class="add-patient-choice" role="group" aria-label="Case action">
+          <button
+            type="button"
+            class="add-patient-choice__btn"
+            [class.active]="addPatientAction === 'create'"
+            (click)="setAddPatientAction('create')"
+          >
+            Create New Case
+          </button>
+          <button
+            type="button"
+            class="add-patient-choice__btn"
+            [class.active]="addPatientAction === 'join'"
+            (click)="setAddPatientAction('join')"
+            [disabled]="
+              addPatientExistingCases.length === 0 || addPatientCasesLoading
+            "
+          >
+            Join Existing Case
+          </button>
+        </div>
+
+        <p class="status muted" *ngIf="addPatientCasesLoading">
+          Loading existing cases...
+        </p>
+
+        <p
+          class="status muted"
+          *ngIf="
+            !addPatientCasesLoading &&
+            addPatientAction === 'join' &&
+            addPatientExistingCases.length === 0
+          "
+        >
+          No existing cases found for this patient. Create a new case instead.
+        </p>
+
+        <label *ngIf="addPatientAction === 'create'">
+          Medical Case Name
+          <input
+            type="text"
+            name="addPatientCaseName"
+            [(ngModel)]="addPatientCaseName"
+            maxlength="100"
+            placeholder="e.g. Follow-up Hypertension Case"
+            autocomplete="off"
+          />
+        </label>
+
+        <label
+          *ngIf="
+            addPatientAction === 'join' && addPatientExistingCases.length > 0
+          "
+        >
+          Existing Case
+          <app-custom-dropdown
+            class="case-dropdown"
+            name="addPatientJoinCaseId"
+            [options]="addPatientExistingCasesOptions"
+            [placeholder]="'Select a case'"
+            [ngModel]="addPatientJoinCaseId"
+            (ngModelChange)="addPatientJoinCaseId = $any($event)"
+          ></app-custom-dropdown>
+        </label>
+      </div>
+
+      <p
+        *ngIf="addPatientModalError"
+        class="add-patient-modal__error"
+        role="alert"
+      >
+        {{ addPatientModalError }}
+      </p>
+
+      <div class="add-patient-modal__actions">
+        <button
+          type="button"
+          class="btn-secondary"
+          (click)="
+            addPatientStep === 'code'
+              ? closeAddPatientModal()
+              : goBackToAddPatientCodeStep()
+          "
+          [disabled]="addPatientSubmitting"
+        >
+          {{ addPatientStep === "code" ? "Cancel" : "Back" }}
+        </button>
+        <button
+          type="submit"
+          class="btn-primary"
+          [disabled]="addPatientSubmitting"
+        >
+          {{
+            addPatientSubmitting
+              ? "Working..."
+              : addPatientStep === "code"
+                ? "Next"
+                : addPatientAction === "join"
+                  ? "Join Case"
+                  : "Create Case"
+          }}
+        </button>
+      </div>
+    </form>
+  </div>
+</div>

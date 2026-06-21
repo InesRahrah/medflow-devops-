@@ -1,0 +1,185 @@
+<div class="dashboard-container">
+  <!-- HEADER -->
+  <div class="dashboard-header">
+    <div class="header-content">
+      <h1 class="page-title">📊 Central Pharmacy Dashboard</h1>
+      <p class="page-subtitle">Manage and monitor stock requests across your region</p>
+    </div>
+    <div class="header-actions">
+      <button class="btn-refresh" (click)="refreshData()" [disabled]="isRefreshing">
+        <span [class.spin]="isRefreshing">🔄</span> {{ isRefreshing ? 'Refreshing...' : 'Refresh' }}
+      </button>
+    </div>
+  </div>
+
+  <!-- REGION INFO -->
+  <div class="region-banner" *ngIf="region">
+    <span class="region-badge">📍</span>
+    <span>You are viewing requests from: <strong>{{ region }}</strong></span>
+  </div>
+
+  <!-- LOADING STATE -->
+  <div *ngIf="isLoading" class="loading-container">
+    <div class="spinner"></div>
+    <p>Loading dashboard data...</p>
+  </div>
+
+  <!-- MAIN CONTENT -->
+  <div *ngIf="!isLoading" class="dashboard-content">
+
+    <!-- STATISTICS CARDS -->
+    <div class="stats-grid">
+      <!-- TOTAL REQUESTS -->
+      <div class="stat-card total-card">
+        <div class="card-header">
+          <div class="icon-box total">📦</div>
+          <div class="card-title">
+            <h3>Total Requests</h3>
+            <p>All requests in your region</p>
+          </div>
+        </div>
+        <div class="card-value">
+          <h2>{{ displayTotal }}</h2>
+        </div>
+        <div class="card-footer">
+          <span class="trend">{{ totalRequests > 0 ? '📈' : '—' }}</span>
+        </div>
+      </div>
+
+      <!-- PENDING REQUESTS -->
+      <div class="stat-card pending-card">
+        <div class="card-header">
+          <div class="icon-box pending">⏳</div>
+          <div class="card-title">
+            <h3>Pending</h3>
+            <p>Awaiting approval</p>
+          </div>
+        </div>
+        <div class="card-value">
+          <h2>{{ displayPending }}</h2>
+          <span class="percentage">{{ getPercent(pendingRequests) | number:'1.0-0' }}%</span>
+        </div>
+        <div class="card-footer">
+          <span class="status-badge">⚠️ Action Required</span>
+        </div>
+      </div>
+
+      <!-- APPROVED REQUESTS -->
+      <div class="stat-card approved-card">
+        <div class="card-header">
+          <div class="icon-box approved">✅</div>
+          <div class="card-title">
+            <h3>Approved</h3>
+            <p>Ready for delivery</p>
+          </div>
+        </div>
+        <div class="card-value">
+          <h2>{{ displayApproved }}</h2>
+          <span class="percentage">{{ getPercent(approvedRequests) | number:'1.0-0' }}%</span>
+        </div>
+        <div class="card-footer">
+          <span class="status-badge">✓ Approved</span>
+        </div>
+      </div>
+
+      <!-- REJECTED REQUESTS -->
+      <div class="stat-card rejected-card">
+        <div class="card-header">
+          <div class="icon-box rejected">❌</div>
+          <div class="card-title">
+            <h3>Rejected</h3>
+            <p>Declined requests</p>
+          </div>
+        </div>
+        <div class="card-value">
+          <h2>{{ displayRejected }}</h2>
+          <span class="percentage">{{ getPercent(rejectedRequests) | number:'1.0-0' }}%</span>
+        </div>
+        <div class="card-footer">
+          <span class="status-badge">✕ Rejected</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- PROGRESS VISUALIZATION -->
+    <div class="progress-section" *ngIf="totalRequests > 0">
+      <h3 class="section-title">Request Distribution</h3>
+      <div class="progress-container">
+        <div class="progress-bar">
+          <div 
+            class="bar pending-bar" 
+            [style.width.%]="getPercent(pendingRequests)"
+            [title]="'Pending: ' + pendingRequests"
+          ></div>
+          <div 
+            class="bar approved-bar" 
+            [style.width.%]="getPercent(approvedRequests)"
+            [title]="'Approved: ' + approvedRequests"
+          ></div>
+          <div 
+            class="bar rejected-bar" 
+            [style.width.%]="getPercent(rejectedRequests)"
+            [title]="'Rejected: ' + rejectedRequests"
+          ></div>
+        </div>
+      </div>
+      <div class="progress-legend">
+        <div class="legend-item">
+          <div class="color-box pending"></div>
+          <span>Pending ({{ getPercent(pendingRequests) | number:'1.0-0' }}%)</span>
+        </div>
+        <div class="legend-item">
+          <div class="color-box approved"></div>
+          <span>Approved ({{ getPercent(approvedRequests) | number:'1.0-0' }}%)</span>
+        </div>
+        <div class="legend-item">
+          <div class="color-box rejected"></div>
+          <span>Rejected ({{ getPercent(rejectedRequests) | number:'1.0-0' }}%)</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- CHARTS SECTION -->
+    <div class="charts-section">
+      <div class="chart-card">
+        <h3 class="chart-title">📊 Status Distribution</h3>
+        <div class="chart-container">
+          <canvas id="pieChart"></canvas>
+        </div>
+      </div>
+
+      <div class="chart-card">
+        <h3 class="chart-title">📈 Request Overview</h3>
+        <div class="chart-container">
+          <canvas id="barChart"></canvas>
+        </div>
+      </div>
+    </div>
+
+    <!-- SMART INSIGHTS -->
+    <div class="insights-section">
+      <div class="insight-card">
+        <h3 class="insight-title">💡 Dashboard Insights</h3>
+        <p class="insight-message">{{ getInsight() }}</p>
+        <div class="insight-details">
+          <div class="detail-item">
+            <span class="label">Approval Rate:</span>
+            <span class="value">{{ getPercent(approvedRequests) | number:'1.0-0' }}%</span>
+          </div>
+          <div class="detail-item">
+            <span class="label">Processing Rate:</span>
+            <span class="value">{{ (100 - getPercent(pendingRequests)) | number:'1.0-0' }}%</span>
+          </div>
+          <div class="detail-item">
+            <span class="label">Average Status:</span>
+            <span class="value" [ngClass]="getPercent(approvedRequests) > 50 ? 'healthy' : 'warning'">
+              {{ getPercent(approvedRequests) > 50 ? '✅ Good' : '⚠️ Needs Attention' }}
+            </span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+</div>

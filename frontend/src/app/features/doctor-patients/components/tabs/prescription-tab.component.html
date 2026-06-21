@@ -1,0 +1,310 @@
+<div class="prescription-tab">
+  <div class="status-message error" *ngIf="errorMessage">
+    {{ errorMessage }}
+  </div>
+
+  <section class="app-card">
+    <div class="prescription-header">
+      <div>
+        <h3>Add Prescription</h3>
+        <p>Create a prescription with clear dosage planning.</p>
+      </div>
+      <button
+        type="button"
+        class="add-medicine-btn"
+        (click)="addMedicine()"
+        [disabled]="submitting"
+      >
+        <span>Add medicine</span>
+      </button>
+    </div>
+
+    <div class="prescription-form">
+      <!-- Medicines List with Inline Editing -->
+      <div class="medicines-section">
+        <!-- Medicine Cards List -->
+        <div class="medicines-list" *ngIf="medicines.length > 0">
+          <div
+            *ngFor="let medicine of medicines; let i = index"
+            class="medicine-card"
+          >
+            <div class="medicine-card-header">
+              <button
+                type="button"
+                class="medicine-collapse-btn"
+                (click)="toggleMedicineCollapse(medicine)"
+                [attr.aria-label]="
+                  medicine.collapsed
+                    ? 'Expand medicine card'
+                    : 'Collapse medicine card'
+                "
+              >
+                <span>{{ medicine.name || "New medicine" }}</span>
+                <svg
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="2"
+                >
+                  <polyline
+                    points="6 9 12 15 18 9"
+                    [attr.transform]="
+                      medicine.collapsed ? '' : 'rotate(180 12 12)'
+                    "
+                  ></polyline>
+                </svg>
+              </button>
+
+              <button
+                type="button"
+                class="medicine-remove-btn"
+                [class.medicine-remove-btn--clear]="medicines.length === 1"
+                (click)="removeMedicine(i)"
+                [disabled]="submitting"
+                [title]="medicines.length === 1 ? 'Clear' : 'Remove'"
+                [attr.aria-label]="medicines.length === 1 ? 'Clear' : 'Remove'"
+              >
+                <span>{{ medicines.length === 1 ? "Clear" : "Remove" }}</span>
+              </button>
+            </div>
+
+            <div class="medicine-card-expanded" *ngIf="!medicine.collapsed">
+              <div class="medicine-field-group">
+                <div class="field full">
+                  <label>Medicine Name</label>
+                  <div class="medicine-autocomplete">
+                    <input
+                      type="text"
+                      class="form-input"
+                      [ngModel]="medicine.name"
+                      (ngModelChange)="
+                        onMedicineFieldChange($any($event), medicine)
+                      "
+                      maxlength="120"
+                      (focus)="onMedicineInputFocus(medicine.name, medicine)"
+                      (blur)="
+                        onMedicineInputBlur(); markMedicineNameTouched(medicine)
+                      "
+                      (keydown)="onMedicineInputKeyDown($event)"
+                      placeholder="e.g. Paracetamol 500mg"
+                      autocomplete="off"
+                    />
+                    <div
+                      class="medicine-suggestions"
+                      *ngIf="
+                        showMedicineSuggestions &&
+                        medicineSuggestions.length > 0
+                      "
+                    >
+                      <button
+                        type="button"
+                        class="medicine-suggestion-item"
+                        *ngFor="let item of medicineSuggestions; let j = index"
+                        [class.active]="j === highlightedIndex"
+                        (mousedown)="
+                          selectMedicineSuggestion(item, medicine);
+                          $event.preventDefault()
+                        "
+                      >
+                        {{ item.name }}
+                      </button>
+                    </div>
+                  </div>
+                  <span
+                    class="hint hint-error"
+                    *ngIf="
+                      isMedicineNameTouched(medicine) &&
+                      getMedicineNameError(medicine)
+                    "
+                  >
+                    {{ getMedicineNameError(medicine) }}
+                  </span>
+                </div>
+
+                <div class="dosage-panel">
+                  <div class="dosage-panel__title">Dosage per period</div>
+                  <div class="dosage-row">
+                    <div class="field">
+                      <label>Morning</label>
+                      <div class="stepper">
+                        <button
+                          type="button"
+                          class="stepper-btn"
+                          (click)="decrementDose(medicine, 'morning')"
+                          [disabled]="submitting"
+                          aria-label="Decrease morning dose"
+                        >
+                          −
+                        </button>
+                        <span class="stepper-value">{{
+                          medicine.morning
+                        }}</span>
+                        <button
+                          type="button"
+                          class="stepper-btn"
+                          (click)="incrementDose(medicine, 'morning')"
+                          [disabled]="submitting"
+                          aria-label="Increase morning dose"
+                        >
+                          +
+                        </button>
+                      </div>
+                    </div>
+                    <div class="field">
+                      <label>Noon</label>
+                      <div class="stepper">
+                        <button
+                          type="button"
+                          class="stepper-btn"
+                          (click)="decrementDose(medicine, 'noon')"
+                          [disabled]="submitting"
+                          aria-label="Decrease noon dose"
+                        >
+                          −
+                        </button>
+                        <span class="stepper-value">{{ medicine.noon }}</span>
+                        <button
+                          type="button"
+                          class="stepper-btn"
+                          (click)="incrementDose(medicine, 'noon')"
+                          [disabled]="submitting"
+                          aria-label="Increase noon dose"
+                        >
+                          +
+                        </button>
+                      </div>
+                    </div>
+                    <div class="field">
+                      <label>Night</label>
+                      <div class="stepper">
+                        <button
+                          type="button"
+                          class="stepper-btn"
+                          (click)="decrementDose(medicine, 'night')"
+                          [disabled]="submitting"
+                          aria-label="Decrease night dose"
+                        >
+                          −
+                        </button>
+                        <span class="stepper-value">{{ medicine.night }}</span>
+                        <button
+                          type="button"
+                          class="stepper-btn"
+                          (click)="incrementDose(medicine, 'night')"
+                          [disabled]="submitting"
+                          aria-label="Increase night dose"
+                        >
+                          +
+                        </button>
+                      </div>
+                    </div>
+
+                    <div class="field field--days">
+                      <label>Days</label>
+                      <div class="stepper stepper--days-inline">
+                        <button
+                          type="button"
+                          class="stepper-btn"
+                          (click)="decrementDuration(medicine)"
+                          [disabled]="submitting"
+                          aria-label="Decrease duration"
+                        >
+                          −
+                        </button>
+                        <span class="stepper-value">{{
+                          medicine.duration
+                        }}</span>
+                        <button
+                          type="button"
+                          class="stepper-btn"
+                          (click)="incrementDuration(medicine)"
+                          [disabled]="submitting"
+                          aria-label="Increase duration"
+                        >
+                          +
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                  <span
+                    class="hint hint-error"
+                    *ngIf="
+                      isDosePlanTouched(medicine) && getDosePlanError(medicine)
+                    "
+                  >
+                    {{ getDosePlanError(medicine) }}
+                  </span>
+                </div>
+
+                <div class="field full">
+                  <label>Dose Notes</label>
+                  <textarea
+                    class="form-textarea"
+                    [(ngModel)]="medicine.doseNotes"
+                    (ngModelChange)="persistDraft()"
+                    maxlength="280"
+                    (blur)="markDoseNotesTouched(medicine)"
+                    rows="2"
+                    placeholder="Before food, after food, mix with food..."
+                  ></textarea>
+                  <span class="hint"
+                    >{{ medicine.doseNotes.length }}/280 characters</span
+                  >
+                  <span
+                    class="hint hint-error"
+                    *ngIf="
+                      isDoseNotesTouched(medicine) &&
+                      getDoseNotesError(medicine)
+                    "
+                  >
+                    {{ getDoseNotesError(medicine) }}
+                  </span>
+                </div>
+              </div>
+            </div>
+
+            <div class="medicine-summary" *ngIf="medicine.collapsed">
+              {{ getMedicineSummary(medicine) }}
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Prescription Notes -->
+      <div class="field full">
+        <label>Prescription Notes</label>
+        <textarea
+          class="form-textarea"
+          [(ngModel)]="prescriptionNotes"
+          (ngModelChange)="persistDraft()"
+          maxlength="1000"
+          (blur)="markPrescriptionNotesTouched()"
+          rows="3"
+          placeholder="Add general treatment notes..."
+        ></textarea>
+        <span class="hint">{{ prescriptionNotes.length }}/1000 characters</span>
+        <span
+          class="hint hint-error"
+          *ngIf="prescriptionNotesTouched && prescriptionNotesError"
+        >
+          {{ prescriptionNotesError }}
+        </span>
+      </div>
+
+      <!-- Submit Button -->
+      <div class="form-actions">
+        <button
+          class="primary-btn"
+          [disabled]="!canSubmitPrescription"
+          (click)="addPrescription()"
+        >
+          {{ submitting ? "Creating..." : "Create Prescription" }}
+        </button>
+      </div>
+    </div>
+  </section>
+
+  <div *ngIf="loading" class="empty-state">
+    <p>Loading prescriptions...</p>
+  </div>
+</div>

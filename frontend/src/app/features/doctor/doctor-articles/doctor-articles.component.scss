@@ -1,0 +1,437 @@
+// ── Layout ───────────────────────────────────────
+.articles-container {
+  padding: 1.5rem;
+  max-width: 900px;
+  margin: 0 auto;
+}
+
+.articles-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 1.5rem;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+
+  h2 {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: #1e293b;
+    margin: 0;
+  }
+}
+
+// ── Buttons ──────────────────────────────────────
+.btn-create {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.55rem 1.2rem;
+  background: #1a73e8;
+  color: #fff;
+  border: none;
+  border-radius: 8px;
+  font-size: 0.9rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.2s;
+  &:hover { background: #1558b0; }
+}
+
+.btn-browse {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.55rem 1.2rem;
+  background: #f1f5f9;
+  color: #475569;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  font-size: 0.9rem;
+  font-weight: 500;
+  cursor: pointer;
+  text-decoration: none;
+  transition: all 0.2s;
+  &:hover { background: #e2e8f0; }
+}
+
+// ── Create form ──────────────────────────────────
+.create-form {
+  background: #fff;
+  border: 1px solid #e2e8f0;
+  border-radius: 16px;
+  padding: 2rem;
+  margin-bottom: 2rem;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.06);
+
+  h3 {
+    font-size: 1.2rem;
+    font-weight: 700;
+    color: #1e293b;
+    margin-bottom: 1.5rem;
+  }
+}
+
+.form-group {
+  margin-bottom: 1.2rem;
+
+  label {
+    display: block;
+    font-size: 0.875rem;
+    font-weight: 600;
+    color: #374151;
+    margin-bottom: 0.4rem;
+    i { margin-right: 0.3rem; color: #1a73e8; }
+  }
+
+  input[type="text"],
+  input[type="url"],
+  textarea {
+    width: 100%;
+    padding: 0.6rem 0.9rem;
+    border: 1px solid #d1d5db;
+    border-radius: 8px;
+    font-size: 0.9rem;
+    color: #1e293b;
+    background: #f9fafb;
+    transition: border-color 0.2s, box-shadow 0.2s;
+    box-sizing: border-box;
+
+    &:focus {
+      outline: none;
+      border-color: #1a73e8;
+      box-shadow: 0 0 0 3px rgba(26,115,232,0.15);
+      background: #fff;
+    }
+
+    &::placeholder { color: #9ca3af; }
+  }
+
+  textarea { resize: vertical; line-height: 1.6; }
+}
+
+.form-actions {
+  display: flex;
+  gap: 0.75rem;
+  margin-top: 1.5rem;
+  flex-wrap: wrap;
+
+  .btn-publish {
+    padding: 0.6rem 1.4rem;
+    background: #1a73e8;
+    color: #fff;
+    border: none;
+    border-radius: 8px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background 0.2s;
+    &:hover { background: #1558b0; }
+  }
+
+  .btn-draft {
+    padding: 0.6rem 1.4rem;
+    background: #f1f5f9;
+    color: #475569;
+    border: 1px solid #e2e8f0;
+    border-radius: 8px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+    &:hover { background: #e2e8f0; }
+  }
+
+  .btn-cancel {
+    padding: 0.6rem 1.4rem;
+    background: #fff;
+    color: #ef4444;
+    border: 1px solid #fca5a5;
+    border-radius: 8px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+    &:hover { background: #fef2f2; }
+  }
+}
+
+// ── Articles list ────────────────────────────────
+.articles-list {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.article-card {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: #fff;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  padding: 1.2rem 1.5rem;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+  transition: box-shadow 0.2s;
+
+  &:hover { box-shadow: 0 4px 16px rgba(0,0,0,0.08); }
+
+  .article-info {
+    flex: 1;
+
+    h4 {
+      font-size: 1rem;
+      font-weight: 700;
+      color: #1e293b;
+      margin: 0 0 0.3rem;
+    }
+
+    p {
+      font-size: 0.85rem;
+      color: #64748b;
+      margin: 0 0 0.5rem;
+    }
+  }
+  // ← nested button block REMOVED from here
+}
+
+// ── Badge ────────────────────────────────────────
+.badge {
+  display: inline-block;
+  padding: 0.2rem 0.7rem;
+  border-radius: 20px;
+  font-size: 0.75rem;
+  font-weight: 600;
+
+  &.badge-published { background: #dcfce7; color: #166534; }
+  &.badge-draft     { background: #fef9c3; color: #854d0e; }
+  &.badge-archived  { background: #f1f5f9; color: #64748b; }
+}
+
+// ── Empty state ──────────────────────────────────
+.empty-state {
+  text-align: center;
+  padding: 4rem 2rem;
+  color: #94a3b8;
+
+  i { font-size: 3rem; margin-bottom: 1rem; display: block; }
+  p { font-size: 1rem; margin-bottom: 1.5rem; }
+}
+
+// ── Mode toggle ──────────────────────────────────
+.mode-toggle {
+  display: flex;
+  gap: 0.4rem;
+  margin-bottom: 0.5rem;
+
+  button {
+    padding: 0.3rem 0.85rem;
+    border: 1px solid #cbd5e1;
+    border-radius: 20px;
+    background: #f8fafc;
+    color: #64748b;
+    font-size: 0.8rem;
+    cursor: pointer;
+    transition: all 0.2s;
+
+    &.active {
+      background: #1a73e8;
+      border-color: #1a73e8;
+      color: #fff;
+    }
+
+    &:hover:not(.active) { background: #e2e8f0; }
+  }
+}
+
+// ── File upload area ─────────────────────────────
+.file-upload-area {
+  .file-label {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.4rem;
+    padding: 1.2rem;
+    border: 2px dashed #cbd5e1;
+    border-radius: 10px;
+    cursor: pointer;
+    color: #94a3b8;
+    transition: all 0.2s;
+
+    i { font-size: 1.5rem; }
+    span { font-size: 0.85rem; }
+
+    &:hover {
+      border-color: #1a73e8;
+      color: #1a73e8;
+      background: #eff6ff;
+    }
+  }
+}
+
+// ── Cover preview ────────────────────────────────
+.img-preview {
+  margin-top: 0.5rem;
+  border-radius: 10px;
+  overflow: hidden;
+  max-height: 200px;
+
+  img {
+    width: 100%;
+    height: 200px;
+    object-fit: cover;
+  }
+}
+
+// ── Media chips ──────────────────────────────────
+.media-chips {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+  margin-top: 0.5rem;
+
+  .media-chip {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    background: #f8fafc;
+    border: 1px solid #e2e8f0;
+    border-radius: 8px;
+    padding: 0.4rem 0.75rem;
+    font-size: 0.82rem;
+    color: #475569;
+
+    .chip-thumb {
+      width: 36px;
+      height: 36px;
+      object-fit: cover;
+      border-radius: 4px;
+      flex-shrink: 0;
+    }
+
+    .chip-icon {
+      font-size: 1.2rem;
+      color: #94a3b8;
+      flex-shrink: 0;
+    }
+
+    span {
+      flex: 1;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    button {
+      background: none;
+      border: none;
+      color: #ef4444;
+      cursor: pointer;
+      padding: 0;
+      font-size: 0.8rem;
+      flex-shrink: 0;
+      &:hover { color: #b91c1c; }
+    }
+  }
+}
+
+// ── Input add row ────────────────────────────────
+.input-add-row {
+  display: flex;
+  gap: 0.5rem;
+  align-items: center;
+
+  input { flex: 1; }
+
+  .btn-add {
+    white-space: nowrap;
+    padding: 0.5rem 1rem;
+    background: #e8f4fd;
+    color: #1a73e8;
+    border: 1px solid #1a73e8;
+    border-radius: 8px;
+    font-size: 0.85rem;
+    cursor: pointer;
+    transition: all 0.2s;
+    &:hover { background: #1a73e8; color: #fff; }
+  }
+}
+
+// ── Validation ───────────────────────────────────
+.input-error {
+  border-color: #ef4444 !important;
+  background: #fef2f2 !important;
+}
+
+.error-msg {
+  display: block;
+  color: #ef4444;
+  font-size: 0.78rem;
+  margin-top: 0.25rem;
+}
+
+// ── Article action buttons ───────────────────────
+.article-actions {
+  display: flex;
+  gap: 0.5rem;
+  align-items: center;
+}
+
+.btn-edit-action {
+  background: #eff6ff;
+  color: #1a73e8;
+  border: 1px solid #bfdbfe;
+  border-radius: 8px;
+  padding: 0.4rem 0.65rem;
+  cursor: pointer;
+  transition: all 0.2s;
+  &:hover { background: #1a73e8; color: #fff; }
+}
+
+.btn-delete-action {
+  background: #fff0f0;
+  color: #ef4444;
+  border: 1px solid #fecaca;
+  border-radius: 8px;
+  padding: 0.4rem 0.65rem;
+  cursor: pointer;
+  transition: all 0.2s;
+  &:hover { background: #ef4444; color: #fff; }
+}
+
+// ── Quill Rich Text Editor ───────────────────────
+quill-editor {
+  display: block;
+  border: 1px solid #d1d5db;
+  border-radius: 8px;
+  overflow: hidden;
+  background: #fff;
+  transition: border-color 0.2s, box-shadow 0.2s;
+
+  &:focus-within {
+    border-color: #1a73e8;
+    box-shadow: 0 0 0 3px rgba(26, 115, 232, 0.15);
+  }
+
+  .ql-toolbar {
+    border: none;
+    border-bottom: 1px solid #e5e7eb;
+    background: #f9fafb;
+    padding: 8px 10px;
+  }
+
+  .ql-container {
+    border: none;
+    font-family: inherit;
+    font-size: 0.9rem;
+  }
+
+  .ql-editor {
+    min-height: 300px;
+    padding: 14px;
+    line-height: 1.7;
+    color: #1e293b;
+
+    &.ql-blank::before {
+      color: #9ca3af;
+      font-style: normal;
+    }
+  }
+}

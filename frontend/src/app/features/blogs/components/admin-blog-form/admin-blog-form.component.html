@@ -1,0 +1,179 @@
+<div class="dashboard-content">
+  <div class="dashboard-card admin-manage-card">
+
+    <!-- HEADER -->
+    <div class="page-header">
+      <span class="section-label">Admin Panel</span>
+      <h2 class="section-title">Manage Blog Posts</h2>
+      <p class="section-subtitle">
+        Search, filter, and manage your blog content easily.
+      </p>
+    </div>
+
+    <!-- TOOLBAR -->
+    <div class="toolbar">
+      <div class="search-box">
+        <span class="search-icon">🔍</span>
+        <input
+          type="text"
+          [(ngModel)]="searchTerm"
+          (input)="applyFilters()"
+          placeholder="Search blog posts..."
+          class="search-input"
+        />
+      </div>
+
+      <div class="filter-buttons">
+        <button (click)="filterStatus('ALL')" [class.active]="selectedStatus === 'ALL'">
+          All <span>{{ blogs.length }}</span>
+        </button>
+
+        <button (click)="filterStatus('PUBLISHED')" [class.active]="selectedStatus === 'PUBLISHED'">
+          Published <span>{{ getStatusCount('PUBLISHED') }}</span>
+        </button>
+
+        <button (click)="filterStatus('DRAFT')" [class.active]="selectedStatus === 'DRAFT'">
+          Draft <span>{{ getStatusCount('DRAFT') }}</span>
+        </button>
+      </div>
+    </div>
+
+    <!-- RESULTS -->
+<div class="results-bar" *ngIf="filteredBlogs.length > 0">
+  <div class="results-left">
+    <span class="results-count">{{ filteredBlogs.length }}</span>
+    <span class="results-text">posts found</span>
+  </div>
+
+  <div class="results-right">
+    <span class="filter-label">Filter:</span>
+    <span class="filter-badge">{{ selectedStatus }}</span>
+  </div>
+</div>
+    <!-- BLOG LIST (CARD STYLE) -->
+    <div class="blogs-container" *ngIf="filteredBlogs.length > 0; else empty">
+
+      <div class="blog-row" *ngFor="let blog of filteredBlogs">
+
+        <!-- LEFT -->
+        <div class="blog-main">
+          <div class="blog-title">{{ blog.title || 'Untitled Post' }}</div>
+          <div class="blog-meta">ID: {{ blog.id }}</div>
+          <div class="blog-summary">
+            {{ blog.summary || blog.content || 'No content available' }}
+          </div>
+        </div>
+
+        <!-- AUTHOR -->
+        <div class="blog-author">
+          <div class="author-avatar">
+            {{ (blog.authorName || 'A').charAt(0) }}
+          </div>
+          <span>{{ blog.authorName || 'Unknown' }}</span>
+        </div>
+
+        <!-- STATUS -->
+        <div class="blog-status">
+          <span
+            class="status-badge"
+            [ngClass]="'status-' + (blog.status || 'DRAFT').toLowerCase()">
+            {{ blog.status || 'DRAFT' }}
+          </span>
+        </div>
+
+        <!-- ACTIONS -->
+<div class="blog-actions">
+
+  <button class="btn icon view" (click)="viewBlog(blog)" title="View">
+    👁
+  </button>
+
+  <button class="btn success"
+    (click)="updateStatus(blog, 'PUBLISHED')"
+    [disabled]="blog.status === 'PUBLISHED'">
+    Publish
+  </button>
+
+  <button class="btn neutral"
+    (click)="updateStatus(blog, 'DRAFT')"
+    [disabled]="blog.status === 'DRAFT'">
+    Draft
+  </button>
+
+  <button class="btn danger" (click)="confirmDeleteBlog(blog.id)">
+    Delete
+  </button>
+
+</div>
+      </div>
+
+    </div>
+
+    <!-- EMPTY -->
+    <ng-template #empty>
+      <div class="empty-state-admin">
+        <h3>No blog posts found</h3>
+        <p>Try adjusting your filters or search.</p>
+      </div>
+    </ng-template>
+
+  </div>
+</div>
+
+<!-- VIEW MODAL -->
+<div class="confirm-overlay" *ngIf="showViewModal">
+  <div class="view-modal">
+
+    <!-- HEADER -->
+    <div class="view-header">
+      <div>
+        <h2>{{ selectedBlog?.title }}</h2>
+        <div class="view-meta">
+          <span>{{ selectedBlog?.authorName }}</span>
+          <span
+            class="status-badge"
+            [ngClass]="'status-' + (selectedBlog?.status || 'DRAFT').toLowerCase()">
+            {{ selectedBlog?.status || 'DRAFT' }}
+          </span>
+        </div>
+      </div>
+
+      <button class="close-btn" (click)="closeViewModal()">✕</button>
+    </div>
+
+    <!-- BODY -->
+    <div class="view-body">
+
+      <div class="view-section" *ngIf="selectedBlog?.summary">
+        <h4>Summary</h4>
+        <p>{{ selectedBlog?.summary }}</p>
+      </div>
+
+      <div class="view-section">
+        <h4>Content</h4>
+        <div class="view-content">
+          {{ selectedBlog?.content }}
+        </div>
+      </div>
+
+    </div>
+
+    <!-- FOOTER -->
+    <div class="view-footer">
+      <button class="btn close" (click)="closeViewModal()">Close</button>
+    </div>
+
+  </div>
+</div>
+<!-- DELETE MODAL -->
+<div class="confirm-overlay" *ngIf="showDeleteConfirm">
+  <div class="confirm-box">
+    <h3>Delete this post?</h3>
+    <p>This action cannot be undone.</p>
+
+    <div class="confirm-actions">
+      <button class="btn cancel" (click)="cancelDeleteBlog()">Cancel</button>
+      <button class="btn delete" (click)="deleteBlogConfirmed()">Delete</button>
+    </div>
+  </div>
+</div>

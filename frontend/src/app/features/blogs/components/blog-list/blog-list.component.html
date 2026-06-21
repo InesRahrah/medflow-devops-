@@ -1,0 +1,161 @@
+<div class="blog-page">
+
+    <button class="back-btn" (click)="goBack()">
+    <i class="fas fa-arrow-left"></i> Back
+  </button>
+
+  <!-- Header -->
+  <div class="blog-header">
+    <span class="label-tag">HEALTH RESOURCES</span>
+    <h1>Explore Articles</h1>
+    <p>Discover insights written by our medical professionals, tailored to your health.</p>
+    <div class="search-bar">
+      <i class="fas fa-search search-icon"></i>
+      <input type="text" [(ngModel)]="searchTerm"
+             placeholder="Search by title, category or keyword..."
+             (keyup.enter)="onSearch()" />
+      <button class="search-btn" (click)="onSearch()">Search</button>
+      <button *ngIf="isSearching" class="clear-btn" (click)="clearSearch()">
+        <i class="fas fa-times"></i>
+      </button>
+    </div>
+  </div>
+
+  <!-- Loading -->
+  <div *ngIf="loading" class="loading-wrap">
+    <div class="spinner"></div>
+    <p>Loading articles...</p>
+  </div>
+
+  <ng-container *ngIf="!loading">
+
+    <!-- Featured Slider -->
+    <div class="featured-banner" *ngIf="!isSearching && featuredBlogs.length > 0">
+      <div class="slides-container">
+        <div class="slide"
+             *ngFor="let blog of featuredBlogs; let i = index"
+             [class.active]="i === currentSlide"
+             [style.background]="blog.coverImageUrl
+               ? 'url(' + blog.coverImageUrl + ') center/cover no-repeat'
+               : getGradient(i)">
+          <div class="slide-overlay"></div>
+          <div class="slide-content">
+            <span class="slide-category">{{ blog.category }}</span>
+            <h2>{{ blog.title }}</h2>
+
+            <!-- ✅ FIXED: strip HTML tags for plain text preview -->
+            <p>{{ blog.summary ? blog.summary : stripHtml(blog.content) }}</p>
+
+            <div class="slide-meta">
+              <span><i class="fas fa-user-md"></i> {{ blog.authorName }}</span>
+              <span><i class="fas fa-clock"></i> {{ getReadTime(blog.content) }} min read</span>
+            </div>
+            <a [routerLink]="['/blogs', blog.id]" class="slide-btn">
+              Read Article <i class="fas fa-arrow-right"></i>
+            </a>
+          </div>
+        </div>
+      </div>
+      <div class="slide-dots" *ngIf="featuredBlogs.length > 1">
+        <button *ngFor="let b of featuredBlogs; let i = index"
+                class="dot" [class.active]="i === currentSlide"
+                (click)="goToSlide(i)">
+        </button>
+      </div>
+    </div>
+
+    <!-- Grid Header -->
+    <div class="grid-header" *ngIf="!isSearching && regularBlogs.length > 0">
+      <h3>More Articles</h3>
+      <span class="article-count">{{ regularBlogs.length }} articles</span>
+    </div>
+    <div class="grid-header" *ngIf="isSearching">
+      <h3>Search Results</h3>
+      <span class="article-count">{{ blogs.length }} found for "{{ searchTerm }}"</span>
+    </div>
+
+    <!-- Masonry Grid -->
+    <div class="masonry-grid"
+         *ngIf="(isSearching ? blogs : regularBlogs).length > 0">
+
+      <div class="masonry-card"
+           *ngFor="let blog of (isSearching ? blogs : regularBlogs); let i = index">
+
+        <a class="card-link" [routerLink]="['/blogs', blog.id]">
+
+          <div class="card-cover"
+               [style.background]="blog.coverImageUrl ? 'none' : getGradient(i)">
+            <img *ngIf="blog.coverImageUrl"
+                 [src]="blog.coverImageUrl"
+                 [alt]="blog.title"
+                 loading="lazy" />
+            <div class="cover-icon" *ngIf="!blog.coverImageUrl">
+              <i class="fas fa-file-medical-alt"></i>
+            </div>
+          </div>
+
+          <div class="card-body">
+            <span class="category-chip"
+                  [style.background]="getCategoryStyle(blog.category).bg"
+                  [style.color]="getCategoryStyle(blog.category).text">
+              <span class="chip-dot"
+                    [style.background]="getCategoryStyle(blog.category).dot">
+              </span>
+              {{ blog.category || 'General' }}
+            </span>
+            <h4>{{ blog.title }}</h4>
+
+            <!-- ✅ FIXED: strip HTML tags for plain text preview -->
+            <p class="card-summary">
+              {{ blog.summary ? blog.summary : stripHtml(blog.content) }}
+            </p>
+
+          </div>
+
+        </a>
+
+        <!-- Footer -->
+        <div class="card-footer">
+          <div class="author-line">
+            <div class="author-avatar">{{ blog.authorName[0] || 'D' }}</div>
+            <span>{{ blog.authorName }}</span>
+          </div>
+
+          <div class="card-meta-right">
+            <span class="read-time">{{ getReadTime(blog.content) }} min</span>
+            <span class="views">
+              <i class="fas fa-eye"></i> {{ blog.viewCount }}
+            </span>
+
+            <button class="repost-btn-sm"
+                    [class.reposted]="isRepostedMap[blog.id]"
+                    [disabled]="repostLoadingMap[blog.id]"
+                    (click)="onRepost(blog, $event)"
+                    [title]="isRepostedMap[blog.id]
+                      ? 'Remove from your profile'
+                      : 'Repost to your profile'">
+              <i class="fas"
+                 [class.fa-retweet]="!repostLoadingMap[blog.id]"
+                 [class.fa-spinner]="repostLoadingMap[blog.id]"
+                 [class.fa-spin]="repostLoadingMap[blog.id]">
+              </i>
+              <span>{{ repostCountMap[blog.id] || 0 }}</span>
+            </button>
+
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- Empty State -->
+    <div class="empty-state"
+         *ngIf="(isSearching ? blogs : regularBlogs).length === 0 && featuredBlogs.length === 0">
+      <i class="fas fa-newspaper"></i>
+      <h3>No articles found</h3>
+      <p>Try a different search term or check back later.</p>
+      <button class="slide-btn" (click)="clearSearch()">Browse All Articles</button>
+    </div>
+
+  </ng-container>
+</div>

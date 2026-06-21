@@ -1,0 +1,464 @@
+<section class="record-section">
+  <div class="container">
+    <div *ngIf="!isLoggedIn" class="state-card">
+      <h3>Login to view your medical record</h3>
+      <p>
+        For privacy and security, this section is available only to
+        authenticated patients.
+      </p>
+      <a routerLink="/login" class="btn-primary">Login to Continue</a>
+    </div>
+
+    <div *ngIf="isLoggedIn && !isPatient" class="state-card">
+      <h3>This page is reserved for patient accounts</h3>
+      <p>
+        You are logged in with a non-patient role. Open your workspace dashboard
+        instead.
+      </p>
+      <a routerLink="/login" class="btn-outline">Switch Account</a>
+    </div>
+
+    <div *ngIf="isLoggedIn && isPatient" class="record-layout">
+      <div class="section-header record-header">
+        <span class="section-label">PATIENT RECORDS</span>
+        <h2 class="section-title">Your Medical Journey</h2>
+        <p class="section-subtitle">
+          Explore your complete medical case history, including consultations,
+          lab updates, and treatment plans managed by your care team.
+        </p>
+      </div>
+
+      <!-- Tabs -->
+      <div class="record-tabs">
+        <button
+          class="tab-btn"
+          [class.active]="activeView === 'cases'"
+          (click)="activeView = 'cases'"
+        >
+          Medical Cases
+        </button>
+        <button
+          class="tab-btn"
+          [class.active]="activeView === 'treatment'"
+          (click)="activeView = 'treatment'"
+        >
+          My Treatments
+        </button>
+      </div>
+
+      <div *ngIf="loading" class="state-card">
+        <p>Loading your medical record...</p>
+      </div>
+
+      <div *ngIf="errorMessage" class="state-card">
+        <p>{{ errorMessage }}</p>
+      </div>
+
+      <!-- Medical Cases View -->
+      <div *ngIf="activeView === 'cases'">
+        <!-- Grid View of Medical Cases - Horizontally Scrollable -->
+        <div class="cases-grid-section">
+          <div
+            #casesTrack
+            class="cases-grid-container"
+            [class.dragging]="isDraggingCases"
+            aria-label="Medical cases"
+            (pointerdown)="startCasesDrag($event, casesTrack)"
+            (pointermove)="onCasesDrag($event, casesTrack)"
+            (pointerup)="stopCasesDrag($event, casesTrack)"
+            (pointercancel)="stopCasesDrag($event, casesTrack)"
+            (pointerleave)="stopCasesDrag($event, casesTrack)"
+          >
+            <div class="cases-grid">
+              <div
+                *ngFor="let medCase of medicalCases"
+                class="case-grid-card"
+                [class.active]="selectedCaseId === medCase.id"
+                (click)="onCaseCardClick(medCase.id)"
+              >
+                <span class="case-number">{{ medCase.caseNumber }}</span>
+                <h4 class="case-name">{{ medCase.caseName }}</h4>
+                <div class="case-dates-row">
+                  <p class="case-date-small">
+                    <span class="date-label">Start</span>
+                    {{ getCaseStartDate(medCase) | date: "MMM d, y" }}
+                  </p>
+                  <p class="case-date-small case-date-end">
+                    <span class="date-label">End</span>
+                    {{ getCaseEndDate(medCase) | date: "MMM d, y" }}
+                  </p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Timeline View - Shows details of selected case -->
+        <div class="timeline-section">
+          <div
+            *ngIf="selectedCaseId && selectedCaseDisplayDetails.length > 0"
+            class="timeline-shell"
+          >
+            <div
+              #timelineTrack
+              class="timeline-track case-details-track"
+              [class.dragging]="isDraggingTimeline"
+              aria-label="Medical timeline"
+              (pointerdown)="startTimelineDrag($event, timelineTrack)"
+              (pointermove)="onTimelineDrag($event, timelineTrack)"
+              (pointerup)="stopTimelineDrag($event, timelineTrack)"
+              (pointercancel)="stopTimelineDrag($event, timelineTrack)"
+              (pointerleave)="stopTimelineDrag($event, timelineTrack)"
+            >
+              <article
+                class="timeline-item"
+                *ngFor="let detail of selectedCaseDisplayDetails; let i = index"
+                (click)="onCaseStepClick(detail)"
+                role="button"
+                tabindex="0"
+                (keydown.enter)="onCaseStepClick(detail)"
+                (keydown.space)="
+                  onCaseStepClick(detail); $event.preventDefault()
+                "
+              >
+                <p class="detail-date-main">
+                  {{ detail.date | date: "MMM d, yyyy" }}
+                </p>
+                <div class="case-rail">
+                  <svg
+                    class="case-dot-svg"
+                    viewBox="0 0 24 24"
+                    aria-hidden="true"
+                  >
+                    <path
+                      *ngFor="let iconPath of getSvgIconPaths(detail.type)"
+                      [attr.d]="iconPath"
+                      fill="none"
+                      stroke="currentColor"
+                      stroke-width="2"
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                    />
+                  </svg>
+                </div>
+                <div class="case-card detail-card">
+                  <div class="detail-header-main">
+                    <span class="detail-type-badge">{{
+                      getDetailLabel(detail.type)
+                    }}</span>
+                  </div>
+                  <h4 class="case-title">{{ detail.name }}</h4>
+                  <p class="detail-personnel-info">
+                    {{ getCaseStepDoctorName(detail) }}
+                  </p>
+                  <p
+                    *ngIf="getCaseStepDisplayNotes(detail)"
+                    class="detail-description"
+                  >
+                    {{ getCaseStepDisplayNotes(detail) }}
+                  </p>
+                </div>
+              </article>
+            </div>
+          </div>
+
+          <div *ngIf="!selectedCaseId" class="no-case-selected">
+            <p>
+              Select a medical case to view detailed consultation, lab, and
+              treatment information.
+            </p>
+          </div>
+
+          <div
+            *ngIf="selectedCaseId && selectedCaseDisplayDetails.length === 0"
+            class="no-case-selected"
+          >
+            <p>No details found for this medical case yet.</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Treatment View -->
+      <div *ngIf="activeView === 'treatment'">
+        <app-patient-treatment></app-patient-treatment>
+      </div>
+
+      <div
+        *ngIf="showCaseDetailModal && selectedCaseStepDetail"
+        class="case-step-modal"
+        (click)="onCaseStepModalBackdropClick($event)"
+      >
+        <div class="case-step-modal__dialog" role="dialog" aria-modal="true">
+          <header class="case-step-modal__head">
+            <span class="case-step-modal__eyebrow">Case Step Detail</span>
+            <h3>{{ selectedCaseStepDetail.name }}</h3>
+            <p>{{ getDetailLabel(selectedCaseStepDetail.type) }}</p>
+          </header>
+
+          <section class="case-step-modal__body">
+            <p *ngIf="caseStepModalError" class="case-step-modal__inline-error">
+              {{ caseStepModalError }}
+            </p>
+
+            <div class="case-step-modal__columns">
+              <div class="case-step-modal__left">
+                <div class="case-step-modal__meta">
+                  <span>Date</span>
+                  <strong>{{
+                    selectedCaseStepDetail.date | date: "MMM d, y, h:mm a"
+                  }}</strong>
+                </div>
+
+                <div
+                  class="case-step-modal__detail"
+                  *ngIf="getCaseStepDisplayNotes(selectedCaseStepDetail)"
+                >
+                  <span>Details</span>
+                  <p>{{ getCaseStepDisplayNotes(selectedCaseStepDetail) }}</p>
+                </div>
+
+                <div
+                  class="case-step-modal__detail"
+                  *ngIf="selectedCaseStepDetail.type === 'lab_request'"
+                >
+                  <span>Status</span>
+                  <p>{{ getLabRequestStatusLabel(selectedCaseStepDetail) }}</p>
+                </div>
+
+                <div
+                  class="case-step-modal__detail"
+                  *ngIf="hasCaseStepScanSelection(selectedCaseStepDetail)"
+                >
+                  <div class="case-step-modal__detail-heading-row">
+                    <span>Scan Coverage</span>
+                    <button
+                      type="button"
+                      class="case-step-modal__cycle-btn"
+                      (click)="patientScanCoverageSelector.cycleView()"
+                    >
+                      {{ patientScanCoverageSelector.cycleButtonLabel }}
+                    </button>
+                  </div>
+                  <div class="case-step-modal__scan-content">
+                    <app-body-scan-selector
+                      #patientScanCoverageSelector
+                      [readonly]="true"
+                      [displayMode]="'cycle'"
+                      [showCycleControl]="false"
+                      [showSelectedList]="true"
+                      [selectedPartIds]="
+                        selectedLabRequestScanSelection?.selectedPartIds || []
+                      "
+                      [activeLayers]="
+                        selectedLabRequestScanSelection?.activeLayers ||
+                        defaultScanLayers
+                      "
+                      [title]="'Requested Imaging Focus'"
+                      [subtitle]="
+                        'Body areas selected by your doctor for this scan.'
+                      "
+                    ></app-body-scan-selector>
+                  </div>
+                </div>
+
+                <div
+                  class="case-step-modal__detail"
+                  *ngIf="
+                    selectedCaseStepDetail.type === 'lab_results' &&
+                    getResultFileUrl(selectedCaseStepDetail)
+                  "
+                >
+                  <span>Result File</span>
+                  <a
+                    [href]="getResultFileUrl(selectedCaseStepDetail)"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    class="case-step-modal__doctor-link"
+                  >
+                    Open uploaded result file
+                  </a>
+                </div>
+              </div>
+
+              <div class="case-step-modal__right">
+                <div class="case-step-modal__doctor">
+                  <h4>Doctor</h4>
+
+                  <p
+                    *ngIf="loadingCaseStepDoctor"
+                    class="case-step-modal__loading"
+                  >
+                    Loading doctor profile...
+                  </p>
+
+                  <ng-container *ngIf="!loadingCaseStepDoctor">
+                    <div class="case-step-modal__doctor-simple">
+                      <div class="case-step-modal__doctor-headline">
+                        <span
+                          class="case-step-modal__doctor-icon"
+                          aria-hidden="true"
+                        >
+                          <svg viewBox="0 0 24 24" focusable="false">
+                            <path
+                              d="M12 12.75a4.75 4.75 0 1 0 0-9.5 4.75 4.75 0 0 0 0 9.5Zm0 1.5c-4.42 0-8 2.35-8 5.25 0 .41.34.75.75.75h14.5a.75.75 0 0 0 .75-.75c0-2.9-3.58-5.25-8-5.25Z"
+                            />
+                          </svg>
+                        </span>
+                        <div class="case-step-modal__doctor-identity">
+                          <strong>{{
+                            getCaseStepDoctorName(selectedCaseStepDetail)
+                          }}</strong>
+                          <p class="case-step-modal__doctor-specialty">
+                            {{ getDoctorSpecialty(selectedCaseStepDoctor) }}
+                          </p>
+                        </div>
+                      </div>
+
+                      <a
+                        *ngIf="getCaseStepDoctorId(selectedCaseStepDetail)"
+                        class="case-step-modal__doctor-link"
+                        [routerLink]="['/doctors']"
+                        [queryParams]="{
+                          doctorId: getCaseStepDoctorId(selectedCaseStepDetail),
+                        }"
+                      >
+                        View Doctor Profile
+                      </a>
+
+                      <span
+                        *ngIf="!getCaseStepDoctorId(selectedCaseStepDetail)"
+                        class="case-step-modal__doctor-link case-step-modal__doctor-link--disabled"
+                      >
+                        Doctor profile link unavailable
+                      </span>
+                    </div>
+                  </ng-container>
+                </div>
+
+                <div
+                  class="case-step-modal__detail"
+                  *ngIf="canAssignLaboratory(selectedCaseStepDetail)"
+                >
+                  <span>Select Laboratory</span>
+
+                  <p
+                    *ngIf="loadingLaboratories"
+                    class="case-step-modal__loading"
+                  >
+                    Loading laboratories...
+                  </p>
+
+                  <ng-container *ngIf="!loadingLaboratories">
+                    <app-custom-dropdown
+                      [(ngModel)]="selectedLaboIdForRequest"
+                      class="case-step-modal__lab-dropdown case-step-modal__lab-dropdown--compact"
+                      [options]="
+                        getEligibleLaboratoryOptions(selectedCaseStepDetail)
+                      "
+                      [placeholder]="'Choose laboratory'"
+                      [searchable]="true"
+                    ></app-custom-dropdown>
+
+                    <button
+                      type="button"
+                      class="btn-primary case-step-modal__assign-btn"
+                      [disabled]="
+                        assigningLaboratory || !selectedLaboIdForRequest
+                      "
+                      (click)="assignLaboratoryToCurrentRequest()"
+                    >
+                      {{
+                        assigningLaboratory
+                          ? "Assigning..."
+                          : "Assign Laboratory"
+                      }}
+                    </button>
+
+                    <p
+                      *ngIf="assignLaboratoryError"
+                      class="case-step-modal__inline-error"
+                    >
+                      {{ assignLaboratoryError }}
+                    </p>
+                  </ng-container>
+                </div>
+              </div>
+            </div>
+
+            <div
+              class="case-step-modal__doses case-step-modal__doses--full"
+              *ngIf="selectedCaseStepDetail.type === 'treatment'"
+            >
+              <h4>Prescription Doses</h4>
+
+              <p
+                *ngIf="loadingPrescriptionStepDosages"
+                class="case-step-modal__loading"
+              >
+                Loading doses...
+              </p>
+
+              <p
+                *ngIf="
+                  !loadingPrescriptionStepDosages &&
+                  prescriptionStepDosages.length === 0
+                "
+                class="case-step-modal__empty"
+              >
+                No doses found for this prescription step.
+              </p>
+
+              <div
+                class="case-step-modal__dose-list"
+                *ngIf="
+                  !loadingPrescriptionStepDosages &&
+                  prescriptionStepDosages.length > 0
+                "
+              >
+                <article
+                  class="case-step-modal__dose-row"
+                  *ngFor="let dose of prescriptionStepDosages"
+                >
+                  <div class="case-step-modal__dose-main">
+                    <strong>{{ dose.medicineName }}</strong>
+                    <span>{{ dose.quantity }} unit(s)</span>
+                  </div>
+                  <div class="case-step-modal__dose-meta">
+                    <span
+                      class="case-step-modal__period-tag"
+                      [class.case-step-modal__period-tag--morning]="
+                        getDosePeriodLabel(dose.time) === 'Morning'
+                      "
+                      [class.case-step-modal__period-tag--afternoon]="
+                        getDosePeriodLabel(dose.time) === 'Afternoon'
+                      "
+                      [class.case-step-modal__period-tag--night]="
+                        getDosePeriodLabel(dose.time) === 'Night'
+                      "
+                    >
+                      {{ getDosePeriodLabel(dose.time) }}
+                    </span>
+                    <span>{{ dose.time | date: "MMM d, h:mm a" }}</span>
+                    <span [class.done]="dose.taken">{{
+                      dose.taken ? "Taken" : "Not Taken"
+                    }}</span>
+                  </div>
+                </article>
+              </div>
+            </div>
+          </section>
+
+          <footer class="case-step-modal__actions">
+            <button
+              type="button"
+              class="btn-primary"
+              (click)="closeCaseStepModal()"
+            >
+              Close
+            </button>
+          </footer>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>

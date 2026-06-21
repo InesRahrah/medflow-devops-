@@ -1,0 +1,214 @@
+<div class="modal-overlay" *ngIf="isOpen" (click)="close()">
+  <div class="modal-content animate-modal" (click)="$event.stopPropagation()">
+    <div class="modal-header">
+      <div class="header-title">
+        <span class="header-kicker">New Entry</span>
+        <h2>Create New Appointment</h2>
+      </div>
+      <button type="button" class="close-btn" (click)="close()" aria-label="Close modal">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+          <line x1="18" y1="6" x2="6" y2="18"></line>
+          <line x1="6" y1="6" x2="18" y2="18"></line>
+        </svg>
+      </button>
+    </div>
+
+    <div class="modal-body">
+      <div *ngIf="errorMessage" class="error-banner">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <circle cx="12" cy="12" r="10"></circle>
+          <line x1="12" y1="8" x2="12" y2="12"></line>
+          <line x1="12" y1="16" x2="12.01" y2="16"></line>
+        </svg>
+        <span>{{ errorMessage }}</span>
+      </div>
+
+      <form [formGroup]="appointmentForm" (ngSubmit)="onSubmit()" class="enhanced-form">
+        <div class="form-section">
+          <div class="form-group">
+            <label for="patient">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+                <circle cx="12" cy="7" r="4"></circle>
+              </svg>
+              Patient *
+            </label>
+            <div class="autocomplete-wrapper">
+              <input
+                id="patient"
+                type="text"
+                class="form-control"
+                formControlName="patientName"
+                placeholder="Search patient by name..."
+                (input)="onPatientInput()"
+                (focus)="onPatientFocus()"
+                (blur)="onPatientBlur()"
+                [class.error]="appointmentForm.get('patientName')?.invalid && appointmentForm.get('patientName')?.touched"
+              />
+
+              <div class="suggestions-list" *ngIf="showPatientSuggestions">
+                <button
+                  type="button"
+                  class="suggestion-item"
+                  *ngFor="let patient of filteredPatients"
+                  (mousedown)="selectPatient(patient)"
+                >
+                  <div class="avatar-tiny">{{ patient.name.charAt(0) }}</div>
+                  <span>{{ patient.name }}</span>
+                </button>
+
+                <div class="suggestion-empty" *ngIf="filteredPatients.length === 0">
+                  No matching patients in your list.
+                </div>
+              </div>
+            </div>
+            <div *ngIf="appointmentForm.get('patientName')?.invalid && appointmentForm.get('patientName')?.touched" class="error-hint">
+              <span *ngIf="appointmentForm.get('patientName')?.errors?.['required']">Select a patient for this appointment.</span>
+              <span *ngIf="appointmentForm.get('patientName')?.errors?.['patientNotFound']">Patient must be from your list.</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label for="date">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
+                <line x1="16" y1="2" x2="16" y2="6"></line>
+                <line x1="8" y1="2" x2="8" y2="6"></line>
+                <line x1="3" y1="10" x2="21" y2="10"></line>
+              </svg>
+              Date *
+            </label>
+            <input type="date" id="date" formControlName="date" class="form-control"
+                   [min]="getMinDate()" (change)="onDateChange()"
+                   [class.error]="appointmentForm.get('date')?.invalid && appointmentForm.get('date')?.touched" />
+          </div>
+
+          <div class="form-group">
+            <label for="time">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <circle cx="12" cy="12" r="10"></circle>
+                <polyline points="12 6 12 12 16 14"></polyline>
+              </svg>
+              Time *
+            </label>
+            <app-custom-dropdown
+              id="time"
+              formControlName="time"
+              [options]="timeOptions"
+              [placeholder]="isSlotsLoading ? 'Loading slots...' : 'Pick slot'"
+              (ngModelChange)="checkTimeAvailability()"
+              [disabled]="isSlotsLoading"
+              required
+            ></app-custom-dropdown>
+            <div *ngIf="appointmentForm.get('time')?.errors?.['timeTaken']" class="error-hint">Already booked.</div>
+          </div>
+        </div>
+
+        <div class="form-section">
+          <label class="section-label">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"></path>
+              <rect x="8" y="2" width="8" height="4" rx="1" ry="1"></rect>
+            </svg>
+            Appointment Type *
+          </label>
+          <div class="type-cards-grid">
+            <label class="type-card" [class.selected]="appointmentForm.get('appointmentType')?.value === 'consultation'">
+              <input type="radio" formControlName="appointmentType" value="consultation" class="hidden-radio" />
+              <div class="type-card-content">
+                <div class="type-card-icon type-card-icon--blue">
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path>
+                  </svg>
+                </div>
+                <div class="type-card-info">
+                  <strong>Consultation</strong>
+                  <span>Standard medical checkup</span>
+                </div>
+                <div class="type-card-check">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3">
+                    <polyline points="20 6 9 17 4 12"></polyline>
+                  </svg>
+                </div>
+              </div>
+            </label>
+
+            <label class="type-card" [class.selected]="appointmentForm.get('appointmentType')?.value === 'follow-up'">
+              <input type="radio" formControlName="appointmentType" value="follow-up" class="hidden-radio" />
+              <div class="type-card-content">
+                <div class="type-card-icon type-card-icon--orange">
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M23 4v6h-6"></path>
+                    <path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"></path>
+                  </svg>
+                </div>
+                <div class="type-card-info">
+                  <strong>Follow-up</strong>
+                  <span>Subsequent visit for review</span>
+                </div>
+                <div class="type-card-check">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3">
+                    <polyline points="20 6 9 17 4 12"></polyline>
+                  </svg>
+                </div>
+              </div>
+            </label>
+          </div>
+        </div>
+
+        <div class="form-section">
+          <div class="form-group">
+            <label for="reason">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+                <polyline points="14 2 14 8 20 8"></polyline>
+                <line x1="16" y1="13" x2="8" y2="13"></line>
+                <line x1="16" y1="17" x2="8" y2="17"></line>
+                <polyline points="10 9 9 9 8 9"></polyline>
+              </svg>
+              Reason *
+            </label>
+            <textarea id="reason" formControlName="reason" class="form-control"
+                      rows="2" placeholder="Describe the reason..."
+                      [class.error]="appointmentForm.get('reason')?.invalid && appointmentForm.get('reason')?.touched"></textarea>
+            <div *ngIf="appointmentForm.get('reason')?.invalid && appointmentForm.get('reason')?.touched" class="error-hint">
+              <span *ngIf="appointmentForm.get('reason')?.errors?.['required']">Reason is required.</span>
+              <span *ngIf="appointmentForm.get('reason')?.errors?.['minlength']">Too short (min 5 chars).</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="form-section" *ngIf="isFollowUpSelected">
+          <div class="form-group">
+            <label for="followUpNotes">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
+                <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
+              </svg>
+              Follow-up Notes
+            </label>
+            <textarea
+              id="followUpNotes"
+              formControlName="followUpNotes"
+              class="form-control"
+              rows="2"
+              placeholder="e.g., Prescribe new medication, refer to specialist..."
+            ></textarea>
+          </div>
+        </div>
+      </form>
+    </div>
+
+    <div class="modal-footer">
+      <button type="button" class="btn-cancel" (click)="close()" [disabled]="isLoading">
+        Cancel
+      </button>
+      <button type="button" class="btn-submit" (click)="onSubmit()" [disabled]="appointmentForm.invalid || isLoading">
+        <span *ngIf="!isLoading">Send Request</span>
+        <div class="loader-sm" *ngIf="isLoading"></div>
+      </button>
+    </div>
+  </div>
+</div>

@@ -1,0 +1,167 @@
+<main class="dashboard-content animate-up">
+  <!-- Hero Section -->
+  <section class="dashboard-hero">
+    <div class="container">
+      <div class="hero-flex">
+        <div class="hero-text">
+          <span class="badge">Lab Specialist</span>
+          <h1>Laboratory Dashboard</h1>
+          <p>
+            Manage diagnostic requests, process lab, and deliver precise
+            results.
+          </p>
+        </div>
+        <div class="hero-actions">
+          <button class="btn btn-primary" routerLink="/lab/pending-reports">
+            <i class="fas fa-list-check"></i> Open Reports
+          </button>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Stats Grid -->
+  <section class="stats-grid-section">
+    <div class="container">
+      <div class="stats-grid">
+        <div class="stat-card glass shadow-sm">
+          <div class="stat-icon urgent">
+            <i class="fas fa-exclamation-circle"></i>
+          </div>
+          <div class="stat-info">
+            <span class="stat-label">Urgent Pending</span>
+            <span class="stat-value">0</span>
+          </div>
+        </div>
+
+        <div class="stat-card glass shadow-sm">
+          <div class="stat-icon pending">
+            <i class="fas fa-clock"></i>
+          </div>
+          <div class="stat-info">
+            <span class="stat-label">Standard Pending</span>
+            <span class="stat-value">0</span>
+          </div>
+        </div>
+
+        <div class="stat-card glass shadow-sm">
+          <div class="stat-icon completed">
+            <i class="fas fa-check-double"></i>
+          </div>
+          <div class="stat-info">
+            <span class="stat-label">Completed Today</span>
+            <span class="stat-value">0</span>
+          </div>
+        </div>
+
+        <div class="stat-card glass shadow-sm">
+          <div class="stat-icon total">
+            <i class="fas fa-clipboard-list"></i>
+          </div>
+          <div class="stat-info">
+            <span class="stat-label">Total Volume</span>
+            <span class="stat-value">0</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Main Content Area -->
+  <section class="main-dashboard-area">
+    <div class="container">
+      <div class="dashboard-grid">
+        <!-- Recent Requests -->
+        <div class="content-card glass shadow">
+          <div class="card-header">
+            <h3>Recent Lab Requests</h3>
+            <button class="btn btn-text" routerLink="/lab/pending-reports">
+              Reports
+            </button>
+          </div>
+          <div class="table-responsive">
+            <table class="data-table">
+              <thead>
+                <tr>
+                  <th>Patient</th>
+                  <th>Test Type</th>
+                  <th>Status</th>
+                  <th>Requested By</th>
+                  <th>Action</th>
+                </tr>
+              </thead>
+              <tbody *ngIf="recentRequests.length > 0">
+                <tr *ngFor="let request of recentRequests">
+                  <td>
+                    <div class="patient-cell">
+                      <div class="avatar-sm">
+                        {{ request.patientName.charAt(0) }}
+                      </div>
+                      <span>{{ request.patientName }}</span>
+                    </div>
+                  </td>
+                  <td>{{ request.testType }}</td>
+                  <td>
+                    <span
+                      class="priority-badge"
+                      [class.urgent]="request.status === 'PENDING'"
+                    >
+                      {{ request.status }}
+                    </span>
+                  </td>
+                  <td>Dr. {{ request.doctorName }}</td>
+                  <td>
+                    <button
+                      *ngIf="request.status !== 'COMPLETED'"
+                      class="btn btn-secondary btn-sm"
+                      [routerLink]="['/lab/upload-result', request.id]"
+                    >
+                      <i class="fas fa-file-upload"></i> Fill Report
+                    </button>
+                    <span
+                      *ngIf="request.status === 'COMPLETED'"
+                      class="priority-badge"
+                      >Completed</span
+                    >
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+            <div
+              class="empty-state-placeholder"
+              *ngIf="recentRequests.length === 0"
+            >
+              <p>No recent diagnostic requests found.</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Sidebar / Recent Activity -->
+        <div class="sidebar-card glass shadow">
+          <div class="card-header">
+            <h3>Recent Activity</h3>
+          </div>
+          <div class="activity-list" *ngIf="recentActivity.length > 0">
+            <div class="activity-item" *ngFor="let activity of recentActivity">
+              <div class="activity-icon" [ngClass]="activity.type">
+                <i [class]="activity.icon"></i>
+              </div>
+              <div class="activity-details">
+                <p class="activity-text">
+                  <strong>{{ activity.title }}</strong> {{ activity.desc }}
+                </p>
+                <span class="activity-time">{{ activity.time }}</span>
+              </div>
+            </div>
+          </div>
+          <div
+            class="empty-state-placeholder"
+            *ngIf="recentActivity.length === 0"
+          >
+            <p>No recent activity logs.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+</main>

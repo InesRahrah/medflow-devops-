@@ -1,0 +1,303 @@
+
+<div class="profile-container">
+  <div class="container">
+    <div class="profile-layout">
+      <!-- Sidebar / Info Card -->
+      <aside class="profile-sidebar">
+        <div class="profile-card">
+          <div class="profile-avatar-wrapper">
+            <div class="profile-avatar">
+              <img
+                *ngIf="userProfile.profilePictureUrl"
+                [src]="userProfile.profilePictureUrl"
+                alt="Profile"
+                class="avatar-img"
+              />
+              <span
+                *ngIf="!userProfile.profilePictureUrl"
+                class="avatar-initials"
+                >{{
+                  (userProfile.companyName ? userProfile.companyName[0] : 'I') | uppercase
+                }}</span
+              >
+            </div>
+            <div class="avatar-actions">
+              <button class="edit-avatar-btn" (click)="fileInput.click()" title="Update Picture">
+                <svg
+                  width="16"
+                  height="16"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="2"
+                >
+                  <path
+                    d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"
+                  ></path>
+                  <circle cx="12" cy="13" r="4"></circle>
+                </svg>
+              </button>
+              <button *ngIf="userProfile.profilePictureUrl" class="remove-avatar-btn" (click)="removeProfilePicture()" title="Remove Picture">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <line x1="18" y1="6" x2="6" y2="18"></line>
+                  <line x1="6" y1="6" x2="18" y2="18"></line>
+                </svg>
+              </button>
+            </div>
+            <input
+              type="file"
+              #fileInput
+              hidden
+              accept="image/*"
+              (change)="onFileSelected($event)"
+            />
+          </div>
+
+          <div class="profile-identity-header">
+            <h2>{{ userProfile.companyName || "Insurance Company" }}</h2>
+            <p class="specialty-badge">Insurance Provider</p>
+          </div>
+
+          <div class="profile-quick-stats">
+            <div class="quick-stat">
+              <span class="stat-num">{{
+                userProfile.registrationNumber || "-"
+              }}</span>
+              <span class="stat-label">Reg. Number</span>
+            </div>
+            <div class="quick-stat">
+              <i
+                class="fas fa-shield-alt"
+                style="
+                  font-size: 1.5rem;
+                  color: var(--primary);
+                  margin-bottom: 5px;
+                "
+              ></i>
+              <span class="stat-label">Coverage</span>
+            </div>
+          </div>
+
+          <nav class="profile-tabs">
+            <button class="tab-link active">Company Details</button>
+          </nav>
+        </div>
+      </aside>
+
+      <!-- Main Content -->
+      <main class="profile-main">
+        <div class="content-card">
+          <div class="card-header">
+            <h3>Provider Details</h3>
+            <div class="header-actions">
+              <button
+                *ngIf="!isEditing"
+                class="edit-btn"
+                (click)="toggleEdit()"
+              >
+                <svg
+                  width="16"
+                  height="16"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="2"
+                >
+                  <path
+                    d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"
+                  ></path>
+                  <path
+                    d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"
+                  ></path>
+                </svg>
+                Edit Profile
+              </button>
+              <ng-container *ngIf="isEditing">
+                <button
+                  class="cancel-btn"
+                  (click)="loadProfile(); toggleEdit()"
+                  [disabled]="isLoading"
+                >
+                  Cancel
+                </button>
+                <button
+                  class="save-btn"
+                  (click)="saveProfile(profileForm)"
+                  [disabled]="isLoading"
+                >
+                  {{ isLoading ? "Saving..." : "Save Changes" }}
+                </button>
+              </ng-container>
+            </div>
+          </div>
+
+          <form class="profile-form" #profileForm="ngForm" novalidate>
+            <!-- General Information -->
+            <div class="form-grid">
+              <div class="form-group">
+                <label>Company Name</label>
+                <input
+                  type="text"
+                  [(ngModel)]="userProfile.companyName"
+                  name="companyName"
+                  [readonly]="!isEditing"
+                  required
+                  [class.invalid]="isFieldInvalid(profileForm, 'companyName')"
+                />
+                <small
+                  class="field-error"
+                  *ngIf="isFieldInvalid(profileForm, 'companyName')"
+                >
+                  {{
+                    getFieldError(profileForm, "companyName", "Company Name")
+                  }}
+                </small>
+              </div>
+
+              <div class="form-group">
+                <label>Registration Number</label>
+                <input
+                  type="text"
+                  [(ngModel)]="userProfile.registrationNumber"
+                  name="registrationNumber"
+                  [readonly]="!isEditing"
+                  required
+                  [class.invalid]="
+                    isFieldInvalid(profileForm, 'registrationNumber')
+                  "
+                />
+                <small
+                  class="field-error"
+                  *ngIf="isFieldInvalid(profileForm, 'registrationNumber')"
+                >
+                  {{
+                    getFieldError(
+                      profileForm,
+                      "registrationNumber",
+                      "Registration Number"
+                    )
+                  }}
+                </small>
+              </div>
+
+              <div class="form-group">
+                <label>Email Address</label>
+                <input
+                  type="email"
+                  [(ngModel)]="userProfile.email"
+                  name="email"
+                  readonly
+                />
+              </div>
+
+              <div class="form-group">
+                <label>Phone Number</label>
+                <input
+                  type="text"
+                  pattern="^[0-9]{8}$"
+                  maxlength="8"
+                  [(ngModel)]="userProfile.phone"
+                  name="phone"
+                  [readonly]="!isEditing"
+                  required
+                  [class.invalid]="isFieldInvalid(profileForm, 'phone')"
+                />
+                <small
+                  class="field-error"
+                  *ngIf="isFieldInvalid(profileForm, 'phone')"
+                >
+                  {{ getFieldError(profileForm, "phone", "Phone Number") }}
+                </small>
+              </div>
+
+              <div class="form-group full-width">
+                <label>Address</label>
+                <textarea
+                  [(ngModel)]="userProfile.address"
+                  name="address"
+                  [readonly]="!isEditing"
+                  rows="2"
+                  required
+                  [class.invalid]="isFieldInvalid(profileForm, 'address')"
+                ></textarea>
+                <small
+                  class="field-error"
+                  *ngIf="isFieldInvalid(profileForm, 'address')"
+                >
+                  {{ getFieldError(profileForm, "address", "Address") }}
+                </small>
+              </div>
+            </div>
+
+            <div class="section-divider"></div>
+            <div class="education-section">
+              <h4>Coverage & Operations</h4>
+            </div>
+
+            <div class="form-grid">
+              <div class="form-group full-width">
+                <label>Coverage Types</label>
+                <app-custom-multi-dropdown
+                  [(ngModel)]="userProfile.coverageTypes"
+                  name="coverageTypes"
+                  [options]="coverageTypeOptions"
+                  placeholder="Select coverage types"
+                  [disabled]="!isEditing"
+                  [emitAs]="'comma'"
+                  required
+                ></app-custom-multi-dropdown>
+                <small
+                  class="field-error"
+                  *ngIf="isFieldInvalid(profileForm, 'coverageTypes')"
+                >
+                  {{
+                    getFieldError(
+                      profileForm,
+                      "coverageTypes",
+                      "Coverage Types"
+                    )
+                  }}
+                </small>
+              </div>
+
+              <div class="form-group full-width">
+                <label>Claim Process Description</label>
+                <textarea
+                  [(ngModel)]="userProfile.claimProcessDescription"
+                  name="claimProcessDescription"
+                  [readonly]="!isEditing"
+                  rows="4"
+                  placeholder="Describe the steps for submitting and handling claims..."
+                ></textarea>
+              </div>
+            </div>
+          </form>
+        </div>
+      </main>
+    </div>
+  </div>
+</div>
+
+<!-- Success Popup -->
+<div class="success-popup" [class.show]="showSuccessPopup">
+  <div class="popup-content">
+    <div class="success-icon">
+      <svg
+        width="24"
+        height="24"
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        stroke-width="3"
+      >
+        <polyline points="20 6 9 17 4 12"></polyline>
+      </svg>
+    </div>
+    <div class="popup-text">
+      <h4>Success!</h4>
+      <p>{{ popupMessage || "Your profile has been updated." }}</p>
+    </div>
+    <button class="close-popup" (click)="closePopup()">&times;</button>
+  </div>
+</div>
+

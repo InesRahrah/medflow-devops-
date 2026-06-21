@@ -1,0 +1,189 @@
+<div class="pharmacist-requests-container">
+  <!-- Header Section -->
+  <div class="page-header">
+    <div class="header-content">
+      <h1 class="page-title">Prescription Requests</h1>
+      <p class="page-subtitle">Create and manage medication requests</p>
+    </div>
+    <button class="btn-primary" (click)="toggleForm()">
+      <span class="plus-icon">+</span> New Request
+    </button>
+  </div>
+
+  <!-- Edit Mode Modal -->
+  <div class="edit-modal" *ngIf="isEditMode && selectedRequest">
+    <div class="edit-modal-overlay" (click)="cancelEdit()"></div>
+    <div class="edit-modal-content">
+      <div class="edit-modal-header">
+        <h2>Edit Request</h2>
+        <button class="btn-close" (click)="cancelEdit()">✕</button>
+      </div>
+
+      <div class="edit-modal-body">
+        <div class="form-group">
+          <label class="form-label">Priority</label>
+          <select class="form-input" [(ngModel)]="selectedRequest.requestPriority">
+            <option value="LOW">Low</option>
+            <option value="MEDIUM">Medium</option>
+            <option value="HIGH">High</option>
+          </select>
+        </div>
+
+       <div class="form-group">
+  <label class="form-label">Status</label>
+  <input 
+    class="form-input"
+    [value]="selectedRequest.requestStatus"
+    disabled
+  />
+</div>
+
+        <div class="form-group">
+          <label class="form-label">Comments</label>
+          <textarea class="form-textarea" [(ngModel)]="selectedRequest.requestComment" placeholder="Add comments..."></textarea>
+        </div>
+
+        <div class="info-display">
+          <div class="info-item">
+            <span class="info-label">Creation Date</span>
+            <p class="info-value">{{ selectedRequest.requestDate | date: 'dd/MM/yyyy HH:mm' }}</p>
+          </div>
+        </div>
+
+
+        <div class="items-section">
+  <h3 class="items-title">Requested Medications</h3>
+
+  <div class="item-row" *ngFor="let item of items">
+    
+    <div class="form-group">
+      <label class="form-label">Medication</label>
+      <input 
+        class="form-input"
+        [value]="item.product?.productName"
+        disabled
+      />
+    </div>
+
+    <div class="form-group">
+      <label class="form-label">Quantity</label>
+      <input 
+        class="form-input"
+        [value]="item.requestedQuantity"
+        disabled
+      />
+    </div>
+
+  </div>
+</div>
+      </div>
+
+      <div class="edit-modal-footer">
+        <button class="btn-cancel" (click)="cancelEdit()">Cancel</button>
+        <button class="btn-save" (click)="updateRequest()">💾 Save</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Form Section -->
+  <div class="form-wrapper" *ngIf="showForm">
+    <div class="form-card">
+      <h2 class="form-title">Create a New Request</h2>
+
+      <!-- Notification if product pre-filled -->
+      <div class="form-notification" *ngIf="items && items[0] && items[0].productId">
+        <span class="notification-icon">ℹ️</span>
+        <span class="notification-text">The product has been selected from your inventory</span>
+      </div>
+
+      <div class="form-content">
+        <div class="form-group">
+          <label class="form-label">Priority</label>
+          <select class="form-input" [(ngModel)]="priority">
+            <option value="LOW">Low</option>
+            <option value="MEDIUM">Medium</option>
+            <option value="HIGH">High</option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Comments</label>
+          <textarea class="form-textarea" [(ngModel)]="comments" placeholder="Add any additional notes or comments..."></textarea>
+        </div>
+
+        <div class="items-section">
+          <h3 class="items-title">Medications to Request</h3>
+          
+          <div class="item-row" *ngFor="let i of items; let idx = index">
+            <div class="form-group">
+              <label class="form-label">Medication</label>
+              <select class="form-input" [(ngModel)]="i.productId">
+                <option value="">Select...</option>
+                <option *ngFor="let p of products" [value]="p.id">
+                  {{ p.productName }}
+                </option>
+              </select>
+            </div>
+
+            <div class="form-group">
+              <label class="form-label">Quantity</label>
+              <input class="form-input" type="number" [(ngModel)]="i.quantity" min="1" placeholder="0"/>
+            </div>
+          </div>
+        </div>
+
+        
+        <div class="form-submit-actions">
+          <button class="btn-cancel" (click)="toggleForm()">Cancel</button>
+          <button class="btn-success" (click)="createRequest()">
+            ✓ Submit Request
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Requests List -->
+  <div class="requests-list">
+
+    <div class="request-card" *ngFor="let r of requests">
+
+      <div class="top">
+        <h3>Medication Request</h3>
+        <span class="badge" [ngClass]="r.requestStatus?.toLowerCase()">
+          {{ r.requestStatus || 'Pending' }}
+        </span>
+      </div>
+
+      <div class="request-body">
+        <div class="request-row">
+          <div class="request-info">
+            <span class="info-label">Priority</span>
+            <p class="info-value">{{ r.requestPriority || 'Not defined' }}</p>
+          </div>
+          <div class="request-info">
+            <span class="info-label">Date</span>
+            <p class="info-value">{{ r.requestDate | date: 'dd/MM/yyyy' }}</p>
+          </div>
+        </div>
+
+        <div class="request-comment">
+          <span class="info-label">Comments</span>
+          <p class="comment-text">{{ r.requestComment || 'No comment' }}</p>
+        </div>
+      </div>
+
+      <div class="request-actions">
+        <button class="btn-modify" (click)="editRequest(r)" title="Edit this request">
+          ✏️ Edit
+        </button>
+        <button class="btn-cancel-request" (click)="deleteRequest(r.id)" title="Cancel this request">
+          ✕ Cancel
+        </button>
+      </div>
+
+    </div>
+
+  </div>
+
+</div>

@@ -1,0 +1,324 @@
+<!-- Full-screen wizard overlay -->
+<div class="wizard-overlay" (click)="close()">
+  <div class="wizard-card" (click)="$event.stopPropagation()">
+    <!-- Header with close -->
+    <div class="wizard-header">
+      <h2>Complete Your Profile</h2>
+      <button class="close-btn" (click)="close()" aria-label="Close wizard">
+        <svg
+          width="22"
+          height="22"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="2"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+        >
+          <line x1="18" y1="6" x2="6" y2="18" />
+          <line x1="6" y1="6" x2="18" y2="18" />
+        </svg>
+      </button>
+    </div>
+
+    <!-- Stepper bar -->
+    <div class="stepper-bar">
+      <div class="stepper-track">
+        <div class="stepper-fill" [style.width.%]="stepProgress"></div>
+      </div>
+      <div class="stepper-steps">
+        <div
+          *ngFor="let step of steps; let i = index"
+          class="stepper-step"
+          [class.completed]="isStepComplete(i)"
+          [class.active]="isStepActive(i)"
+          (click)="goToStep(i)"
+        >
+          <div class="step-circle">
+            <span *ngIf="!isStepComplete(i)">{{ i + 1 }}</span>
+            <svg
+              *ngIf="isStepComplete(i)"
+              width="14"
+              height="14"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="3"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            >
+              <polyline points="20 6 9 17 4 12" />
+            </svg>
+          </div>
+          <span class="step-label">{{ step.label }}</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Step content -->
+    <div class="wizard-body">
+      <!-- Success state -->
+      <div class="success-state" *ngIf="submitSuccess">
+        <div class="success-icon-wrap">
+          <svg
+            width="56"
+            height="56"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="var(--primary)"
+            stroke-width="2"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+          >
+            <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14" />
+            <polyline points="22 4 12 14.01 9 11.01" />
+          </svg>
+        </div>
+        <h3>Profile Updated!</h3>
+        <p>Your profile has been saved successfully.</p>
+      </div>
+
+      <!-- Form fields for non-confirm steps -->
+      <div class="step-content" *ngIf="!submitSuccess && !isConfirmStep">
+        <h3 class="step-title">{{ currentStep.label }}</h3>
+
+        <div class="fields-grid">
+          <div
+            *ngFor="let field of currentStep.fields"
+            class="field-group"
+            [class.full-width]="field.type === 'textarea' || isDoctorAvailabilityField(field)"
+            [class.missing]="isFieldInvalid(field)"
+          >
+            <label [for]="'wiz-' + field.key">
+              {{ field.label }}
+              <span class="required-dot" *ngIf="field.required">*</span>
+            </label>
+
+            <div
+              *ngIf="isLabOpeningHoursField(field)"
+              class="simple-time-range"
+            >
+              <input
+                type="time"
+                [value]="openingStartTime"
+                (input)="updateOpeningHoursStart($any($event.target).value)"
+                aria-label="Opening start time"
+              />
+              <span class="time-dash">to</span>
+              <input
+                type="time"
+                [value]="openingEndTime"
+                (input)="updateOpeningHoursEnd($any($event.target).value)"
+                aria-label="Opening end time"
+              />
+            </div>
+
+            <div
+              *ngIf="isLabSupportedTestsField(field)"
+              class="wizard-multi-select"
+            >
+              <app-custom-multi-dropdown
+                [id]="'wiz-' + field.key"
+                [(ngModel)]="formData[field.key]"
+                [options]="supportedTestOptions"
+                [placeholder]="field.placeholder || 'Select supported tests'"
+                [emitAs]="'comma'"
+                [delimiter]="', '"
+              ></app-custom-multi-dropdown>
+            </div>
+
+            <div
+              *ngIf="isDoctorAvailabilityField(field)"
+              class="doctor-availability"
+            >
+              <div class="doctor-availability-head">
+                <small>Select working days and set the work interval for each day.</small>
+              </div>
+
+              <div class="doctor-availability-grid">
+                <div
+                  class="doctor-day-row"
+                  *ngFor="let day of doctorWeekDays"
+                >
+                  <label class="doctor-day-toggle" [for]="'day-' + day.key">
+                    <input
+                      [id]="'day-' + day.key"
+                      type="checkbox"
+                      [checked]="getDoctorDayAvailability(day.key).enabled"
+                      (change)="onDoctorDayEnabledChange(day.key, $any($event.target).checked)"
+                    />
+                    <span>{{ day.label }}</span>
+                  </label>
+
+                  <div class="doctor-day-time">
+                    <input
+                      type="time"
+                      [value]="getDoctorDayAvailability(day.key).start"
+                      [disabled]="!getDoctorDayAvailability(day.key).enabled"
+                      (input)="onDoctorDayStartChange(day.key, $any($event.target).value)"
+                      aria-label="Start time"
+                    />
+                    <span>to</span>
+                    <input
+                      type="time"
+                      [value]="getDoctorDayAvailability(day.key).end"
+                      [disabled]="!getDoctorDayAvailability(day.key).enabled"
+                      (input)="onDoctorDayEndChange(day.key, $any($event.target).value)"
+                      aria-label="End time"
+                    />
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <input
+              *ngIf="
+                !isLabOpeningHoursField(field) &&
+                !isLabSupportedTestsField(field) &&
+                !isDoctorAvailabilityField(field) &&
+                (field.type === 'text' ||
+                  field.type === 'email' ||
+                  field.type === 'tel' ||
+                  field.type === 'date' ||
+                  field.type === 'number')
+              "
+              [id]="'wiz-' + field.key"
+              [type]="field.type"
+              [placeholder]="field.placeholder || ''"
+              [value]="getFieldValue(field.key)"
+              (input)="setFieldValue(field.key, $any($event.target).value)"
+            />
+
+            <app-custom-dropdown
+              *ngIf="field.type === 'select'"
+              [id]="'wiz-' + field.key"
+              [(ngModel)]="formData[field.key]"
+              [options]="field.options || []"
+              [placeholder]="field.placeholder || 'Select...'"
+            ></app-custom-dropdown>
+
+            <textarea
+              *ngIf="field.type === 'textarea'"
+              [id]="'wiz-' + field.key"
+              rows="3"
+              [placeholder]="field.placeholder || ''"
+              [value]="getFieldValue(field.key)"
+              (input)="setFieldValue(field.key, $any($event.target).value)"
+            ></textarea>
+
+            <small
+              class="field-error-text"
+              *ngIf="isFieldInvalid(field) && !isFieldMissing(field.key)"
+            >
+              {{ getFieldError(field) }}
+            </small>
+          </div>
+        </div>
+      </div>
+
+      <!-- Confirmation step -->
+      <div
+        class="step-content confirm-step"
+        *ngIf="!submitSuccess && isConfirmStep"
+      >
+        <h3 class="step-title">Review Your Information</h3>
+        <p class="confirm-subtitle">
+          Please review the information below before submitting.
+        </p>
+
+        <div class="confirm-grid" *ngIf="filledFields.length > 0">
+          <div class="confirm-item" *ngFor="let item of filledFields">
+            <span class="confirm-label">{{ item.label }}</span>
+            <span class="confirm-value">{{ item.value }}</span>
+          </div>
+        </div>
+
+        <div class="confirm-empty" *ngIf="filledFields.length === 0">
+          <p>
+            No information has been entered yet. Go back to fill in your
+            details.
+          </p>
+        </div>
+
+        <div class="error-message" *ngIf="submitError">
+          <svg
+            width="16"
+            height="16"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+          >
+            <circle cx="12" cy="12" r="10" />
+            <line x1="15" y1="9" x2="9" y2="15" />
+            <line x1="9" y1="9" x2="15" y2="15" />
+          </svg>
+          {{ submitError }}
+        </div>
+      </div>
+    </div>
+
+    <!-- Footer navigation -->
+    <div class="wizard-footer" *ngIf="!submitSuccess">
+      <button class="btn-back" (click)="back()" *ngIf="!isFirstStep">
+        <svg
+          width="16"
+          height="16"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="2"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+        >
+          <polyline points="15 18 9 12 15 6" />
+        </svg>
+        Back
+      </button>
+      <div class="footer-spacer" *ngIf="isFirstStep"></div>
+
+      <button
+        class="btn-next"
+        *ngIf="!isLastStep"
+        (click)="next()"
+        [disabled]="!isCurrentStepValid"
+      >
+        Next
+        <svg
+          width="16"
+          height="16"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="2"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+        >
+          <polyline points="9 18 15 12 9 6" />
+        </svg>
+      </button>
+
+      <button
+        class="btn-submit"
+        *ngIf="isLastStep"
+        (click)="submit()"
+        [disabled]="isSubmitting"
+      >
+        <svg
+          *ngIf="!isSubmitting"
+          width="16"
+          height="16"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="2.5"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+        >
+          <polyline points="20 6 9 17 4 12" />
+        </svg>
+        {{ isSubmitting ? "Saving..." : "Submit Profile" }}
+      </button>
+    </div>
+  </div>
+</div>

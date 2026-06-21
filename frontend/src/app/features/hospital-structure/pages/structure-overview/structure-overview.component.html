@@ -1,0 +1,253 @@
+<div class="page-container">
+  <div class="page-header">
+    <div class="header-left">
+      <h1 class="page-title">
+        <svg class="header-icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <path d="M19 3H5C3.89 3 3 3.89 3 5V19C3 20.11 3.89 21 5 21H19C20.11 21 21 20.11 21 19V5C21 3.89 20.11 3 19 3Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+          <path d="M12 7V17" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+          <path d="M8 12H16" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+        Hospital Structure
+      </h1>
+      <p class="page-subtitle">Manage and explore your hospital floors, rooms, and beds</p>
+    </div>
+    <button class="btn-add" (click)="addFloor()">
+      <i class="fas fa-plus"></i>
+      <span>Add Floor</span>
+    </button>
+  </div>
+
+  <section class="floor-controls" *ngIf="floors.length > 0">
+    <div class="controls-group controls-search-group">
+      <label class="control-label with-icon" for="floorSearch">
+        <i class="fas fa-search"></i>
+        <span>Search</span>
+      </label>
+      <div class="control-search">
+        <i class="fas fa-search"></i>
+        <input
+          id="floorSearch"
+          type="text"
+          [(ngModel)]="searchTerm"
+          placeholder="Search by floor name or number"
+          aria-label="Search floors"
+        />
+      </div>
+    </div>
+
+    <div class="controls-group controls-filter-group">
+      <label class="control-label with-icon" for="roomFilter">
+        <i class="fas fa-filter"></i>
+        <span>Filter</span>
+      </label>
+      <div class="custom-drop-wrapper">
+        <app-custom-dropdown
+          [options]="roomFilterOptions"
+          [(ngModel)]="roomFilter"
+          placeholder="Filter Floors"
+        ></app-custom-dropdown>
+      </div>
+    </div>
+
+    <div class="controls-group controls-sort-group">
+      <label class="control-label with-icon" for="sortBy">
+        <i class="fas fa-sort-amount-down-alt"></i>
+        <span>Sort</span>
+      </label>
+      <div class="custom-drop-wrapper">
+        <app-custom-dropdown
+          [options]="sortOptions"
+          [(ngModel)]="sortBy"
+          placeholder="Sort Floors"
+        ></app-custom-dropdown>
+      </div>
+    </div>
+
+    <div class="controls-group controls-actions-group">
+      <span class="results-badge">
+        <i class="fas fa-layer-group"></i>
+        {{ displayedFloors.length }} floors
+      </span>
+      <button class="btn-clear" type="button" (click)="clearFloorFilters()">
+        <i class="fas fa-rotate-left"></i>
+        <span>Reset</span>
+      </button>
+    </div>
+  </section>
+
+  <div class="building-stack-container" *ngIf="floors.length > 0 && displayedFloors.length > 0" [class.single-floor]="displayedFloors.length === 1">
+    <div class="building-stack" [class.is-animating]="selectedFloorId !== null">
+      <div
+        class="floor-layer"
+        *ngFor="let floor of displayedFloors.slice().reverse(); let i = index"
+        (click)="onFloorSelect(floor)"
+        [class.selected]="selectedFloorId === floor.id"
+        [style.z-index]="displayedFloors.length - i"
+        [style.transform]="getFloorTransform(floor, i, displayedFloors.length)"
+        [style.opacity]="getFloorOpacity(floor)"
+      >
+        <!-- Floor number badge -->
+        <div class="floor-number-badge">
+          <span class="floor-num">{{ floor.floorNumber }}</span>
+        </div>
+        <div class="floor-layer-content">
+          <div class="floor-info">
+            <h3 class="floor-name">{{ floor.name }}</h3>
+          </div>
+          <div class="floor-stats">
+            <div class="stat"><i class="fas fa-door-open"></i> <span>{{ floor.roomCount }} <small>Rooms</small></span></div>
+            <div class="stat"><i class="fas fa-bed"></i> <span>{{ floor.bedCount }} <small>Beds</small></span></div>
+          </div>
+          <div class="floor-actions">
+            <button class="btn-action edit" (click)="openEditModal(floor, $event)" title="Edit Floor">
+              <i class="fas fa-edit"></i>
+            </button>
+            <button class="btn-action delete" (click)="deleteFloor(floor, $event)" title="Delete Floor">
+              <i class="fas fa-trash-alt"></i>
+            </button>
+            <div class="floor-chevron">
+              <i class="fas fa-chevron-right"></i>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="empty-filter-state" *ngIf="floors.length > 0 && displayedFloors.length === 0">
+    <i class="fas fa-filter-circle-xmark"></i>
+    <h3>No matching floors</h3>
+    <p>Try adjusting search, filter, or sorting criteria.</p>
+    <button class="btn-clear" type="button" (click)="clearFloorFilters()">Clear filters</button>
+  </div>
+
+  <div class="empty-state" *ngIf="floors.length === 0">
+    <div class="empty-icon">
+      <i class="fas fa-building"></i>
+    </div>
+    <h3>No floors yet</h3>
+    <p>Start building your hospital structure by adding your first floor.</p>
+    <button class="btn-add" (click)="addFloor()">
+      <i class="fas fa-plus"></i>
+      <span>Add Floor</span>
+    </button>
+  </div>
+</div>
+
+<!-- Add Floor Modal -->
+<div class="modal-overlay" *ngIf="showAddFloorModal" (click)="onOverlayClick($event)">
+  <div class="modal-card" (click)="$event.stopPropagation()">
+    <div class="modal-header">
+      <div class="modal-icon">
+        <i class="fas fa-layer-group"></i>
+      </div>
+      <div class="modal-title-group">
+        <h2 class="modal-title">{{ isEditMode ? 'Edit Floor' : 'Add New Floor' }}</h2>
+        <p class="modal-subtitle">{{ isEditMode ? 'Update the name of this floor.' : 'Give your floor a name or keep the default.' }}</p>
+      </div>
+      <button class="modal-close" (click)="closeModal()">
+        <i class="fas fa-times"></i>
+      </button>
+    </div>
+    <div class="modal-body">
+      <div class="error-banner modal-error" *ngIf="floorModalErrorMessage">{{ floorModalErrorMessage }}</div>
+
+      <label class="input-label">Floor Name</label>
+      <div class="input-wrapper">
+        <i class="fas fa-pencil-alt input-icon"></i>
+        <input
+          class="floor-name-input"
+          type="text"
+          name="floorName"
+          #floorNameModel="ngModel"
+          required
+          minlength="3"
+          maxlength="80"
+          [(ngModel)]="newFloorName"
+          [placeholder]="defaultFloorName"
+          (keyup.enter)="confirmAddFloor()"
+          [class.input-invalid]="isFloorFieldInvalid('name', floorNameModel)"
+          autofocus
+        />
+      </div>
+      <small class="field-error" *ngIf="isFloorFieldInvalid('name', floorNameModel)">
+        {{ getFloorFieldError('name', floorNameModel) }}
+      </small>
+    </div>
+    <div class="modal-footer">
+      <button class="btn-cancel" (click)="closeModal()">Cancel</button>
+      <button class="btn-confirm" (click)="confirmAddFloor()" [disabled]="isFloorSubmitDisabled">
+        <i class="fas" [ngClass]="isEditMode ? 'fa-save' : 'fa-plus'"></i>
+        {{ isEditMode ? 'Save Changes' : 'Add Floor' }}
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- Delete Confirmation Modal -->
+<div class="modal-overlay" *ngIf="showDeleteModal" (click)="closeDeleteModal()">
+  <div class="modal-card delete-modal" (click)="$event.stopPropagation()">
+    <div class="modal-header delete-header">
+      <div class="modal-icon warning">
+        <i class="fas fa-exclamation-triangle"></i>
+      </div>
+      <div class="modal-title-group">
+        <h2 class="modal-title">Delete Floor</h2>
+        <p class="modal-subtitle">This action cannot be undone.</p>
+      </div>
+      <button class="modal-close" (click)="closeDeleteModal()">
+        <i class="fas fa-times"></i>
+      </button>
+    </div>
+    <div class="modal-body">
+      <p class="delete-message">
+        Are you sure you want to delete <strong>{{ floorToDelete?.name }}</strong>?
+        All rooms and beds on this floor will be permanently removed.
+      </p>
+    </div>
+    <div class="modal-footer">
+      <button class="btn-cancel" (click)="closeDeleteModal()">Cancel</button>
+      <button class="btn-confirm delete" (click)="confirmDelete()">
+        <i class="fas fa-trash-alt"></i>
+        Delete Floor
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- Floor Selector Modal for Room Creation -->
+<div class="modal-overlay" *ngIf="showFloorSelectorModal" (click)="closeFloorSelectorModal()">
+  <div class="modal-card floor-selector-modal" (click)="$event.stopPropagation()">
+    <div class="modal-header">
+      <h2 class="modal-title">Select Floor for New Room</h2>
+      <button class="modal-close" (click)="closeFloorSelectorModal()">
+        <i class="fas fa-times"></i>
+      </button>
+    </div>
+    <div class="modal-body">
+      <p class="modal-description">Which floor would you like to add a room to?</p>
+      <div class="floor-selector-list">
+        <button
+          *ngFor="let floor of floors"
+          class="floor-selector-item"
+          (click)="selectFloorForRoom(floor)"
+        >
+          <div class="floor-selector-icon">
+            <i class="fas fa-layer-group"></i>
+          </div>
+          <div class="floor-selector-details">
+            <div class="floor-selector-name">{{ floor.name }}</div>
+            <div class="floor-selector-info">
+              <span>{{ getFloorRoomCount(floor) }} room(s)</span>
+              <span>•</span>
+              <span>{{ getFloorBedCount(floor) }} bed(s)</span>
+            </div>
+          </div>
+          <div class="floor-selector-arrow">
+            <i class="fas fa-chevron-right"></i>
+          </div>
+        </button>
+      </div>
+    </div>
+  </div>
+</div>

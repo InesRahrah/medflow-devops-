@@ -1,0 +1,391 @@
+<div class="dashboard-container">
+  <header class="page-header">
+    <div class="header-left">
+      <h1 class="page-title">
+        <svg class="header-icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <path d="M19 3H5C3.89 3 3 3.89 3 5V19C3 20.11 3.89 21 5 21H19C20.11 21 21 20.11 21 19V5C21 3.89 20.11 3 19 3Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+          <path d="M12 7V17" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+          <path d="M8 12H16" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+        Hospital Departments
+      </h1>
+      <p class="page-subtitle">Manage departments and monitor room/bed occupancy.</p>
+    </div>
+    <button class="btn-add" (click)="openCreateModal()">
+      <i class="fas fa-plus"></i>
+      <span>New Department</span>
+    </button>
+  </header>
+
+  <div class="error-banner" *ngIf="errorMessage">{{ errorMessage }}</div>
+
+  <div class="loading-state" *ngIf="isLoading">
+    <i class="fas fa-spinner fa-spin"></i>
+    <span>Loading departments...</span>
+  </div>
+
+  <section class="floor-controls" *ngIf="!isLoading && departments.length > 0">
+    <div class="controls-group controls-search-group">
+      <label class="control-label with-icon" for="departmentSearch">
+        <i class="fas fa-search"></i>
+        <span>Search</span>
+      </label>
+      <div class="control-search">
+        <i class="fas fa-search"></i>
+        <input
+          id="departmentSearch"
+          type="text"
+          [(ngModel)]="searchTerm"
+          placeholder="Search departments by name or description"
+          aria-label="Search departments"
+        />
+      </div>
+    </div>
+
+    <div class="controls-group controls-filter-group">
+      <label class="control-label with-icon" for="departmentFilter">
+        <i class="fas fa-filter"></i>
+        <span>Filter</span>
+      </label>
+      <div class="custom-drop-wrapper">
+        <app-custom-dropdown
+          [options]="departmentFilterOptions"
+          [(ngModel)]="departmentFilter"
+          placeholder="Filter Departments"
+        ></app-custom-dropdown>
+      </div>
+    </div>
+
+    <div class="controls-group controls-sort-group">
+      <label class="control-label with-icon" for="departmentSortBy">
+        <i class="fas fa-sort-amount-down-alt"></i>
+        <span>Sort</span>
+      </label>
+      <div class="custom-drop-wrapper">
+        <app-custom-dropdown
+          [options]="departmentSortOptions"
+          [(ngModel)]="sortBy"
+          placeholder="Sort Departments"
+        ></app-custom-dropdown>
+      </div>
+    </div>
+
+    <div class="controls-group controls-actions-group">
+      <span class="results-badge">
+        <i class="fas fa-building"></i>
+        {{ displayedDepartments.length }} departments
+      </span>
+      <button class="btn-clear" type="button" (click)="clearDepartmentFilters()">
+        <i class="fas fa-rotate-left"></i>
+        <span>Reset</span>
+      </button>
+    </div>
+  </section>
+
+  <div class="departments-grid" *ngIf="!isLoading && displayedDepartments.length > 0">
+    <article class="dept-card glass" *ngFor="let department of displayedDepartments">
+      <div class="dept-accent" [style.background]="department.color || '#0092DF'"></div>
+
+      <div class="dept-top-row">
+        <div class="title-block">
+          <div class="dept-icon" [style.background]="(department.color || '#0092DF') + '22'">
+            <i class="fas fa-stethoscope" [style.color]="department.color || '#0092DF'"></i>
+          </div>
+          <div>
+            <h3>{{ department.name }}</h3>
+            <p class="description">{{ department.description || 'No description provided.' }}</p>
+          </div>
+        </div>
+
+        <span class="status-pill" [class.inactive]="department.status === 'INACTIVE'">
+          {{ department.status || 'ACTIVE' }}
+        </span>
+      </div>
+
+      <div class="stats-row">
+        <div class="stat">
+          <i class="fas fa-door-open stat-icon"></i>
+          <span class="value">{{ department.roomCount || 0 }}</span>
+          <span class="label">Rooms</span>
+        </div>
+        <div class="stat">
+          <i class="fas fa-bed stat-icon"></i>
+          <span class="value">{{ department.bedCount || 0 }}</span>
+          <span class="label">Beds</span>
+        </div>
+        <div class="stat">
+          <i class="fas fa-user-injured stat-icon"></i>
+          <span class="value">{{ department.occupiedBedCount || 0 }}</span>
+          <span class="label">Occupied</span>
+        </div>
+      </div>
+
+      <div class="occupancy-wrap">
+        <div class="occupancy-header">
+          <span>Occupancy</span>
+          <strong>{{ getOccupancyValue(department) }}%</strong>
+        </div>
+        <div class="progress-track">
+          <div
+            class="progress-fill"
+            [style.width.%]="getOccupancyValue(department)"
+            [style.background]="'linear-gradient(90deg, ' + (department.color || '#0092DF') + ', var(--primary-dark))'"
+          ></div>
+        </div>
+      </div>
+
+      <div class="actions-row">
+        <button class="action-btn" (click)="openRoomsPanel(department, $event)">
+          <i class="fas fa-eye"></i>
+          <span>View</span>
+        </button>
+        <button class="btn-action edit" (click)="openEditModal(department, $event)" title="Edit Department">
+          <i class="fas fa-edit"></i>
+        </button>
+        <button class="btn-action delete" (click)="askDelete(department, $event)" title="Delete Department">
+          <i class="fas fa-trash"></i>
+        </button>
+      </div>
+    </article>
+  </div>
+
+  <div class="empty-filter-state" *ngIf="!isLoading && departments.length > 0 && displayedDepartments.length === 0">
+    <i class="fas fa-filter-circle-xmark"></i>
+    <h3>No matching departments</h3>
+    <p>Try adjusting search, filter, or sorting criteria.</p>
+    <button class="btn-clear" type="button" (click)="clearDepartmentFilters()">Clear filters</button>
+  </div>
+
+  <div class="empty-state" *ngIf="!isLoading && departments.length === 0">
+    <div class="empty-icon"><i class="fas fa-building"></i></div>
+    <h3>No departments yet</h3>
+    <p>Add your first department to organize rooms and occupancy.</p>
+    <button class="btn-add" (click)="openCreateModal()">
+      <i class="fas fa-plus"></i>
+      <span>Create first department</span>
+    </button>
+  </div>
+</div>
+
+<div class="modal-overlay" *ngIf="showModal" (click)="closeModal()">
+  <div class="modal-card" (click)="$event.stopPropagation()">
+    <div class="modal-header">
+      <h2>{{ isEditMode ? 'Edit Department' : 'Create Department' }}</h2>
+      <button class="modal-close" (click)="closeModal()"><i class="fas fa-times"></i></button>
+    </div>
+
+    <div class="modal-body">
+      <div class="error-banner modal-error" *ngIf="departmentModalErrorMessage">{{ departmentModalErrorMessage }}</div>
+
+      <div class="form-group">
+        <label>Name</label>
+        <input
+          type="text"
+          name="departmentName"
+          #departmentNameModel="ngModel"
+          required
+          minlength="6"
+          maxlength="100"
+          [(ngModel)]="formData.name"
+          placeholder="Department name"
+          [class.input-invalid]="isDepartmentFieldInvalid('name', departmentNameModel)"
+        />
+        <small class="field-error" *ngIf="isDepartmentFieldInvalid('name', departmentNameModel)">
+          {{ getDepartmentFieldError('name', departmentNameModel) }}
+        </small>
+      </div>
+
+      <div class="form-group">
+        <label>Description</label>
+        <textarea
+          name="departmentDescription"
+          #departmentDescriptionModel="ngModel"
+          maxlength="500"
+          [(ngModel)]="formData.description"
+          rows="3"
+          placeholder="Optional description"
+          [class.input-invalid]="isDepartmentFieldInvalid('description', departmentDescriptionModel)"
+        ></textarea>
+        <small class="field-error" *ngIf="isDepartmentFieldInvalid('description', departmentDescriptionModel)">
+          {{ getDepartmentFieldError('description', departmentDescriptionModel) }}
+        </small>
+      </div>
+
+      <div class="form-group">
+        <label>Accent Color</label>
+        <div class="color-selection-v2">
+          <div class="presets-grid">
+            <button
+              *ngFor="let p of colorPresets"
+              type="button"
+              class="color-swatch"
+              [style.background]="p"
+              [class.active]="formData.color === p"
+              (click)="formData.color = p"
+              [title]="p"
+            >
+              <i class="fas fa-check" *ngIf="formData.color === p"></i>
+            </button>
+            <div class="custom-color-wrapper">
+              <button type="button" class="color-swatch custom-trigger" [style.background]="!colorPresets.includes(formData.color) ? formData.color : 'transparent'">
+                <i class="fas fa-plus" *ngIf="colorPresets.includes(formData.color)"></i>
+                <i class="fas fa-eye-dropper" *ngIf="!colorPresets.includes(formData.color)"></i>
+                <input type="color" [(ngModel)]="formData.color" class="hidden-picker" />
+              </button>
+            </div>
+          </div>
+          <div class="color-preview-hex" [style.border-left-color]="formData.color">
+            <span class="hex-label">Selected Color</span>
+            <span class="hex-value">{{ formData.color }}</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="modal-footer">
+      <button class="btn-cancel" (click)="closeModal()">Cancel</button>
+      <button class="btn-save" (click)="saveDepartment()" [disabled]="isDepartmentSubmitDisabled">
+        {{ isEditMode ? 'Save Changes' : 'Create Department' }}
+      </button>
+    </div>
+  </div>
+</div>
+
+<div class="modal-overlay" *ngIf="showDeleteModal" (click)="closeDeleteModal()">
+  <div class="modal-card delete-card" (click)="$event.stopPropagation()">
+    <div class="modal-header">
+      <h2>Delete Department</h2>
+      <button class="modal-close" (click)="closeDeleteModal()"><i class="fas fa-times"></i></button>
+    </div>
+    <div class="modal-body">
+      <div class="error-banner modal-error" *ngIf="deleteModalErrorMessage">{{ deleteModalErrorMessage }}</div>
+
+      <ng-container *ngIf="deleteMode === 'choose'; else reassignBlock">
+        <p class="modal-subtitle">
+          Choose how to remove <strong>{{ departmentToDelete?.name }}</strong>.
+        </p>
+
+        <div class="delete-options">
+          <button
+            class="delete-option cascade"
+            type="button"
+            (click)="confirmDelete()"
+            [disabled]="isDeletingDepartment">
+            <div class="option-left">
+              <div class="option-icon"><i class="fas fa-trash-alt"></i></div>
+              <div class="option-content">
+                <div class="option-title-row">
+                  <span class="option-title">Delete Cascade</span>
+                  <span class="option-chip irreversible">Irreversible</span>
+                </div>
+                <p class="option-text">Delete this department and all linked rooms and beds.</p>
+              </div>
+            </div>
+          </button>
+
+          <button
+            class="delete-option reassign"
+            type="button"
+            (click)="openReassignMode()"
+            [disabled]="isDeletingDepartment || isReassignOptionDisabled">
+            <div class="option-left">
+              <div class="option-icon"><i class="fas fa-exchange-alt"></i></div>
+              <div class="option-content">
+                <div class="option-title-row">
+                  <span class="option-title">Reassign Then Delete</span>
+                  <span class="option-chip recommended" *ngIf="!isReassignOptionDisabled">Recommended</span>
+                </div>
+                <p class="option-text" *ngIf="!isReassignOptionDisabled">
+                  Move rooms and staff to another department before deletion.
+                </p>
+                <p class="option-text disabled-inline" *ngIf="isReassignOptionDisabled">
+                  {{ reassignUnavailableMessage }}
+                </p>
+                <p class="option-helper" *ngIf="isReassignOptionDisabled && reassignHelperMessage">
+                  {{ reassignHelperMessage }}
+                </p>
+              </div>
+            </div>
+          </button>
+        </div>
+      </ng-container>
+
+      <ng-template #reassignBlock>
+        <p class="modal-subtitle">
+          Reassign rooms and staff from <strong>{{ departmentToDelete?.name }}</strong> to:
+        </p>
+
+        <div class="form-group">
+          <label>Target Department</label>
+          <div class="custom-drop-wrapper">
+            <app-custom-dropdown
+              [(ngModel)]="reassignTargetDepartmentId"
+              [options]="reassignDepartmentOptions"
+              [disabled]="isDeletingDepartment || isReassignOptionDisabled"
+              placeholder="Select department">
+            </app-custom-dropdown>
+          </div>
+        </div>
+
+        <p class="help-text" *ngIf="isReassignOptionDisabled">
+          {{ reassignUnavailableMessage }}
+        </p>
+      </ng-template>
+    </div>
+    <div class="modal-footer">
+      <button class="btn-cancel" (click)="closeDeleteModal()">Cancel</button>
+      <button *ngIf="deleteMode === 'reassign'" class="btn-cancel" (click)="backToDeleteChoices()" [disabled]="isDeletingDepartment">Back</button>
+      <button *ngIf="deleteMode === 'reassign'" class="btn-save" (click)="confirmReassignAndDelete()" [disabled]="isDeletingDepartment || isReassignOptionDisabled || !reassignTargetDepartmentId">
+        Reassign & Delete
+      </button>
+    </div>
+  </div>
+</div>
+
+<div class="modal-overlay" *ngIf="showRoomsPanel" (click)="closeRoomsPanel()">
+  <div class="modal-card rooms-card" (click)="$event.stopPropagation()">
+    <div class="modal-header">
+      <div>
+        <h2>Department Rooms</h2>
+        <p class="rooms-subtitle">{{ selectedDepartment?.name }} · grouped by floor</p>
+      </div>
+      <button class="modal-close" (click)="closeRoomsPanel()"><i class="fas fa-times"></i></button>
+    </div>
+
+    <div class="modal-body rooms-body" *ngIf="groupedRooms.length > 0; else noRoomsTemplate">
+      <div class="floor-group" *ngFor="let group of groupedRooms">
+        <div class="floor-title">{{ getFloorName(group.floor) }}</div>
+
+        <button
+          class="room-item"
+          *ngFor="let room of group.rooms"
+          (click)="navigateToRoom(room)"
+        >
+          <div class="room-main">
+            <span class="room-name">Room {{ room.roomNumber }}</span>
+            <span class="room-floor">{{ getFloorName(group.floor) }}</span>
+          </div>
+
+          <div class="room-meta">
+            <span class="room-beds">
+              <i class="fas fa-bed"></i>
+              {{ getOccupiedBeds(room) }} / {{ getTotalBeds(room) }} Beds
+            </span>
+            <span class="room-status" [ngClass]="getStatusClass(room.status)">
+              {{ room.status || 'UNKNOWN' }}
+            </span>
+            <i class="fas fa-chevron-right"></i>
+          </div>
+        </button>
+      </div>
+    </div>
+
+    <ng-template #noRoomsTemplate>
+      <div class="modal-body empty-rooms-state">
+        <i class="fas fa-door-closed"></i>
+        <p>No rooms are currently assigned to this department.</p>
+      </div>
+    </ng-template>
+  </div>
+</div>
+

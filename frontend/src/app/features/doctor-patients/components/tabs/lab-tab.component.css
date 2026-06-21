@@ -1,0 +1,255 @@
+.lab-tab {
+  display: flex;
+  flex-direction: column;
+  gap: 2rem;
+}
+
+.status-message {
+  padding: 0.75rem 1rem;
+  border-radius: 0.625rem;
+  font-size: 0.9rem;
+  font-weight: 500;
+}
+
+.status-message.error {
+  background-color: #fee2e2;
+  color: #991b1b;
+  border: 1px solid #fecaca;
+}
+
+.form-section {
+  padding: 1.5rem;
+}
+
+.form-section h3 {
+  margin: 0 0 1rem 0;
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: var(--text-primary, #1f2937);
+}
+
+.form-group {
+  margin-bottom: 1rem;
+}
+
+.scan-picker-row {
+  margin-top: 0.55rem;
+  display: flex;
+  align-items: center;
+  gap: 0.55rem;
+  flex-wrap: wrap;
+}
+
+.scan-picker-btn {
+  border: 1px solid #31afed;
+  border-radius: 999px;
+  background: rgba(49, 175, 237, 0.12);
+  color: #0a7bb1;
+  padding: 0.34rem 0.74rem;
+  font-size: 0.76rem;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.scan-picker-btn--ghost {
+  border-color: #d2dde8;
+  background: #ffffff;
+  color: #4d6276;
+}
+
+.scan-picker-summary {
+  font-size: 0.76rem;
+  color: #587086;
+  font-weight: 600;
+}
+
+.input-hint {
+  margin: 0.4rem 0 0;
+  color: var(--text-secondary, #6b7280);
+  font-size: 0.78rem;
+}
+
+.input-error {
+  margin: 0.35rem 0 0;
+  color: #ff6b6b;
+  font-size: 0.78rem;
+  font-weight: 600;
+}
+
+label {
+  display: block;
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: var(--text-primary, #1f2937);
+  margin-bottom: 0.5rem;
+}
+
+.form-input,
+.form-select,
+.form-textarea {
+  width: 100%;
+  padding: 0.75rem 1rem;
+  border: 1px solid var(--border-color, #e5e7eb);
+  border-radius: 0.625rem;
+  font-size: 0.95rem;
+  font-family: "Inter", sans-serif;
+}
+
+.form-input:focus,
+.form-select:focus,
+.form-textarea:focus {
+  outline: none;
+  border-color: var(--primary, #009ce8);
+  box-shadow: 0 0 0 3px rgba(0, 156, 232, 0.1);
+}
+
+.primary-btn {
+  margin-top: 0;
+  width: fit-content;
+  min-width: 170px;
+  padding: 0.62rem 1.05rem;
+  border-radius: 0.68rem;
+  border: none;
+  background: rgba(0, 156, 232, 0.082);
+  color: #009ce8;
+  font-size: 0.82rem;
+  font-weight: 700;
+  cursor: pointer;
+  box-shadow: none;
+  transition: all 0.2s ease;
+  display: block;
+  margin-left: auto;
+}
+
+.primary-btn:hover {
+  transform: none;
+  box-shadow: none;
+  background: rgba(0, 156, 232, 0.16);
+  color: #0089cc;
+}
+
+.primary-btn:disabled {
+  opacity: 0.62;
+  cursor: not-allowed;
+  transform: none;
+  box-shadow: none;
+}
+
+.lab-list {
+  padding: 1.5rem;
+}
+
+.lab-list h3 {
+  margin: 0 0 1rem 0;
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: var(--text-primary, #1f2937);
+}
+
+.lab-card {
+  padding: 1rem;
+  border: 0;
+  border-bottom: 1px solid rgba(15, 23, 42, 0.08);
+  margin-bottom: 0.75rem;
+}
+
+.lab-card:last-child {
+  border-bottom: 0;
+  margin-bottom: 0;
+}
+
+.lab-type {
+  font-weight: 600;
+  color: var(--text-primary, #1f2937);
+  font-size: 0.95rem;
+}
+
+.lab-date {
+  font-size: 0.85rem;
+  color: var(--text-secondary, #6b7280);
+  margin-top: 0.25rem;
+}
+
+.lab-notes {
+  color: var(--text-secondary, #6b7280);
+  font-size: 0.9rem;
+  margin-top: 0.5rem;
+}
+
+.btn-delete {
+  width: 2.25rem;
+  height: 2.25rem;
+  background-color: #fee2e2;
+  color: #991b1b;
+  border: none;
+  border-radius: 0.5rem;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  margin-top: 0.75rem;
+}
+
+.btn-delete:hover {
+  background-color: #fecaca;
+}
+
+.btn-delete:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.empty-state {
+  text-align: center;
+  padding: 2rem;
+  color: var(--text-secondary, #6b7280);
+}
+
+.scan-selector-modal {
+  position: fixed;
+  inset: 0;
+  z-index: 1800;
+  background: rgba(15, 23, 42, 0.58);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1rem;
+}
+
+.scan-selector-modal__dialog {
+  width: min(980px, 100%);
+  max-height: 92vh;
+  overflow: auto;
+  background: #ffffff;
+  border-radius: 16px;
+  box-shadow: 0 30px 60px rgba(2, 6, 23, 0.35);
+  border: 1px solid rgba(148, 163, 184, 0.24);
+  padding: 1rem;
+  display: grid;
+  gap: 0.75rem;
+}
+
+.scan-selector-modal__head h4 {
+  margin: 0;
+  color: #163750;
+  font-size: 1rem;
+}
+
+.scan-selector-modal__head p {
+  margin: 0.3rem 0 0;
+  color: #536b80;
+  font-size: 0.84rem;
+}
+
+.scan-selector-modal__actions {
+  display: flex;
+  justify-content: flex-end;
+}
+
+@media (max-width: 760px) {
+  .scan-selector-modal__dialog {
+    padding: 0.75rem;
+  }
+}
+

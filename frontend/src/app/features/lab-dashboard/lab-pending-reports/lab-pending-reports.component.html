@@ -1,0 +1,421 @@
+<main class="page-content">
+  <section class="page-header">
+    <div class="container text-center">
+      <h1 class="gradient-text">Reports</h1>
+      <p class="subtitle">
+        Review all laboratory requests, including pending and completed results
+      </p>
+    </div>
+  </section>
+
+  <section class="table-section">
+    <div class="container">
+      <div class="table-container glass shadow">
+        <div class="table-tools">
+          <div class="search-box">
+            <i class="fas fa-search"></i>
+            <input
+              type="text"
+              [(ngModel)]="searchTerm"
+              placeholder="Search patient or test..."
+            />
+          </div>
+          <div class="filter-actions">
+            <button
+              type="button"
+              class="btn btn-outline btn-sm filter-toggle"
+              [class.pending-only]="!showCompleted"
+              (click)="toggleCompletedVisibility()"
+              [attr.aria-label]="
+                showCompleted
+                  ? 'Filter: showing all reports'
+                  : 'Filter: hiding completed reports'
+              "
+              [title]="
+                showCompleted
+                  ? 'Filter: showing all reports'
+                  : 'Filter: hiding completed reports'
+              "
+            >
+              <i class="fas fa-filter"></i>
+              Filter
+            </button>
+          </div>
+        </div>
+
+        <div class="table-responsive">
+          <p *ngIf="loading" class="no-results">Loading reports...</p>
+          <p *ngIf="errorMessage" class="no-results">{{ errorMessage }}</p>
+
+          <table class="modern-table">
+            <thead>
+              <tr>
+                <th>Date</th>
+                <th>Patient Name</th>
+                <th>Test Requested</th>
+                <th>Requested By</th>
+                <th>Status</th>
+                <th>Action</th>
+              </tr>
+            </thead>
+            <tbody *ngIf="!loading && !errorMessage">
+              <tr *ngFor="let req of filteredReports">
+                <td>{{ req.requestedAt | date: "shortDate" }}</td>
+                <td>
+                  <div class="patient-info">
+                    <div class="avatar">
+                      {{ (req.patientName || "P").charAt(0) }}
+                    </div>
+                    <span>{{ req.patientName }}</span>
+                  </div>
+                </td>
+                <td>
+                  <strong>{{ req.testType }}</strong>
+                </td>
+                <td>{{ req.requestedByName || "Doctor" }}</td>
+                <td>
+                  <span
+                    class="status-indicator"
+                    [class.pending]="isPending(req.status)"
+                    [class.completed]="isCompleted(req.status)"
+                  >
+                    {{ getStatusLabel(req.status) }}
+                  </span>
+                </td>
+                <td>
+                  <div class="report-actions">
+                    <button
+                      *ngIf="canUploadResult(req)"
+                      class="report-upload-btn report-upload-btn--inline report-upload-btn--icon"
+                      type="button"
+                      (click)="openUploadModal(req)"
+                      aria-label="Upload result"
+                      title="Upload result"
+                    >
+                      <svg
+                        class="report-action-icon report-action-icon--upload"
+                        viewBox="0 0 374.116 374.116"
+                        aria-hidden="true"
+                        focusable="false"
+                      >
+                        <path
+                          d="M344.058,207.506c-16.568,0-30,13.432-30,30v76.609h-254v-76.609c0-16.568-13.432-30-30-30c-16.568,0-30,13.432-30,30v106.609c0,16.568,13.432,30,30,30h314c16.568,0,30-13.432,30-30V237.506C374.058,220.938,360.626,207.506,344.058,207.506z"
+                          fill="currentColor"
+                        ></path>
+                        <path
+                          d="M123.57,135.915l33.488-33.488v111.775c0,16.568,13.432,30,30,30c16.568,0,30-13.432,30-30V102.426l33.488,33.488c5.857,5.858,13.535,8.787,21.213,8.787c7.678,0,15.355-2.929,21.213-8.787c11.716-11.716,11.716-30.71,0-42.426L208.271,8.788c-11.715-11.717-30.711-11.717-42.426,0L81.144,93.489c-11.716,11.716-11.716,30.71,0,42.426C92.859,147.631,111.855,147.631,123.57,135.915z"
+                          fill="currentColor"
+                        ></path>
+                      </svg>
+                    </button>
+
+                    <button
+                      *ngIf="hasReportScanSelection(req)"
+                      class="report-upload-btn report-upload-btn--inline report-upload-btn--scan report-upload-btn--icon"
+                      type="button"
+                      (click)="openScanPreviewModal(req)"
+                      aria-label="View scan map"
+                      title="View scan map"
+                    >
+                      <svg
+                        class="report-action-icon report-action-icon--eye"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        stroke-width="2.2"
+                        aria-hidden="true"
+                        focusable="false"
+                      >
+                        <path
+                          stroke-linecap="round"
+                          stroke-linejoin="round"
+                          d="M12.0012 5C7.52354 5 3.73326 7.94288 2.45898 12C3.73324 16.0571 7.52354 19 12.0012 19C16.4788 19 20.2691 16.0571 21.5434 12C20.2691 7.94291 16.4788 5 12.0012 5Z"
+                        ></path>
+                        <circle cx="12.0012" cy="12" r="2.65"></circle>
+                      </svg>
+                    </button>
+
+                    <span
+                      *ngIf="
+                        !canUploadResult(req) && !hasReportScanSelection(req)
+                      "
+                      class="action-completed"
+                      >-</span
+                    >
+                  </div>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+
+          <div
+            *ngIf="!loading && !errorMessage && filteredReports.length === 0"
+            class="no-results"
+          >
+            <i class="fas fa-folder-open"></i>
+            <p>No reports found matching your search.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+</main>
+
+<div
+  *ngIf="showUploadModal && selectedReportForUpload"
+  class="upload-result-modal"
+  (click)="onUploadModalBackdropClick($event)"
+>
+  <div class="upload-result-modal__dialog" role="dialog" aria-modal="true">
+    <div class="upload-result-modal__head">
+      <span class="upload-result-modal__eyebrow">Lab Workspace</span>
+      <h3>Upload Result</h3>
+      <p>Complete findings, attach the file, and submit this lab request.</p>
+    </div>
+
+    <div class="upload-result-summary">
+      <div class="upload-result-summary__item">
+        <span>Patient</span>
+        <strong>{{ selectedReportForUpload.patientName || "Unknown" }}</strong>
+      </div>
+      <div class="upload-result-summary__item">
+        <span>Test Type</span>
+        <strong>{{ selectedReportForUpload.testType || "Unknown" }}</strong>
+      </div>
+      <div class="upload-result-summary__item">
+        <span>Date</span>
+        <strong>
+          {{
+            selectedReportForUpload.requestedAt
+              ? (selectedReportForUpload.requestedAt | date: "MMM d, y")
+              : "-"
+          }}
+        </strong>
+      </div>
+
+      <div
+        class="upload-result-summary__item upload-result-summary__item--action"
+        *ngIf="hasReportScanSelection(selectedReportForUpload)"
+      >
+        <span>Requested Map</span>
+        <button
+          type="button"
+          class="report-upload-btn report-upload-btn--scan"
+          (click)="openScanPreviewModal(selectedReportForUpload)"
+        >
+          View Scan Map
+        </button>
+      </div>
+    </div>
+
+    <p
+      *ngIf="uploadErrorMessage"
+      class="upload-result-modal__error"
+      role="alert"
+    >
+      {{ uploadErrorMessage }}
+    </p>
+
+    <form class="upload-result-form" (ngSubmit)="submitUploadResult()">
+      <div class="upload-result-form__grid">
+        <label>
+          Key Findings
+          <textarea
+            name="uploadFindings"
+            [(ngModel)]="uploadResultForm.findings"
+            rows="4"
+            placeholder="Describe the observations..."
+            required
+          ></textarea>
+        </label>
+
+        <label>
+          Conclusions / Impressions
+          <textarea
+            name="uploadConclusions"
+            [(ngModel)]="uploadResultForm.conclusions"
+            rows="4"
+            placeholder="Final medical impression..."
+            required
+          ></textarea>
+        </label>
+      </div>
+
+      <div
+        class="upload-dropzone"
+        [class.has-file]="uploadResultForm.file"
+        [class.drag-over]="isUploadDragOver"
+        (dragover)="onUploadFileDragOver($event)"
+        (dragleave)="onUploadFileDragLeave($event)"
+        (drop)="onUploadFileDrop($event)"
+      >
+        <input
+          type="file"
+          id="uploadResultFile"
+          (change)="onUploadFileChange($event)"
+          hidden
+          #uploadFileInput
+        />
+
+        <button
+          *ngIf="!uploadResultForm.file"
+          type="button"
+          class="upload-dropzone__select"
+          (click)="uploadFileInput.click()"
+          aria-label="Select diagnostic file"
+        >
+          <svg
+            class="upload-dropzone__select-icon"
+            viewBox="0 0 374.116 374.116"
+            aria-hidden="true"
+            focusable="false"
+          >
+            <path
+              d="M344.058,207.506c-16.568,0-30,13.432-30,30v76.609h-254v-76.609c0-16.568-13.432-30-30-30c-16.568,0-30,13.432-30,30v106.609c0,16.568,13.432,30,30,30h314c16.568,0,30-13.432,30-30V237.506C374.058,220.938,360.626,207.506,344.058,207.506z"
+              fill="currentColor"
+            />
+            <path
+              d="M123.57,135.915l33.488-33.488v111.775c0,16.568,13.432,30,30,30c16.568,0,30-13.432,30-30V102.426l33.488,33.488c5.857,5.858,13.535,8.787,21.213,8.787c7.678,0,15.355-2.929,21.213-8.787c11.716-11.716,11.716-30.71,0-42.426L208.271,8.788c-11.715-11.717-30.711-11.717-42.426,0L81.144,93.489c-11.716,11.716-11.716,30.71,0,42.426C92.859,147.631,111.855,147.631,123.57,135.915z"
+              fill="currentColor"
+            />
+          </svg>
+          <span class="upload-dropzone__select-title">Upload Report File</span>
+          <small class="upload-dropzone__select-hint"
+            >Drag and drop or click to browse</small
+          >
+        </button>
+
+        <div *ngIf="uploadResultForm.file" class="upload-dropzone__meta">
+          <div
+            class="upload-dropzone__file-card"
+            [class.upload-dropzone__file-card--pdf]="
+              getUploadFileCategory(uploadResultForm.file.name) === 'pdf'
+            "
+            [class.upload-dropzone__file-card--image]="
+              getUploadFileCategory(uploadResultForm.file.name) === 'image'
+            "
+            [class.upload-dropzone__file-card--sheet]="
+              getUploadFileCategory(uploadResultForm.file.name) === 'sheet'
+            "
+            [class.upload-dropzone__file-card--doc]="
+              getUploadFileCategory(uploadResultForm.file.name) === 'doc'
+            "
+            [class.upload-dropzone__file-card--archive]="
+              getUploadFileCategory(uploadResultForm.file.name) === 'archive'
+            "
+          >
+            <div class="upload-dropzone__file-icon-wrap">
+              <svg
+                class="upload-dropzone__file-icon"
+                viewBox="0 0 24 24"
+                fill="none"
+                xmlns="http://www.w3.org/2000/svg"
+                aria-hidden="true"
+                focusable="false"
+              >
+                <path
+                  d="M9 17H15M9 13H15M9 9H10M13 3H8.2C7.0799 3 6.51984 3 6.09202 3.21799C5.71569 3.40973 5.40973 3.71569 5.21799 4.09202C5 4.51984 5 5.0799 5 6.2V17.8C5 18.9201 5 19.4802 5.21799 19.908C5.40973 20.2843 5.71569 20.5903 6.09202 20.782C6.51984 21 7.0799 21 8.2 21H15.8C16.9201 21 17.4802 21 17.908 20.782C18.2843 20.5903 18.5903 20.2843 18.782 19.908C19 19.4802 19 18.9201 19 17.8V9M13 3L19 9M13 3V7.4C13 7.96005 13 8.24008 13.109 8.45399C13.2049 8.64215 13.3578 8.79513 13.546 8.89101C13.7599 9 14.0399 9 14.6 9H19"
+                  stroke="currentColor"
+                  stroke-width="1.8"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                />
+              </svg>
+            </div>
+
+            <div class="upload-dropzone__file-details">
+              <span class="upload-dropzone__filename">{{
+                uploadResultForm.file.name
+              }}</span>
+              <div class="upload-dropzone__file-meta">
+                <span class="upload-dropzone__file-type">{{
+                  getUploadFileExtension(uploadResultForm.file.name)
+                }}</span>
+                <span class="upload-dropzone__meta-dot">•</span>
+                <span class="upload-dropzone__size">{{
+                  formatFileSize(uploadResultForm.file.size)
+                }}</span>
+              </div>
+            </div>
+          </div>
+          <button
+            type="button"
+            class="upload-dropzone__remove"
+            (click)="clearUploadFile()"
+          >
+            Clear
+          </button>
+        </div>
+      </div>
+
+      <div class="upload-result-modal__actions">
+        <button
+          type="button"
+          class="btn-secondary"
+          (click)="closeUploadModal()"
+          [disabled]="isUploading"
+        >
+          Cancel
+        </button>
+        <button
+          type="submit"
+          class="report-upload-btn report-upload-btn--submit"
+          [disabled]="isUploading"
+        >
+          {{ isUploading ? "Uploading..." : "Upload Results" }}
+        </button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<div
+  *ngIf="showScanPreviewModal && selectedReportForScanPreview"
+  class="upload-result-modal"
+  (click)="onScanPreviewModalBackdropClick($event)"
+>
+  <div
+    class="upload-result-modal__dialog upload-result-modal__dialog--scan-preview"
+    role="dialog"
+    aria-modal="true"
+  >
+    <div class="upload-result-modal__head">
+      <span class="upload-result-modal__eyebrow">Scan Preview</span>
+      <h3>Requested Imaging Map</h3>
+      <p>
+        {{ selectedReportForScanPreview.patientName || "Unknown patient" }} -
+        {{ selectedReportForScanPreview.testType || "Imaging request" }}
+      </p>
+      <button
+        type="button"
+        class="upload-result-modal__close-x"
+        aria-label="Close scan preview"
+        (click)="closeScanPreviewModal()"
+      >
+        ×
+      </button>
+    </div>
+
+    <div class="upload-result-scan-body">
+      <app-body-scan-selector
+        [readonly]="true"
+        [showSelectedList]="true"
+        [selectedPartIds]="
+          getSelectedReportPreviewSelection()?.selectedPartIds || []
+        "
+        [activeLayers]="
+          getSelectedReportPreviewSelection()?.activeLayers || defaultScanLayers
+        "
+        [title]="'Doctor Requested Coverage'"
+        [subtitle]="'Body areas selected for this imaging order.'"
+      ></app-body-scan-selector>
+
+      <p
+        class="upload-result-scan-notes"
+        *ngIf="getSelectedReportPreviewNotes()"
+      >
+        <strong>Clinical Notes:</strong> {{ getSelectedReportPreviewNotes() }}
+      </p>
+    </div>
+  </div>
+</div>

@@ -1,0 +1,433 @@
+<div class="treatment-section">
+  <div class="treatment-header">
+    <h2>Your Active Treatments</h2>
+    <p class="treatment-subtitle">
+      Track your daily medicine intake and stay on top of your prescribed
+      dosages.
+    </p>
+  </div>
+
+  <div *ngIf="errorMessage" class="state-card error">
+    <p>{{ errorMessage }}</p>
+  </div>
+
+  <div *ngIf="loading" class="state-card">
+    <p>Loading your treatments...</p>
+  </div>
+
+  <ng-container *ngIf="!loading && prescriptions.length > 0">
+    <div class="view-mode-switcher">
+      <button
+        class="view-btn"
+        [class.active]="viewMode === 'calendar'"
+        (click)="switchViewMode('calendar')"
+      >
+        <span class="view-btn-icon" aria-hidden="true">
+          <svg
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+          >
+            <rect x="3" y="4" width="18" height="18" rx="3"></rect>
+            <path d="M8 2v4M16 2v4M3 10h18"></path>
+          </svg>
+        </span>
+        <span>Calendar View</span>
+      </button>
+      <button
+        class="view-btn"
+        [class.active]="viewMode === 'list'"
+        (click)="switchViewMode('list')"
+      >
+        <span class="view-btn-icon" aria-hidden="true">
+          <svg
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+          >
+            <path d="M9 6h11M9 12h11M9 18h11M4 6h.01M4 12h.01M4 18h.01"></path>
+          </svg>
+        </span>
+        <span>List View</span>
+      </button>
+    </div>
+
+    <div class="calendar-view" *ngIf="viewMode === 'calendar'">
+      <div class="calendar-nav">
+        <button class="nav-btn" (click)="previousMonth()">
+          <svg
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+          >
+            <path d="M15 18l-6-6 6-6"></path>
+          </svg>
+          <span>Previous</span>
+        </button>
+        <h3 class="month-year">{{ getMonthYear() }}</h3>
+        <button class="nav-btn" (click)="nextMonth()">
+          <span>Next</span>
+          <svg
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+          >
+            <path d="M9 18l6-6-6-6"></path>
+          </svg>
+        </button>
+      </div>
+
+      <div class="calendar-grid">
+        <div class="weekday-header">
+          <div *ngFor="let day of getWeekDays()" class="weekday-label">
+            {{ day }}
+          </div>
+        </div>
+
+        <button
+          type="button"
+          *ngFor="let calDay of calendarDays"
+          class="calendar-day"
+          [class.other-month]="!calDay.isCurrentMonth"
+          [class.has-treatments]="calDay.totalCount > 0"
+          [class.selected]="isSelectedCalendarDay(calDay)"
+          (click)="selectCalendarDay(calDay)"
+        >
+          <div class="day-header">
+            <span class="day-label">
+              <span class="day-number">{{ calDay.date | date: "d" }}</span>
+              <span class="day-today-tag" *ngIf="isTodayCalendarDay(calDay)"
+                >Today</span
+              >
+            </span>
+            <span class="day-progress" *ngIf="calDay.totalCount > 0">
+              {{ calDay.completedCount }}/{{ calDay.totalCount }}
+            </span>
+          </div>
+
+          <div class="day-period-strip" *ngIf="calDay.totalCount > 0">
+            <span
+              class="period-chip period-chip--morning"
+              *ngIf="calDay.periodCounts.Morning > 0"
+            >
+              {{ calDay.periodCounts.Morning }} Morning
+            </span>
+            <span
+              class="period-chip period-chip--afternoon"
+              *ngIf="calDay.periodCounts.Afternoon > 0"
+            >
+              {{ calDay.periodCounts.Afternoon }} Afternoon
+            </span>
+            <span
+              class="period-chip period-chip--night"
+              *ngIf="calDay.periodCounts.Night > 0"
+            >
+              {{ calDay.periodCounts.Night }} Night
+            </span>
+          </div>
+
+          <div
+            *ngIf="calDay.totalCount === 0 && calDay.isCurrentMonth"
+            class="no-meds"
+          >
+            No doses
+          </div>
+        </button>
+      </div>
+    </div>
+
+    <div class="list-view" *ngIf="viewMode === 'list'">
+      <div class="list-day-groups">
+        <ng-template #listDayGroupTemplate let-dayGroup>
+          <article
+            class="list-day-group"
+            [class.list-day-group--today]="isTodayListGroup(dayGroup)"
+          >
+            <header class="list-day-header">
+              <h4>{{ dayGroup.date | date: "EEEE, MMM d, y" }}</h4>
+              <span class="day-progress-pill"
+                >{{ dayGroup.completedCount }}/{{
+                  dayGroup.totalCount
+                }}
+                taken</span
+              >
+            </header>
+
+            <div class="list-period-columns">
+              <section class="list-period" *ngFor="let period of periods">
+                <header class="list-period-header">
+                  <h5
+                    class="period-title-pill"
+                    [class.period-title-pill--morning]="period === 'Morning'"
+                    [class.period-title-pill--afternoon]="
+                      period === 'Afternoon'
+                    "
+                    [class.period-title-pill--night]="period === 'Night'"
+                  >
+                    {{ period }}
+                  </h5>
+                  <span>{{ getItemsForPeriod(dayGroup, period).length }}</span>
+                </header>
+
+                <div
+                  class="list-period-items"
+                  *ngIf="
+                    getItemsForPeriod(dayGroup, period).length > 0;
+                    else listEmptyPeriod
+                  "
+                >
+                  <article
+                    class="list-dose-row"
+                    *ngFor="let dose of getItemsForPeriod(dayGroup, period)"
+                    [class.dose-row-disabled]="!canToggleDose(dose)"
+                    [attr.role]="canToggleDose(dose) ? 'button' : null"
+                    [attr.tabindex]="canToggleDose(dose) ? 0 : -1"
+                    (click)="toggleMedicineIntake(dose)"
+                    (keydown.enter)="toggleMedicineIntake(dose)"
+                    (keydown.space)="
+                      toggleMedicineIntake(dose); $event.preventDefault()
+                    "
+                  >
+                    <div class="list-dose-row-main">
+                      <strong>{{ dose.medicineName }}</strong>
+                      <span>{{ dose.quantity }} unit(s)</span>
+                    </div>
+                    <p
+                      class="dose-description"
+                      *ngIf="dose.medicineDescription"
+                    >
+                      {{ dose.medicineDescription }}
+                    </p>
+                    <p class="list-dose-note" *ngIf="dose.doseNotes">
+                      {{ dose.doseNotes }}
+                    </p>
+                    <p
+                      class="dose-card-status"
+                      [ngClass]="getDoseStatusClass(dose)"
+                      [attr.data-status-value]="getDoseStatusValue(dose)"
+                    >
+                      {{ getDoseStatusLabel(dose) }}
+                    </p>
+                  </article>
+                </div>
+
+                <ng-template #listEmptyPeriod>
+                  <p class="period-empty">No medicines in this period</p>
+                </ng-template>
+              </section>
+            </div>
+          </article>
+        </ng-template>
+
+        <ng-container *ngFor="let dayGroup of currentAndUpcomingListGroups">
+          <ng-container
+            *ngTemplateOutlet="
+              listDayGroupTemplate;
+              context: { $implicit: dayGroup }
+            "
+          ></ng-container>
+        </ng-container>
+
+        <section class="older-groups-shell" *ngIf="olderListGroups.length > 0">
+          <button
+            type="button"
+            class="older-groups-toggle"
+            (click)="toggleOlderListGroups()"
+            [attr.aria-expanded]="showOlderListGroups"
+          >
+            <span>{{
+              showOlderListGroups ? "Hide older doses" : "Show older doses"
+            }}</span>
+            <span class="older-groups-count"
+              >{{ olderListGroups.length }} day(s)</span
+            >
+          </button>
+
+          <div class="older-groups-content" *ngIf="showOlderListGroups">
+            <ng-container *ngFor="let dayGroup of olderListGroups">
+              <ng-container
+                *ngTemplateOutlet="
+                  listDayGroupTemplate;
+                  context: { $implicit: dayGroup }
+                "
+              ></ng-container>
+            </ng-container>
+          </div>
+        </section>
+      </div>
+    </div>
+  </ng-container>
+
+  <div *ngIf="!loading && prescriptions.length === 0" class="state-card">
+    <p>
+      No active treatments at the moment. Your treatment information will appear
+      here when your doctor prescribes medications.
+    </p>
+  </div>
+
+  <div
+    *ngIf="showDayPopup && selectedDayGroup as dayGroup"
+    class="day-popup"
+    (click)="onDayPopupBackdropClick($event)"
+  >
+    <div class="day-popup__dialog" role="dialog" aria-modal="true">
+      <header class="day-popup__header">
+        <button
+          type="button"
+          class="day-popup__nav"
+          (click)="goToAdjacentDay(-1)"
+        >
+          <svg
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+          >
+            <path d="M15 18l-6-6 6-6"></path>
+          </svg>
+          <span>Previous Day</span>
+        </button>
+
+        <div class="day-popup__title">
+          <h4>{{ dayGroup.date | date: "EEEE, MMM d, y" }}</h4>
+          <p>
+            {{ dayGroup.completedCount }}/{{ dayGroup.totalCount }} doses marked
+            as taken
+          </p>
+        </div>
+
+        <div class="day-popup__actions">
+          <button
+            type="button"
+            class="day-popup__nav"
+            (click)="goToAdjacentDay(1)"
+          >
+            <span>Next Day</span>
+            <svg
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+            >
+              <path d="M9 18l6-6-6-6"></path>
+            </svg>
+          </button>
+          <button
+            type="button"
+            class="day-popup__close"
+            (click)="closeDayPopup()"
+          >
+            Close
+          </button>
+        </div>
+      </header>
+
+      <div class="day-board day-popup__body">
+        <div class="day-board-columns">
+          <section class="period-column" *ngFor="let period of periods">
+            <header class="period-column-header">
+              <span
+                class="period-icon"
+                [class.period-icon--morning]="period === 'Morning'"
+                [class.period-icon--afternoon]="period === 'Afternoon'"
+                [class.period-icon--night]="period === 'Night'"
+                aria-hidden="true"
+              >
+                <svg
+                  *ngIf="period === 'Morning'"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="2"
+                >
+                  <circle cx="12" cy="12" r="4"></circle>
+                  <path
+                    d="M12 2v3M12 19v3M4.93 4.93l2.12 2.12M16.95 16.95l2.12 2.12M2 12h3M19 12h3M4.93 19.07l2.12-2.12M16.95 7.05l2.12-2.12"
+                  ></path>
+                </svg>
+                <svg
+                  *ngIf="period === 'Afternoon'"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="2"
+                >
+                  <path d="M3 12h18"></path>
+                  <path d="M6 16c1.4-2.6 3.4-4 6-4s4.6 1.4 6 4"></path>
+                  <circle cx="18" cy="6" r="2"></circle>
+                </svg>
+                <svg
+                  *ngIf="period === 'Night'"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="2"
+                >
+                  <path d="M21 12.8A9 9 0 1111.2 3a7 7 0 009.8 9.8z"></path>
+                </svg>
+              </span>
+              <h5
+                class="period-title-pill"
+                [class.period-title-pill--morning]="period === 'Morning'"
+                [class.period-title-pill--afternoon]="period === 'Afternoon'"
+                [class.period-title-pill--night]="period === 'Night'"
+              >
+                {{ period }}
+              </h5>
+              <span class="period-count">{{
+                getItemsForPeriod(dayGroup, period).length
+              }}</span>
+            </header>
+
+            <div
+              class="period-items"
+              *ngIf="
+                getItemsForPeriod(dayGroup, period).length > 0;
+                else boardEmptyPeriod
+              "
+            >
+              <article
+                class="dose-card"
+                *ngFor="let dose of getItemsForPeriod(dayGroup, period)"
+                [class.dose-row-disabled]="!canToggleDose(dose)"
+                [attr.role]="canToggleDose(dose) ? 'button' : null"
+                [attr.tabindex]="canToggleDose(dose) ? 0 : -1"
+                (click)="toggleMedicineIntake(dose)"
+                (keydown.enter)="toggleMedicineIntake(dose)"
+                (keydown.space)="
+                  toggleMedicineIntake(dose); $event.preventDefault()
+                "
+              >
+                <div class="dose-main-row">
+                  <h6>{{ dose.medicineName || "Medicine" }}</h6>
+                  <span>{{ dose.quantity }} unit(s)</span>
+                </div>
+                <p class="dose-description" *ngIf="dose.medicineDescription">
+                  {{ dose.medicineDescription }}
+                </p>
+                <p class="dose-notes" *ngIf="dose.doseNotes">
+                  {{ dose.doseNotes }}
+                </p>
+                <p
+                  class="dose-card-status"
+                  [ngClass]="getDoseStatusClass(dose)"
+                  [attr.data-status-value]="getDoseStatusValue(dose)"
+                >
+                  {{ getDoseStatusLabel(dose) }}
+                </p>
+              </article>
+            </div>
+
+            <ng-template #boardEmptyPeriod>
+              <p class="period-empty">No scheduled doses</p>
+            </ng-template>
+          </section>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

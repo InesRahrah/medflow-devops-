@@ -1,0 +1,22 @@
+<div class="preconsultation-banner-wrapper" *ngIf="!isLoading && visible">
+  <div class="preconsultation-banner-card">
+    <div class="banner-accent">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M9 12h6"></path>
+        <path d="M9 16h4"></path>
+        <path d="M4 19.5V5a2 2 0 0 1 2-2h8.5L20 8.5V19a2 2 0 0 1-2 2H6a2 2 0 0 1-2-1.5Z"></path>
+        <path d="M14 3v6h6"></path>
+      </svg>
+    </div>
+
+    <div class="banner-copy">
+      <span class="banner-kicker">Doctor setup required</span>
+      <strong>Complete your preconsultation questions</strong>
+      <p>First-time patients will see this form before their consultation. Set it up once, then edit it whenever your intake process changes.</p>
+    </div>
+
+    <button class="banner-cta" type="button" (click)="onOpenSetup()">
+      Configure questions
+    </button>
+  </div>
+</div>

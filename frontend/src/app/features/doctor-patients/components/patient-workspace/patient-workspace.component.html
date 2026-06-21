@@ -1,0 +1,270 @@
+<div class="workspace-shell patient-workspace" *ngIf="!loading && patient">
+  <div class="workspace-inner">
+    <!-- Left Sidebar -->
+    <aside class="sidebar" [class.hidden]="!isSidebarOpen">
+      <app-patient-sidebar
+        [patient]="patient"
+        (onRefresh)="refreshPatientData()"
+        (onGoBack)="goBackToDashboard()"
+        (onToggleSidebar)="toggleSidebar()"
+      ></app-patient-sidebar>
+    </aside>
+
+    <!-- Right Content Area -->
+    <main class="content workspace-content main-content">
+      <!-- Top Bar: Toggle + Case Selector + Tabs Alignment -->
+      <div class="top-bar">
+        <button
+          *ngIf="!isSidebarOpen"
+          type="button"
+          class="menu-toggle"
+          (click)="toggleSidebar()"
+          [attr.aria-label]="
+            isSidebarOpen ? 'Hide profile sidebar' : 'Show profile sidebar'
+          "
+          [title]="
+            isSidebarOpen ? 'Hide profile sidebar' : 'Show profile sidebar'
+          "
+        >
+          <span aria-hidden="true">☰</span>
+        </button>
+
+        <app-patient-tabs
+          [activeTab]="activeTab"
+          (tabChange)="onTabChange($any($event))"
+        ></app-patient-tabs>
+
+        <div class="case-tools">
+          <!-- Case Selector - Show only if multiple cases -->
+          <div class="case-selector-wrapper" *ngIf="patientCases.length > 1">
+            <app-custom-dropdown
+              class="case-selector"
+              [options]="caseDropdownOptions"
+              [placeholder]="'Select case'"
+              [(ngModel)]="selectedCaseId"
+              (ngModelChange)="onCaseSelectionChange($any($event))"
+            ></app-custom-dropdown>
+          </div>
+
+          <button
+            type="button"
+            class="case-delete-btn"
+            *ngIf="canDeleteSelectedCase()"
+            (click)="openDeleteCaseModal()"
+          >
+            Delete Case
+          </button>
+        </div>
+      </div>
+
+      <!-- Scrollable Content Area -->
+      <div class="tab-content-wrapper tab-content">
+        <app-overview-tab
+          *ngIf="activeTab === 'overview'"
+          [patientId]="patientId"
+          [caseId]="selectedCaseId!"
+        ></app-overview-tab>
+        <app-consultation-tab
+          *ngIf="activeTab === 'consultation'"
+          [patientId]="patientId"
+          [caseId]="selectedCaseId!"
+        ></app-consultation-tab>
+        <app-lab-tab
+          *ngIf="activeTab === 'lab'"
+          [patientId]="patientId"
+          [caseId]="selectedCaseId!"
+        ></app-lab-tab>
+        <app-prescription-tab
+          *ngIf="activeTab === 'prescription'"
+          [patientId]="patientId"
+          [caseId]="selectedCaseId!"
+        ></app-prescription-tab>
+      </div>
+    </main>
+  </div>
+</div>
+
+<!-- Quick Lab Modal -->
+<div
+  *ngIf="showLabQuickModal"
+  class="lab-quick-modal"
+  (click)="onLabQuickModalBackdropClick($event)"
+>
+  <div class="lab-quick-modal__dialog" role="dialog" aria-modal="true">
+    <header class="lab-quick-modal__head">
+      <h3>Request Lab</h3>
+      <p>Create a new lab request from quick actions.</p>
+    </header>
+
+    <form class="lab-quick-modal__form" (ngSubmit)="submitQuickLab()">
+      <label (click)="markLabQuickTypeTouched()">
+        Service Type
+        <app-custom-dropdown
+          [options]="labQuickTypeOptions"
+          [searchable]="true"
+          placeholder="Search service type..."
+          [(ngModel)]="labQuickType"
+          (ngModelChange)="onLabQuickTypeChange($any($event))"
+          name="labQuickType"
+        ></app-custom-dropdown>
+        <p
+          class="lab-quick-modal__field-error"
+          *ngIf="labQuickTypeTouched && labQuickTypeError"
+        >
+          {{ labQuickTypeError }}
+        </p>
+
+        <div
+          class="lab-quick-modal__scan-picker-row"
+          *ngIf="shouldShowQuickLabScanSelector"
+        >
+          <button
+            type="button"
+            class="lab-quick-modal__scan-picker-btn"
+            [disabled]="labQuickSubmitting"
+            (click)="openLabQuickScanModal()"
+          >
+            Select Body Parts
+          </button>
+          <span class="lab-quick-modal__scan-picker-summary">
+            {{ labQuickScanSummary }}
+          </span>
+        </div>
+
+        <p
+          class="lab-quick-modal__field-error"
+          *ngIf="labQuickScanTouched && labQuickScanError"
+        >
+          {{ labQuickScanError }}
+        </p>
+      </label>
+
+      <label>
+        Notes
+        <textarea
+          rows="3"
+          name="labQuickNotes"
+          [(ngModel)]="labQuickNotes"
+          maxlength="1000"
+          (blur)="markLabQuickNotesTouched()"
+          placeholder="Clinical reason and expected findings"
+        ></textarea>
+        <p class="lab-quick-modal__hint">
+          {{ labQuickNotes.length }}/1000 characters
+        </p>
+        <p
+          class="lab-quick-modal__field-error"
+          *ngIf="labQuickNotesTouched && labQuickNotesError"
+        >
+          {{ labQuickNotesError }}
+        </p>
+      </label>
+
+      <p *ngIf="labQuickError" class="lab-quick-modal__error">
+        {{ labQuickError }}
+      </p>
+
+      <div class="lab-quick-modal__actions">
+        <button
+          type="button"
+          class="btn-secondary"
+          [disabled]="labQuickSubmitting"
+          (click)="closeLabQuickModal()"
+        >
+          Cancel
+        </button>
+        <button
+          type="submit"
+          class="btn-primary"
+          [disabled]="!canSubmitQuickLab"
+        >
+          {{ labQuickSubmitting ? "Saving..." : "Save Lab Request" }}
+        </button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<div
+  *ngIf="showLabQuickScanModal"
+  class="lab-quick-scan-modal"
+  (click)="onLabQuickScanModalBackdropClick($event)"
+>
+  <div class="lab-quick-scan-modal__dialog" role="dialog" aria-modal="true">
+    <app-body-scan-selector
+      [selectedPartIds]="labQuickScanSelectedPartIds"
+      (selectedPartIdsChange)="
+        onLabQuickScanSelectedPartIdsChange($any($event))
+      "
+      [activeLayers]="labQuickScanActiveLayers"
+      (activeLayersChange)="onLabQuickScanActiveLayersChange($any($event))"
+      [readonly]="labQuickSubmitting"
+      [showSelectedList]="true"
+      [showDoneButton]="true"
+      (doneClick)="closeLabQuickScanModal()"
+    ></app-body-scan-selector>
+  </div>
+</div>
+
+<!-- Delete Case Confirmation Modal -->
+<div
+  *ngIf="showDeleteCaseModal"
+  class="case-delete-modal"
+  (click)="onCaseDeleteModalBackdropClick($event)"
+>
+  <div class="case-delete-modal__dialog" role="dialog" aria-modal="true">
+    <h3>Delete Medical Case</h3>
+    <p>
+      This will permanently delete this medical case and all timeline activity
+      linked to it. This action cannot be undone.
+    </p>
+
+    <p class="case-delete-modal__error" *ngIf="caseDeleteError">
+      {{ caseDeleteError }}
+    </p>
+
+    <div class="case-delete-modal__actions">
+      <button
+        type="button"
+        class="btn-secondary"
+        [disabled]="deletingSelectedCase"
+        (click)="closeDeleteCaseModal()"
+      >
+        Cancel
+      </button>
+      <button
+        type="button"
+        class="btn-danger"
+        [disabled]="deletingSelectedCase"
+        (click)="confirmDeleteSelectedCase()"
+      >
+        {{ deletingSelectedCase ? "Deleting..." : "Yes, Delete Case" }}
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- Loading State -->
+<div class="loading-state" *ngIf="loading">
+  <div class="spinner"></div>
+  <p>Loading patient workspace...</p>
+</div>
+
+<!-- Error State -->
+<div class="error-state" *ngIf="errorMessage && !loading">
+  <div class="error-content">
+    <svg width="48" height="48" viewBox="0 0 24 24" fill="none">
+      <circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="2" />
+      <path
+        d="M12 8v4M12 16h.01"
+        stroke="currentColor"
+        stroke-width="2"
+        stroke-linecap="round"
+      />
+    </svg>
+    <h2>{{ errorMessage }}</h2>
+    <button class="retry-button" (click)="refreshPatientData()">
+      Try Again
+    </button>
+  </div>
+</div>

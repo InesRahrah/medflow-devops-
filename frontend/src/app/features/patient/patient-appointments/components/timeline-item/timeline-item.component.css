@@ -1,0 +1,238 @@
+:host {
+  display: block;
+}
+
+.timeline-item {
+  position: relative;
+  display: grid;
+  grid-template-columns: 130px 1fr;
+  gap: 1rem;
+  align-items: start;
+  cursor: pointer;
+}
+
+.timeline-item.is-important .timeline-card {
+  border-left-color: #f59e0b;
+  background: linear-gradient(180deg, #fffbeb 0%, #fffef9 100%);
+}
+
+.timeline-dot {
+  position: absolute;
+  left: 121px;
+  top: 1.12rem;
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  background: #0ea5e9;
+  border: 3px solid #dbeafe;
+  z-index: 2;
+}
+
+.timeline-time {
+  color: #0f4c81;
+  font-weight: 700;
+  font-size: 0.9rem;
+  display: inline-flex;
+  gap: 0.35rem;
+  align-items: center;
+  justify-content: flex-end;
+  padding-top: 0.85rem;
+}
+
+.timeline-card {
+  border: 1px solid #dbe6f2;
+  border-left: 4px solid #60a5fa;
+  border-radius: 18px;
+  background: #ffffff;
+  box-shadow: 0 12px 24px rgba(15, 23, 42, 0.07);
+  padding: 1.1rem 1.15rem;
+  transition: transform 0.24s ease, box-shadow 0.24s ease, border-color 0.24s ease, background 0.24s ease;
+}
+
+.timeline-item:hover .timeline-card,
+.timeline-item:focus-visible .timeline-card {
+  transform: translateY(-3px);
+  border-color: #93c5fd;
+  box-shadow: 0 20px 34px rgba(15, 23, 42, 0.13);
+}
+
+.timeline-item.is-active .timeline-card {
+  border-color: #60a5fa;
+  background: linear-gradient(180deg, #f8fbff 0%, #ffffff 100%);
+  box-shadow: 0 22px 40px rgba(37, 99, 235, 0.16);
+}
+
+.timeline-item:focus-visible {
+  outline: none;
+}
+
+.card-header-row {
+  display: flex;
+  justify-content: space-between;
+  gap: 0.8rem;
+  align-items: flex-start;
+}
+
+.primary-info h4 {
+  margin: 0;
+  color: #0f172a;
+  font-size: 1.02rem;
+  font-weight: 700;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.36rem;
+}
+
+.type-row {
+  margin: 0.42rem 0 0;
+  color: #475569;
+  font-size: 0.86rem;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.34rem;
+}
+
+.telemedicine-badge {
+  margin-top: 0.48rem;
+  display: inline-flex;
+  align-items: center;
+  border-radius: 999px;
+  padding: 0.22rem 0.58rem;
+  font-size: 0.72rem;
+  font-weight: 800;
+  background: #dcfce7;
+  color: #166534;
+  border: 1px solid #86efac;
+}
+
+.notes {
+  margin: 0.8rem 0 0;
+  color: #475569;
+  font-size: 0.88rem;
+  line-height: 1.6;
+}
+
+.status-badge {
+  padding: 0.24rem 0.64rem;
+  border-radius: 999px;
+  font-size: 0.72rem;
+  font-weight: 700;
+  color: #fff;
+}
+
+.status-scheduled {
+  background: #3b82f6;
+}
+
+.status-completed {
+  background: #10b981;
+}
+
+.status-pending {
+  background: #f59e0b;
+}
+
+.status-cancelled {
+  background: #6b7280;
+}
+
+.status-rejected {
+  background: #ef4444;
+}
+
+.actions {
+  margin-top: 0.95rem;
+  display: inline-flex;
+  gap: 0.45rem;
+}
+
+.actions button {
+  width: 34px;
+  height: 34px;
+  border: 1px solid #d9e5f1;
+  border-radius: 10px;
+  background: #fff;
+  color: #64748b;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.actions button:hover {
+  background: #eff6ff;
+  border-color: #93c5fd;
+  color: #1d4ed8;
+}
+
+.actions button.danger:hover {
+  background: #fef2f2;
+  border-color: #fecaca;
+  color: #b91c1c;
+}
+
+.actions .join-btn {
+  width: auto;
+  min-width: 76px;
+  padding: 0 0.55rem;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.32rem;
+  border-color: #86efac;
+  background: #f0fdf4;
+  color: #166534;
+  font-weight: 700;
+}
+
+.actions .join-btn:hover:not(:disabled) {
+  background: #dcfce7;
+  border-color: #4ade80;
+  color: #14532d;
+}
+
+.actions .join-btn:disabled {
+  cursor: not-allowed;
+  opacity: 0.62;
+  background: #f8fafc;
+  border-color: #d9e5f1;
+  color: #64748b;
+}
+
+.actions .direct-link-btn {
+  width: auto;
+  min-width: 96px;
+  padding: 0 0.55rem;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.32rem;
+  border-color: #bfdbfe;
+  background: #eff6ff;
+  color: #1d4ed8;
+  font-weight: 700;
+}
+
+.actions .direct-link-btn:hover {
+  background: #dbeafe;
+  border-color: #93c5fd;
+  color: #1e3a8a;
+}
+
+.join-hint {
+  margin: 0.62rem 0 0;
+  font-size: 0.78rem;
+  color: #64748b;
+  font-weight: 600;
+}
+
+@media (max-width: 768px) {
+  .timeline-item {
+    grid-template-columns: 1fr;
+  }
+
+  .timeline-dot {
+    display: none;
+  }
+
+  .timeline-time {
+    justify-content: flex-start;
+    padding-top: 0;
+  }
+}

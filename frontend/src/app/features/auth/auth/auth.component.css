@@ -1,0 +1,164 @@
+:root {
+  --primary-blue: #66c4f1;
+  --background-soft: #dfedfd;
+  --transition-smooth: all 1s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.auth-page {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 100vh;
+  width: 100vw;
+  background-color: var(--background-soft);
+  padding: 0;
+  box-sizing: border-box;
+  font-family:
+    "Poppins",
+    "Inter",
+    -apple-system,
+    sans-serif;
+  overflow: hidden;
+  position: relative;
+}
+
+.auth-frame {
+  width: 100vw;
+  height: 100vh;
+  position: relative;
+  overflow: hidden;
+  background-color: #ffffff;
+}
+
+/* 
+  BACKGROUND OVERLAP LOGIC
+  We make the background 100vw wide so it stays in frame perfectly.
+  They are stacked on top of each other absolutely.
+*/
+.bg-section {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100%;
+}
+
+.bg-image-half {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100%;
+  opacity: 0;
+  pointer-events: none;
+  /* Delay the background swap by 0.15s to overlap perfectly with the sliding motion */
+  transition:
+    opacity 0.8s cubic-bezier(0.4, 0, 0.2, 1) 0.15s,
+    filter 0.8s cubic-bezier(0.4, 0, 0.2, 1) 0.15s;
+  filter: blur(15px);
+  z-index: 1;
+}
+
+.bg-image-half.active {
+  opacity: 1;
+  filter: blur(0px);
+  z-index: 2;
+}
+
+.bg-image-half .bg-image {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  /* Original overlay gives dark gradient to the right */
+  background: linear-gradient(
+    to right,
+    rgba(255, 255, 255, 0) 40%,
+    rgba(255, 255, 255, 0.05) 100%
+  );
+  pointer-events: none;
+}
+
+/* We want the form on the left for register, so we flip the gradient over to the left */
+.flip-overlay {
+  background: linear-gradient(
+    to left,
+    rgba(255, 255, 255, 0) 40%,
+    rgba(255, 255, 255, 0.05) 100%
+  );
+}
+
+/* 
+  FORMS SLIDING LOGIC
+*/
+.forms-wrapper {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  z-index: 10; /* Ensures forms are always visually above the background */
+  pointer-events: none; /* Let clicks pass through to background if needed, but not on forms */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* The single sliding container holding both form states */
+.auth-slider-container {
+  display: grid;
+  width: 440px;
+  position: relative;
+  pointer-events: auto;
+  /* Delay the movement by 0.15s: almost simultaneous, but form content morph starts slightly earlier */
+  transition: transform 0.8s cubic-bezier(0.4, 0, 0.2, 1) 0.15s;
+
+  /* Initial State (Login): Push container to the right side of the screen */
+  transform: translateX(calc(50vw - 50% - 100px));
+}
+
+/* Register State: Pull container to the left side of the screen */
+.auth-slider-container.register-mode {
+  transform: translateX(calc(-50vw + 50% + 100px));
+}
+
+.form-layer {
+  grid-area: 1 / 1;
+  opacity: 0;
+  pointer-events: none;
+  filter: blur(10px);
+  transform: scale(0.95);
+  /* The form contents morph immediately and quickly (0.4s) while starting to slide */
+  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+  display: flex;
+  align-items: center;
+}
+
+.form-layer.active {
+  opacity: 1;
+  pointer-events: auto;
+  filter: blur(0px);
+  transform: scale(1);
+}
+
+app-login,
+app-register {
+  display: block;
+  width: 100%;
+}
+
+@media (max-width: 1100px) {
+  /* On smaller screens, just keep it centered instead of offsetting to left/right */
+  .auth-slider-container {
+    transform: translateX(0) !important;
+  }
+}
+

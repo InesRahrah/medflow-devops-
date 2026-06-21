@@ -1,0 +1,308 @@
+<div class="requests-wrapper">
+  <!-- Animated Background -->
+  <div class="animated-bg">
+    <div class="gradient-blur blur-1"></div>
+    <div class="gradient-blur blur-2"></div>
+    <div class="gradient-blur blur-3"></div>
+  </div>
+
+  <!-- Success Message with Animation -->
+  <div class="alert alert-success slide-in" *ngIf="successMessage">
+    <div class="alert-icon">
+      <i class="fas fa-check-circle"></i>
+    </div>
+    <div class="alert-content">
+      <span class="alert-title">Success</span>
+      <p>{{ successMessage }}</p>
+    </div>
+    <button class="alert-close" (click)="successMessage = ''">×</button>
+  </div>
+
+  <!-- Error Message with Animation -->
+  <div class="alert alert-error slide-in" *ngIf="errorMessage">
+    <div class="alert-icon">
+      <i class="fas fa-exclamation-circle"></i>
+    </div>
+    <div class="alert-content">
+      <span class="alert-title">Error</span>
+      <p>{{ errorMessage }}</p>
+    </div>
+    <button class="alert-close" (click)="errorMessage = ''">×</button>
+  </div>
+
+  <!-- Enhanced Header Section -->
+  <div class="header-section">
+    <div class="header-content">
+      <h1 class="page-title">
+        <span class="title-icon">📋</span>
+        Requests Management
+      </h1>
+      <p class="page-subtitle">
+        Efficiently review and manage pharmaceutical requests with detailed tracking
+      </p>
+    </div>
+    <button class="btn-refresh" (click)="loadRequests()" [disabled]="isLoading" title="Refresh requests">
+      <i class="fas fa-sync-alt" [class.spinning]="isLoading"></i>
+      <span>Refresh</span>
+    </button>
+  </div>
+
+  <!-- Modern Tabs Section -->
+  <div class="tabs-section">
+    <div class="tabs-container">
+      <button class="tab-btn" 
+        [ngClass]="{ active: selectedTab === 'PENDING' }"
+        (click)="onTabChange('PENDING')"
+        title="View pending requests">
+        <i class="fas fa-hourglass-half"></i>
+        <span>Pending</span>
+        <span class="badge">{{ getCountByStatus('PENDING') }}</span>
+      </button>
+
+      <button class="tab-btn"
+        [ngClass]="{ active: selectedTab === 'APPROVED' }"
+        (click)="onTabChange('APPROVED')"
+        title="View approved requests">
+        <i class="fas fa-check-circle"></i>
+        <span>Approved</span>
+        <span class="badge">{{ getCountByStatus('APPROVED') }}</span>
+      </button>
+
+      <button class="tab-btn"
+        [ngClass]="{ active: selectedTab === 'REJECTED' }"
+        (click)="onTabChange('REJECTED')"
+        title="View rejected requests">
+        <i class="fas fa-times-circle"></i>
+        <span>Rejected</span>
+        <span class="badge">{{ getCountByStatus('REJECTED') }}</span>
+      </button>
+    </div>
+  </div>
+
+  <!-- Loading State -->
+  <div class="loading-container" *ngIf="isLoading">
+    <div class="spinner"></div>
+    <p>Loading requests...</p>
+  </div>
+
+  <!-- Requests Table -->
+  <div class="requests-table-container" *ngIf="!isLoading">
+    <!-- Empty State -->
+    <div class="empty-state" *ngIf="!filteredRequests || filteredRequests.length === 0">
+      <div class="empty-icon">📭</div>
+      <h3>No {{ selectedTab.toLowerCase() }} requests</h3>
+      <p>No requests available for this category</p>
+    </div>
+
+    <!-- Table -->
+    <table class="requests-table" *ngIf="filteredRequests && filteredRequests.length > 0">
+      <thead>
+        <tr>
+          <th>Date</th>
+          <th>Priority</th>
+          <th>Status</th>
+          <th>Delivery</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let request of filteredRequests" [ngClass]="'status-' + (request?.requestStatus || '').toLowerCase()">
+          <!-- Date -->
+          <td class="col-date">
+            <span class="date-value">{{ request.requestDate | date:'dd MMM yyyy' }}</span>
+          </td>
+
+          <!-- Priority -->
+          <td class="col-priority">
+            <span class="priority-badge" [class]="(request.requestPriority || 'NORMAL').toLowerCase()">
+              {{ request.requestPriority || 'Normal' }}
+            </span>
+          </td>
+
+          <!-- Status -->
+          <td class="col-status">
+            <span class="status-badge" [class]="(request?.requestStatus || '').toLowerCase()">
+              <span class="status-dot"></span>
+              {{ request?.requestStatus }}
+            </span>
+          </td>
+
+          <!-- Delivery Status -->
+          <td class="col-delivery">
+            <span *ngIf="request.delivery && request.delivery.deliveryAgentName" class="delivery-assigned">
+              <i class="fas fa-truck"></i>
+              {{ request.delivery.deliveryAgentName }}
+            </span>
+            <span *ngIf="!request.delivery || !request.delivery.deliveryAgentName" class="delivery-unassigned">
+              <i class="fas fa-exclamation-circle"></i>
+              Not assigned
+            </span>
+          </td>
+
+          <!-- Actions -->
+          <td class="col-actions">
+            <div class="action-group">
+              <button class="btn-view"
+                      (click)="viewDetails(request)"
+                      title="View full details">
+                👁️ View
+              </button>
+
+              <button class="btn-accept"
+                      *ngIf="selectedTab === 'PENDING'"
+                      (click)="acceptRequest(request)"
+                      title="Accept this request">
+                ✓
+              </button>
+
+              <button class="btn-reject"
+                      *ngIf="selectedTab === 'PENDING'"
+                      (click)="rejectRequestDirect(request)"
+                      title="Reject this request">
+                ✗
+              </button>
+            </div>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<!-- Modal Overlay -->
+<div class="modal-overlay"
+     *ngIf="showDetailModal && selectedRequest"
+     (click)="closeModal()"></div>
+
+<!-- Modal Dialog -->
+<div class="modal-dialog"
+     *ngIf="showDetailModal && selectedRequest">
+
+  <div class="modal-content">
+    <div class="modal-header">
+      <div class="modal-title-section">
+        <h2>Request Details</h2>
+        <span class="modal-status" [class]="'status-' + (selectedRequest?.requestStatus || '').toLowerCase()">
+          {{ selectedRequest.requestStatus }}
+        </span>
+      </div>
+      <button class="btn-close" (click)="closeModal()" title="Close">
+        <i class="fas fa-times"></i>
+      </button>
+    </div>
+
+    <div class="modal-body">
+      <!-- Information Section -->
+      <div class="detail-section">
+        <h3>📋 Request Information</h3>
+        <div class="detail-grid">
+          <div class="detail-item">
+            <span>Status</span>
+            <strong>{{ selectedRequest.requestStatus }}</strong>
+          </div>
+          <div class="detail-item">
+            <span>Priority</span>
+            <strong>{{ selectedRequest.requestPriority }}</strong>
+          </div>
+          <div class="detail-item">
+            <span>Date</span>
+            <strong>{{ selectedRequest.requestDate | date:'short' }}</strong>
+          </div>
+          <div class="detail-item">
+            <span>Region</span>
+            <strong>{{ selectedRequest.region || 'N/A' }}</strong>
+          </div>
+        </div>
+      </div>
+
+      <!-- Comments Section -->
+      <div class="detail-section">
+        <h3>💬 Comments</h3>
+        <p class="detail-text">{{ selectedRequest.requestComment || 'No comments provided' }}</p>
+      </div>
+
+      <!-- Medicines Section -->
+      <div class="detail-section">
+        <h3>💊 Medicines & Quantities</h3>
+        <div *ngIf="selectedRequest?.items?.length > 0; else noItems" class="items-list">
+          <div *ngFor="let item of selectedRequest.items" class="item-card">
+            <div class="item-info">
+              <div class="item-row">
+                <p><b>Medicine:</b> {{ item.product?.productName || 'Unknown Product' }}</p>
+              </div>
+              <div class="item-row">
+                <p><b>Quantity:</b> {{ item.requestedQuantity }}</p>
+              </div>
+              <div class="item-row" *ngIf="item.itemNote">
+                <p><b>Note:</b> {{ item.itemNote }}</p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <ng-template #noItems>
+          <p class="no-items">No items in this request</p>
+        </ng-template>
+      </div>
+
+      <!-- 🚚 DELIVERY SECTION (only for APPROVED requests) -->
+      <div class="detail-section" *ngIf="selectedRequest?.requestStatus === 'APPROVED'">
+        <!-- Show delivery information if it exists and has deliveryAgentId -->
+        <h3 *ngIf="selectedRequest?.delivery?.deliveryAgentId">🚚 Delivery Information</h3>
+        <!-- Show assignment form if no delivery assigned -->
+        <h3 *ngIf="!selectedRequest?.delivery?.deliveryAgentId">🚚 Assign Delivery Agent</h3>
+
+        <!-- ✅ IF DELIVERY EXISTS AND HAS deliveryAgentId -->
+        <div *ngIf="selectedRequest?.delivery?.deliveryAgentId" class="delivery-info-box">
+          <div class="delivery-detail">
+            <span class="delivery-label">Agent:</span>
+            <strong>{{ selectedRequest.delivery.deliveryAgentName }}</strong>
+          </div>
+
+          <div class="delivery-detail" *ngIf="selectedRequest.delivery.vehicleType">
+            <span class="delivery-label">Vehicle:</span>
+            <span class="vehicle-badge">🚚 {{ selectedRequest.delivery.vehicleType }}</span>
+          </div>
+
+          <div class="delivery-detail">
+            <span class="delivery-label">Delivery Status:</span>
+            <span class="delivery-status-badge" [class]="'status-' + (selectedRequest.delivery.deliveryStatus || 'PENDING').toLowerCase()">
+              {{ selectedRequest.delivery.deliveryStatus || 'PENDING' }}
+            </span>
+          </div>
+
+          <div class="delivery-detail" *ngIf="selectedRequest.delivery.trackingNumber">
+            <span class="delivery-label">Tracking #:</span>
+            <code class="tracking-code">{{ selectedRequest.delivery.trackingNumber }}</code>
+          </div>
+        </div>
+
+        <!-- ✅ SHOW FORM ONLY IF NO DELIVERY ASSIGNED -->
+        <div *ngIf="!selectedRequest?.delivery?.deliveryAgentId" class="delivery-form">
+          <div class="form-group">
+            <label>Select Delivery Agent:</label>
+            <select [(ngModel)]="selectedDeliveryAgent" class="form-control">
+              <option [ngValue]="null">-- Choose an agent --</option>
+              <option *ngFor="let agent of deliveryAgents" [ngValue]="agent">
+                {{ agent.name }} ({{ agent.vehicleType }})
+              </option>
+            </select>
+          </div>
+
+          <button class="btn-assign"
+                  (click)="assignDelivery()"
+                  [disabled]="!selectedDeliveryAgent"
+                  title="Assign the selected delivery agent">
+            🚚 Assign Delivery Agent
+          </button>
+        </div>
+      </div>
+
+    </div>
+
+    <div class="modal-footer">
+      <button class="btn-close-modal" (click)="closeModal()">Close</button>
+    </div>
+
+  </div>
+</div>

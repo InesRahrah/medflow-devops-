@@ -1,0 +1,255 @@
+<div class="profile-container">
+  <div class="container">
+    <div class="profile-layout">
+      <!-- Sidebar / Info Card -->
+      <aside class="profile-sidebar">
+        <div class="profile-card">
+          <div class="profile-avatar-wrapper">
+            <div class="profile-avatar">
+              <img
+                *ngIf="deliveryData.profilePictureUrl"
+                [src]="deliveryData.profilePictureUrl"
+                alt="Profile"
+                class="avatar-img"
+              />
+              <span
+                *ngIf="!deliveryData.profilePictureUrl"
+                class="avatar-initials"
+                >{{ deliveryData.firstName[0] }}</span
+              >
+            </div>
+            <button class="edit-avatar-btn" (click)="fileInput.click()">
+              <svg
+                width="16"
+                height="16"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+              >
+                <path
+                  d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"
+                ></path>
+                <circle cx="12" cy="13" r="4"></circle>
+              </svg>
+            </button>
+            <input
+              type="file"
+              #fileInput
+              hidden
+              accept="image/*"
+              (change)="onFileSelected($event)"
+            />
+          </div>
+
+          <div class="profile-identity-header">
+            <h2>{{ deliveryData.firstName }} {{ deliveryData.lastName }}</h2>
+            <p class="specialty-badge">
+              {{ deliveryData.vehicleType || "Delivery Agent" }}
+            </p>
+          </div>
+
+          <nav class="profile-tabs">
+            <button class="tab-link active">General Info</button>
+          </nav>
+        </div>
+      </aside>
+
+      <!-- Main Content -->
+      <main class="profile-main">
+        <div class="content-card">
+          <div class="card-header">
+            <h3>Professional Profile</h3>
+            <div class="header-actions">
+              <button
+                *ngIf="!isEditing"
+                class="edit-btn"
+                (click)="toggleEdit()"
+              >
+                <svg
+                  width="16"
+                  height="16"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="2"
+                >
+                  <path
+                    d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"
+                  ></path>
+                  <path
+                    d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"
+                  ></path>
+                </svg>
+                Edit Profile
+              </button>
+              <ng-container *ngIf="isEditing">
+                <button
+                  class="cancel-btn"
+                  (click)="toggleEdit()"
+                  [disabled]="isLoading"
+                >
+                  Cancel
+                </button>
+                <button
+                  class="save-btn"
+                  (click)="saveProfile(profileForm)"
+                  [disabled]="isLoading"
+                >
+                  {{ isLoading ? "Saving..." : "Save Changes" }}
+                </button>
+              </ng-container>
+            </div>
+          </div>
+
+          <form class="profile-form" #profileForm="ngForm" novalidate>
+            <div class="form-grid">
+              <div class="form-group">
+                <label>First Name</label>
+                <input
+                  type="text"
+                  [(ngModel)]="deliveryData.firstName"
+                  name="firstName"
+                  [readonly]="!isEditing"
+                  required
+                  [class.invalid]="isFieldInvalid(profileForm, 'firstName')"
+                />
+                <small
+                  class="field-error"
+                  *ngIf="isFieldInvalid(profileForm, 'firstName')"
+                >
+                  {{ getFieldError(profileForm, "firstName", "First Name") }}
+                </small>
+              </div>
+              <div class="form-group">
+                <label>Last Name</label>
+                <input
+                  type="text"
+                  [(ngModel)]="deliveryData.lastName"
+                  name="lastName"
+                  [readonly]="!isEditing"
+                  required
+                  [class.invalid]="isFieldInvalid(profileForm, 'lastName')"
+                />
+                <small
+                  class="field-error"
+                  *ngIf="isFieldInvalid(profileForm, 'lastName')"
+                >
+                  {{ getFieldError(profileForm, "lastName", "Last Name") }}
+                </small>
+              </div>
+              <div class="form-group">
+                <label>Email Address</label>
+                <input
+                  type="email"
+                  [(ngModel)]="deliveryData.email"
+                  name="email"
+                  [readonly]="!isEditing"
+                  required
+                  [class.invalid]="isFieldInvalid(profileForm, 'email')"
+                />
+                <small
+                  class="field-error"
+                  *ngIf="isFieldInvalid(profileForm, 'email')"
+                >
+                  {{ getFieldError(profileForm, "email", "Email") }}
+                </small>
+              </div>
+              <div class="form-group">
+                <label>Phone Number</label>
+                <input
+                  type="text"
+                  pattern="^[0-9]{8}$"
+                  maxlength="8"
+                  [(ngModel)]="deliveryData.phone"
+                  name="phone"
+                  [readonly]="!isEditing"
+                  [class.invalid]="isFieldInvalid(profileForm, 'phone')"
+                />
+                <small
+                  class="field-error"
+                  *ngIf="isFieldInvalid(profileForm, 'phone')"
+                >
+                  {{ getFieldError(profileForm, "phone", "Phone Number") }}
+                </small>
+              </div>
+              <div class="form-group full-width">
+                <label>Address</label>
+                <input
+                  type="text"
+                  [(ngModel)]="deliveryData.address"
+                  name="address"
+                  [readonly]="!isEditing"
+                  [class.invalid]="isFieldInvalid(profileForm, 'address')"
+                />
+                <small
+                  class="field-error"
+                  *ngIf="isFieldInvalid(profileForm, 'address')"
+                >
+                  {{ getFieldError(profileForm, "address", "Address") }}
+                </small>
+              </div>
+              <div class="form-group">
+                <label>License Number</label>
+                <input
+                  type="text"
+                  [(ngModel)]="deliveryData.licenseNumber"
+                  name="licenseNumber"
+                  [readonly]="!isEditing"
+                  [class.invalid]="isFieldInvalid(profileForm, 'licenseNumber')"
+                />
+                <small
+                  class="field-error"
+                  *ngIf="isFieldInvalid(profileForm, 'licenseNumber')"
+                >
+                  {{
+                    getFieldError(
+                      profileForm,
+                      "licenseNumber",
+                      "License Number"
+                    )
+                  }}
+                </small>
+              </div>
+              <div class="form-group">
+                <label>Vehicle Type</label>
+                <input
+                  type="text"
+                  [(ngModel)]="deliveryData.vehicleType"
+                  name="vehicleType"
+                  [readonly]="!isEditing"
+                  [class.invalid]="isFieldInvalid(profileForm, 'vehicleType')"
+                />
+                <small
+                  class="field-error"
+                  *ngIf="isFieldInvalid(profileForm, 'vehicleType')"
+                >
+                  {{ getFieldError(profileForm, "vehicleType", "Vehicle Type") }}
+                </small>
+              </div>
+              <div class="form-group full-width">
+                <label>Professional Bio</label>
+                <textarea
+                  rows="3"
+                  [(ngModel)]="deliveryData.biography"
+                  name="biography"
+                  [readonly]="!isEditing"
+                ></textarea>
+              </div>
+            </div>
+          </form>
+        </div>
+      </main>
+    </div>
+  </div>
+
+  <!-- Success Popup -->
+  <div *ngIf="showSuccessPopup" class="success-popup">
+    <div class="popup-content">
+      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="popup-icon">
+        <polyline points="20 6 9 17 4 12"></polyline>
+      </svg>
+      <p>{{ popupMessage }}</p>
+    </div>
+  </div>
+</div>

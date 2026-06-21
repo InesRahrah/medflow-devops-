@@ -1,0 +1,282 @@
+﻿<section class="booking-section">
+  <div class="booking-container">
+
+    <div class="booking-page-header">
+      <h1 class="booking-title">Book an Appointment</h1>
+      <p class="booking-subtitle">Schedule your visit with a specialist in just a few steps</p>
+    </div>
+
+    <!-- No doctor selected -->
+    <div class="no-doctor-card" *ngIf="!selectedDoctor">
+      <div class="no-doctor-icon" aria-hidden="true">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+          <circle cx="12" cy="8" r="3.5"></circle>
+          <path d="M5 19c0-3.2 3.2-5.5 7-5.5s7 2.3 7 5.5"></path>
+          <path d="M12 4.5v1.8M9.2 6.1l-1.2-1.2M14.8 6.1l1.2-1.2"></path>
+        </svg>
+      </div>
+      <h3>No Doctor Selected</h3>
+      <p>Please select a doctor from our doctors list to book an appointment.</p>
+      <a href="/doctors" class="btn-go-doctors">Browse Doctors</a>
+    </div>
+
+    <!-- Main 2-column booking layout -->
+    <div class="booking-layout" *ngIf="selectedDoctor">
+
+      <!-- LEFT: Doctor summary panel -->
+      <aside class="doctor-panel">
+        <div class="doc-panel-avatar" aria-hidden="true">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+            <circle cx="12" cy="8" r="3.5"></circle>
+            <path d="M5 19c0-3.2 3.2-5.5 7-5.5s7 2.3 7 5.5"></path>
+            <path d="M12 4.5v1.8M9.2 6.1l-1.2-1.2M14.8 6.1l1.2-1.2"></path>
+          </svg>
+        </div>
+
+        <div class="doc-panel-info">
+          <h2 class="doc-panel-name">{{ selectedDoctor.name }}</h2>
+          <span class="doc-specialty-tag">{{ selectedDoctor.specialty }}</span>
+        </div>
+
+        <div class="doc-panel-divider"></div>
+
+        <ul class="doc-stat-list" aria-label="Doctor details">
+          <li class="doc-stat-row">
+            <span class="stat-icon" aria-hidden="true">
+              <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="#f4b400" stroke-width="2">
+                <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>
+              </svg>
+            </span>
+            <div class="stat-content">
+              <span class="stat-label">Rating</span>
+              <span class="stat-value">{{ (selectedDoctor.rating || 4.8).toFixed(1) }} <small>({{ selectedDoctor.reviews || 0 }} reviews)</small></span>
+            </div>
+          </li>
+
+          <li class="doc-stat-row">
+            <span class="stat-icon" aria-hidden="true">
+              <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/>
+                <circle cx="12" cy="10" r="3"/>
+              </svg>
+            </span>
+            <div class="stat-content">
+              <span class="stat-label">Location</span>
+              <span class="stat-value">{{ selectedDoctor.location || 'Tunis' }}</span>
+            </div>
+          </li>
+
+          <li class="doc-stat-row">
+            <span class="stat-icon" aria-hidden="true">
+              <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2">
+                <circle cx="12" cy="12" r="10"/>
+                <polyline points="12 6 12 12 16 14"/>
+              </svg>
+            </span>
+            <div class="stat-content">
+              <span class="stat-label">Availability</span>
+              <span class="stat-value avail-green">
+                 {{ selectedDoctor.availability || 'See schedule' }}
+              </span>            </div>
+          </li>
+
+          <li class="doc-stat-row" *ngIf="selectedDoctor.workingDays">
+            <span class="stat-icon" aria-hidden="true">
+              <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2">
+                <rect x="3" y="4" width="18" height="18" rx="2" ry="2"/>
+                <line x1="8" y1="2" x2="8" y2="6"/>
+                <line x1="16" y1="2" x2="16" y2="6"/>
+                <line x1="3" y1="10" x2="21" y2="10"/>
+              </svg>
+            </span>
+            <div class="stat-content">
+              <span class="stat-label">Working Days</span>
+              <span class="stat-value">{{ selectedDoctor.workingDays }}</span>
+            </div>
+          </li>
+
+          <li class="doc-stat-row" *ngIf="selectedDoctor.workingHours">
+            <span class="stat-icon" aria-hidden="true">
+              <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2">
+                <circle cx="12" cy="12" r="10"/>
+                <polyline points="12 6 12 12 16 14"/>
+              </svg>
+            </span>
+            <div class="stat-content">
+              <span class="stat-label">Working Hours</span>
+              <span class="stat-value">{{ selectedDoctor.workingHours }}</span>
+            </div>
+          </li>
+
+          <li class="doc-stat-row">
+            <span class="stat-icon" aria-hidden="true">
+              <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2">
+                <line x1="12" y1="1" x2="12" y2="23"/>
+                <path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/>
+              </svg>
+            </span>
+            <div class="stat-content">
+              <span class="stat-label">Consultation Fee</span>
+              <span class="stat-value">{{ selectedDoctor.fee || 'N/A' }} TND</span>
+            </div>
+          </li>
+
+          <li class="doc-stat-row">
+            <span class="stat-icon" aria-hidden="true">
+              <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M22 10v6M2 10l10-5 10 5-10 5z"/>
+                <path d="M6 12v5c3 3 9 3 12 0v-5"/>
+              </svg>
+            </span>
+            <div class="stat-content">
+              <span class="stat-label">Experience</span>
+              <span class="stat-value">{{ selectedDoctor.experience || 'N/A' }}</span>
+            </div>
+          </li>
+        </ul>
+
+        <div class="doc-avail-badge" *ngIf="selectedDoctor.availabilityState === 'today'">
+          <span class="avail-dot"></span>
+            Available Today
+        </div>
+
+        <div class="doc-avail-badge doc-avail-badge--offline" *ngIf="selectedDoctor.availabilityState !== 'today'">
+  <span class="avail-dot avail-dot--offline" aria-hidden="true"></span>
+  Not Available Today
+</div>
+      </aside>
+
+      <!-- RIGHT: Booking form -->
+      <main class="form-panel">
+        <form (ngSubmit)="onSubmit()" #apptForm="ngForm" class="booking-form">
+
+          <!-- Step 1: Date -->
+          <div class="step-section">
+            <div class="step-header">
+              <span class="step-badge" aria-hidden="true">1</span>
+              <div>
+                <h3 class="step-title">Select a Date</h3>
+                <p class="step-hint">Pick any available weekday for your appointment</p>
+              </div>
+            </div>
+            <input
+              id="appointment-date"
+              type="date"
+              [(ngModel)]="formData.date"
+              name="date"
+              [min]="minDate"
+              (change)="onDateChange()"
+              class="booking-date-input"
+              [class.is-filled]="!!formData.date"
+              required
+              aria-label="Select appointment date"
+            />
+            <p class="field-error" *ngIf="weekendDateError">{{ weekendDateError }}</p>
+          </div>
+
+          <!-- Step 2: Time -->
+          <div class="step-section">
+            <div class="step-header">
+              <span class="step-badge" aria-hidden="true">2</span>
+              <div>
+                <h3 class="step-title">Choose a Time Slot</h3>
+                <p class="step-hint">Select from the available slots for your chosen date</p>
+              </div>
+            </div>
+
+            <div class="time-slots-loading" *ngIf="loadingSlots" aria-live="polite">
+              <span class="slots-spinner" aria-hidden="true"></span>
+              <span>Loading available slots...</span>
+            </div>
+
+            <div class="time-slots-placeholder" *ngIf="!loadingSlots && !formData.date">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                <rect x="3" y="4" width="18" height="18" rx="2" ry="2"/>
+                <line x1="16" y1="2" x2="16" y2="6"/>
+                <line x1="8" y1="2" x2="8" y2="6"/>
+                <line x1="3" y1="10" x2="21" y2="10"/>
+              </svg>
+              <span>Select a date above to see available time slots</span>
+            </div>
+
+            <div class="time-slots-empty" *ngIf="!loadingSlots && !!formData.date && availableTimeSlots.length === 0 && !!noSlotsMessage">
+              <p>{{ noSlotsMessage }}</p>
+            </div>
+
+            <div class="time-slots-grid" *ngIf="!loadingSlots && availableTimeSlots.length > 0">
+              <button
+                type="button"
+                class="time-slot-btn"
+                *ngFor="let slot of availableTimeSlots"
+                [class.selected]="formData.time === slot"
+                (click)="selectTimeSlot(slot)"
+              >
+                {{ slot }}
+              </button>
+            </div>
+          </div>
+
+          <!-- Step 3: Visit mode -->
+          <div class="step-section">
+            <div class="step-header">
+              <span class="step-badge" aria-hidden="true">3</span>
+              <div>
+                <h3 class="step-title">Visit Mode</h3>
+                <p class="step-hint">Choose whether your visit is online or in person</p>
+              </div>
+            </div>
+            <app-custom-dropdown
+              [(ngModel)]="formData.visitMode"
+              name="visitMode"
+              [options]="visitModes"
+              placeholder="Select visit mode"
+              required
+            ></app-custom-dropdown>
+          </div>
+
+          <!-- Step 4: Appointment type -->
+          <div class="step-section">
+            <div class="step-header">
+              <span class="step-badge" aria-hidden="true">4</span>
+              <div>
+                <h3 class="step-title">Appointment Type</h3>
+                <p class="step-hint">Select the reason for your visit</p>
+              </div>
+            </div>
+            <app-custom-dropdown
+              [(ngModel)]="formData.type"
+              name="type"
+              [options]="appointmentTypes"
+              placeholder="Select appointment type"
+              required
+            ></app-custom-dropdown>
+          </div>
+
+          <!-- Confirm CTA -->
+          <div class="form-footer">
+            <button
+              type="submit"
+              class="btn-confirm"
+              [disabled]="!isFormValid || isLoading"
+            >
+              <span *ngIf="!isLoading">Confirm Appointment</span>
+              <span class="loading-row" *ngIf="isLoading">
+                <span class="btn-spinner" aria-hidden="true"></span>
+                Booking...
+              </span>
+            </button>
+          </div>
+
+        </form>
+      </main>
+    </div>
+
+  </div>
+
+  <!-- Toast notification -->
+  <div class="toast" *ngIf="toast.visible" [class.toast--error]="toast.variant === 'error'" role="alert" aria-live="assertive">
+    <span class="toast-icon" aria-hidden="true">{{ toast.variant === 'success' ? 'OK' : '!' }}</span>
+    <span>{{ toast.message }}</span>
+  </div>
+</section>
+<app-patient-chat-widget></app-patient-chat-widget>

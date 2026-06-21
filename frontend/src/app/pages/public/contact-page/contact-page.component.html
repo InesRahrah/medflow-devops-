@@ -1,0 +1,110 @@
+<main class="contact-wrapper">
+  <!-- Contact Hero -->
+  <section class="contact-hero">
+    <div class="container animate-up">
+      <span class="section-label">Contact Us</span>
+      <h1 class="page-title">How can we help <span>you</span>?</h1>
+      <p class="page-description">
+        Whether you have questions about our services, need technical support, or want to partner with us, our team is
+        here for you.
+      </p>
+    </div>
+  </section>
+
+  <!-- Contact Form Section -->
+  <section class="contact-section">
+    <div class="container">
+      <div class="contact-grid">
+        <!-- Info Cards -->
+        <div class="contact-info animate-up">
+          <div class="info-card">
+            <div class="info-icon">
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M22 16.92v3a2 2 0 01-2.18 2 19.79 19.79 0 01-8.63-3.07 19.5 19.5 0 01-6-6 19.79 19.79 0 01-3.07-8.67A2 2 0 014.11 2h3a2 2 0 012 1.72 12.84 12.84 0 00.7 2.81 2 2 0 01-.45 2.11L8.09 9.91a16 16 0 006 6l1.27-1.27a2 2 0 012.11-.45 12.84 12.84 0 002.81.7A2 2 0 0122 16.92z"></path>
+              </svg>
+            </div>
+            <div>
+              <h5>Call Us</h5>
+              <p>+216 70 123 456</p>
+            </div>
+          </div>
+
+          <div class="info-card">
+            <div class="info-icon">
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"></path>
+                <polyline points="22,6 12,13 2,6"></polyline>
+              </svg>
+            </div>
+            <div>
+              <h5>Email Address</h5>
+              <p>contact&#64;medflow.tn</p>
+            </div>
+          </div>
+
+          <div class="info-card">
+            <div class="info-icon">
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0118 0z"></path>
+                <circle cx="12" cy="10" r="3"></circle>
+              </svg>
+            </div>
+            <div>
+              <h5>Main Office</h5>
+              <p>12 rue André Ampère - El Ghazala</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Styled Form Card -->
+        <div class="contact-card animate-up" style="animation-delay: 0.2s">
+          <div *ngIf="!submitted" class="form-body">
+            <h3>Send us a message</h3>
+            <p>Fill out the form below and we'll get back to you within 24 hours.</p>
+
+            <form (ngSubmit)="onSubmit()" #contactForm="ngForm">
+              <div class="form-row">
+                <div class="form-group">
+                  <label for="name">Full Name</label>
+                  <input type="text" id="name" name="name" [(ngModel)]="contactData.name" required placeholder="John Doe">
+                </div>
+                <div class="form-group">
+                  <label for="email">Email Address</label>
+                  <input type="email" id="email" name="email" [(ngModel)]="contactData.email" required placeholder="john@example.com">
+                </div>
+              </div>
+
+              <div class="form-group">
+                <label for="subject">Subject</label>
+                <input type="text" id="subject" name="subject" [(ngModel)]="contactData.subject" placeholder="General Inquiry">
+              </div>
+
+              <div class="form-group">
+                <label for="message">Your Message</label>
+                <textarea id="message" name="message" [(ngModel)]="contactData.message" required rows="5" placeholder="How can we help?"></textarea>
+              </div>
+
+              <button type="submit" class="btn-primary w-full" [disabled]="!contactForm.form.valid || isSending">
+                <span *ngIf="!isSending">Send Message</span>
+                <span *ngIf="isSending" class="loader"></span>
+              </button>
+            </form>
+          </div>
+
+          <!-- Success State -->
+          <div *ngIf="submitted" class="success-screen">
+            <div class="success-icon">
+              <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <polyline points="20 6 9 17 4 12"></polyline>
+              </svg>
+            </div>
+            <h3>Message Sent!</h3>
+            <p>Thank you for reaching out. A MedFlow representative will contact you shortly.</p>
+            <button class="btn-outline" (click)="resetForm()">Send another message</button>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </section>
+</main>

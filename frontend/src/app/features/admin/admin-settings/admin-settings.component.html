@@ -1,0 +1,40 @@
+<div class="admin-page">
+  <header class="page-header">
+    <div class="title-group">
+      <h1>System Configuration</h1>
+      <p>Configure platform preferences, security protocols, and system-wide settings.</p>
+    </div>
+    <div class="header-actions">
+      <button class="btn-primary">Save Changes</button>
+      <button class="btn-secondary">Discard</button>
+    </div>
+  </header>
+
+  <section class="settings-grid">
+    <div class="settings-panel panel shadow-soft" *ngFor="let group of settingsGroups">
+      <header class="panel-header">
+        <h3>{{ group.title }}</h3>
+      </header>
+      <div class="panel-content">
+        <div class="setting-item" *ngFor="let item of group.items">
+          <div class="setting-info">
+            <span class="label">{{ item.label }}</span>
+          </div>
+          <div class="setting-control">
+            <ng-container [ngSwitch]="item.type">
+              <input *ngSwitchCase="'text'" type="text" [value]="item.value" class="input-field" />
+              <div *ngSwitchCase="'select'" class="select-wrapper">
+                <span class="current-val">{{ item.value }}</span>
+                <i class="fas fa-chevron-down"></i>
+              </div>
+              <div *ngSwitchCase="'toggle'" class="toggle-switch" [class.active]="item.value">
+                <div class="toggle-track"></div>
+                <div class="toggle-thumb"></div>
+              </div>
+            </ng-container>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+</div>

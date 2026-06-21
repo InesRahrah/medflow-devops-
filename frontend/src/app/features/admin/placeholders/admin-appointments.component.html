@@ -1,0 +1,335 @@
+<div class="admin-page">
+  <!-- Page Header -->
+  <header class="page-header">
+    <div class="title-group">
+      <h1>Appointments</h1>
+      <p>Global appointment overview and system scheduling metrics.</p>
+    </div>
+  </header>
+
+  <!-- Date Range Filter -->
+  <div class="filter-section">
+    <div class="date-filter-group">
+      <div class="date-input-wrapper">
+        <label for="fromDate">From Date</label>
+        <input
+          id="fromDate"
+          type="date"
+          [(ngModel)]="fromDate"
+          (change)="onDateRangeChange()"
+          class="date-input"
+        />
+      </div>
+      <div class="date-input-wrapper">
+        <label for="toDate">To Date</label>
+        <input
+          id="toDate"
+          type="date"
+          [(ngModel)]="toDate"
+          (change)="onDateRangeChange()"
+          class="date-input"
+        />
+      </div>
+      <button class="btn-refresh" (click)="loadDashboard()" [disabled]="isLoading">
+        <i class="fas fa-sync-alt" [class.spinning]="isLoading"></i>
+        <span>Refresh</span>
+      </button>
+    </div>
+  </div>
+
+  <!-- Loading State -->
+  <div *ngIf="isLoading" class="loading-container">
+    <div class="spinner"></div>
+    <p>Loading appointment metrics...</p>
+  </div>
+
+  <!-- Error State -->
+  <div *ngIf="error && !isLoading" class="error-alert error-alert-warning">
+    <i class="fas fa-exclamation-triangle"></i>
+    <p>{{ error }}</p>
+  </div>
+
+  <!-- Dashboard Content -->
+  <div *ngIf="dashboardData && !isLoading" class="dashboard-content">
+    <!-- KPI Cards Section -->
+    <section class="kpi-cards-section">
+      <div class="kpi-card">
+        <div class="kpi-icon">
+          <i class="fas fa-users"></i>
+        </div>
+        <div class="kpi-content">
+          <h3>Patients Assisted</h3>
+          <div class="kpi-value">{{ dashboardData.summary.patientsAssisted }}</div>
+          <p class="kpi-label">Unique patients with scheduled appointments</p>
+        </div>
+      </div>
+
+      <div class="kpi-card">
+        <div class="kpi-icon">
+          <i class="fas fa-calendar-check"></i>
+        </div>
+        <div class="kpi-content">
+          <h3>Scheduled Appointments</h3>
+          <div class="kpi-value">{{ dashboardData.summary.scheduledAppointments }}</div>
+          <p class="kpi-label">Total scheduled appointments</p>
+        </div>
+      </div>
+
+      <div class="kpi-card">
+        <div class="kpi-icon cancel-icon">
+          <i class="fas fa-times-circle"></i>
+        </div>
+        <div class="kpi-content">
+          <h3>Cancelled Appointments</h3>
+          <div class="kpi-value">{{ dashboardData.summary.cancelledAppointments }}</div>
+          <p class="kpi-label">Total cancellations in period</p>
+        </div>
+      </div>
+
+      <div class="kpi-card">
+        <div class="kpi-icon success-icon">
+          <i class="fas fa-chart-line"></i>
+        </div>
+        <div class="kpi-content">
+          <h3>Booking Success Rate</h3>
+          <div class="kpi-value" [style.color]="getSuccessRateColor()">
+            {{ dashboardData.summary.bookingSuccessRate.toFixed(1) }}%
+          </div>
+          <p class="kpi-label">Percentage of successful bookings</p>
+        </div>
+      </div>
+
+      <div class="kpi-card">
+        <div class="kpi-icon cancel-icon">
+          <i class="fas fa-user-clock"></i>
+        </div>
+        <div class="kpi-content">
+          <h3>Late Cancellations</h3>
+          <div class="kpi-value">{{ dashboardData.summary.lateCancelledAppointments ?? 0 }}</div>
+          <p class="kpi-label">
+            Rate: {{ (dashboardData.summary.lateCancellationRate ?? 0).toFixed(1) }}%
+          </p>
+        </div>
+      </div>
+
+      <div class="kpi-card">
+        <div class="kpi-icon cancel-icon">
+          <i class="fas fa-user-slash"></i>
+        </div>
+        <div class="kpi-content">
+          <h3>No-shows</h3>
+          <div class="kpi-value">{{ dashboardData.summary.noShowAppointments ?? 0 }}</div>
+          <p class="kpi-label">Rate: {{ (dashboardData.summary.noShowRate ?? 0).toFixed(1) }}%</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- Pending Status Section -->
+    <section class="pending-section">
+      <div class="pending-card">
+        <div class="pending-header">
+          <i class="fas fa-hourglass-half"></i>
+          <h3>Pending Doctor Confirmations</h3>
+        </div>
+        <div class="pending-value">
+          {{ dashboardData.summary.pendingDoctorConfirmations }}
+        </div>
+        <p class="pending-desc">Awaiting doctor confirmation</p>
+      </div>
+
+      <div class="pending-card">
+        <div class="pending-header">
+          <i class="fas fa-clock"></i>
+          <h3>Pending Patient Confirmations</h3>
+        </div>
+        <div class="pending-value">
+          {{ dashboardData.summary.pendingPatientConfirmations }}
+        </div>
+        <p class="pending-desc">Awaiting patient confirmation</p>
+      </div>
+    </section>
+
+    <!-- Top Symptoms Chart Section -->
+    <section class="symptoms-section" *ngIf="dashboardData.topSymptoms.length > 0">
+      <div class="symptoms-header">
+        <h2>Top Symptoms</h2>
+        <p>Most common appointment reasons</p>
+      </div>
+
+      <div class="symptoms-chart">
+        <div class="symptoms-list">
+          <div
+            *ngFor="let symptom of dashboardData.topSymptoms"
+            class="symptom-item"
+          >
+            <div class="symptom-info">
+              <span class="symptom-name">{{ symptom.symptom }}</span>
+              <span class="symptom-count">{{ symptom.count }} appointments</span>
+            </div>
+            <div class="symptom-bar-container">
+              <div
+                class="symptom-bar"
+                [style.width]="
+                  (symptom.count /
+                    (dashboardData.topSymptoms[0].count || 1)) *
+                    100 +
+                  '%'
+                "
+              ></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Metrics Summary -->
+    <section class="metrics-summary">
+      <div class="summary-card">
+        <h3>Total Appointments</h3>
+        <div class="summary-value">{{ dashboardData.summary.totalAppointments }}</div>
+      </div>
+      <div class="summary-card">
+        <h3>Cancellation Rate</h3>
+        <div class="summary-value" [style.color]="getCancellationRateColor()">
+          {{ dashboardData.summary.cancellationRate.toFixed(1) }}%
+        </div>
+      </div>
+      <div class="summary-card">
+        <h3>Period</h3>
+        <div class="summary-value">{{ dashboardData.from }} to {{ dashboardData.to }}</div>
+      </div>
+    </section>
+
+  </div><!-- end dashboard-content -->
+
+  <!-- Penalty Management — always visible, independent of dashboard API -->
+  <section class="penalty-admin-section">
+      <div class="penalty-header">
+        <div>
+          <h2>Patient Penalty Management</h2>
+          <p>Review flagged patients' risk profiles, active restrictions, and attendance history.</p>
+        </div>
+        <button class="btn-refresh" (click)="loadFlaggedPatients()" [disabled]="isFlaggedLoading">
+          <i class="fas fa-sync-alt" [class.spinning]="isFlaggedLoading"></i>
+          <span>Refresh</span>
+        </button>
+      </div>
+
+      <div *ngIf="penaltyError && !flaggedLoadFailed" class="error-alert">
+        <i class="fas fa-exclamation-circle"></i>
+        <p>{{ penaltyError }}</p>
+      </div>
+
+      <!-- Flagged patients table -->
+      <div class="flagged-patients-wrap">
+        <p class="kpi-label" *ngIf="isFlaggedLoading">
+          <i class="fas fa-spinner spinning"></i> Loading flagged patients...
+        </p>
+        <ng-container *ngIf="!isFlaggedLoading">
+          <table class="flagged-table" *ngIf="flaggedPatients.length > 0; else noFlagged">
+            <thead>
+              <tr>
+                <th>Patient Name</th>
+                <th>Risk Tier</th>
+                <th>Risk Score</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr
+                *ngFor="let patient of flaggedPatients"
+                class="flagged-row"
+                [class.flagged-row-selected]="selectedPatient?.patientId === patient.patientId"
+                (click)="selectPatient(patient)"
+              >
+                <td><i class="fas fa-user-circle"></i> {{ patient.patientName }}</td>
+                <td>
+                  <span class="tier-chip" [ngClass]="getTierClass(patient.tier)">{{ patient.tier }}</span>
+                </td>
+                <td>{{ patient.riskScore }}</td>
+              </tr>
+            </tbody>
+          </table>
+          <ng-template #noFlagged>
+            <div *ngIf="flaggedLoadFailed; else trulyEmpty" class="flagged-error-state">
+              <i class="fas fa-server"></i>
+              <p>Backend endpoint unavailable. Retry once the server is ready.</p>
+              <button class="btn-refresh" (click)="loadFlaggedPatients()">
+                <i class="fas fa-sync-alt"></i> Retry
+              </button>
+            </div>
+            <ng-template #trulyEmpty>
+              <p class="kpi-label">No flagged patients currently require attention.</p>
+            </ng-template>
+          </ng-template>
+        </ng-container>
+      </div>
+
+      <!-- Detail panel — shown after clicking a patient row -->
+      <div *ngIf="selectedPatient" class="penalty-detail-section">
+        <div class="penalty-detail-header">
+          <div class="detail-title">
+            <i class="fas fa-user-shield"></i>
+            <h3>{{ selectedPatient.patientName }}</h3>
+            <span class="tier-chip" [ngClass]="getTierClass(selectedPatient.tier)">{{ selectedPatient.tier }}</span>
+          </div>
+          <button class="btn-close-detail" (click)="closePatientDetail()">
+            <i class="fas fa-times"></i> Close
+          </button>
+        </div>
+
+        <p class="kpi-label" *ngIf="isPenaltyLoading">
+          <i class="fas fa-spinner spinning"></i> Loading patient details...
+        </p>
+
+        <div class="penalty-layout" *ngIf="!isPenaltyLoading">
+          <div class="risk-panel" *ngIf="penaltyProfile">
+            <div class="risk-head">
+              <h3>Risk Profile</h3>
+              <span class="tier-chip" [ngClass]="getTierClass(penaltyProfile.tier)">{{ penaltyProfile.tier }}</span>
+            </div>
+
+            <div class="risk-grid">
+              <div>
+                <span>Risk Score</span>
+                <strong>{{ penaltyProfile.riskScore }}</strong>
+              </div>
+              <div>
+                <span>Offenses (90 days)</span>
+                <strong>{{ penaltyProfile.offenseCountLast90Days }}</strong>
+              </div>
+              <div>
+                <span>Temporary Lock</span>
+                <strong>{{ penaltyProfile.temporaryLocked ? 'Yes' : 'No' }}</strong>
+              </div>
+              <div>
+                <span>Lock Until</span>
+                <strong>{{ formatDateTime(penaltyProfile.lockUntil || '') }}</strong>
+              </div>
+            </div>
+
+            <div class="restrictions" *ngIf="penaltyProfile.activeRestrictions.length > 0">
+              <h4>Active Restrictions</h4>
+              <ul>
+                <li *ngFor="let restriction of penaltyProfile.activeRestrictions">{{ restriction }}</li>
+              </ul>
+            </div>
+
+            <div class="reliability-bonus-info">
+              <i class="fas fa-info-circle"></i>
+              <p><strong>Reliability Bonus:</strong> Penalty scores are automatically reduced by 50% for patients who maintain a positive attendance record (Attended > Missed) over the last 90 days.</p>
+            </div>
+
+            <div class="timeline" *ngIf="penaltyProfile.recentEvents.length > 0">
+              <h4>Recent Activity</h4>
+              <div class="timeline-row" *ngFor="let event of penaltyProfile.recentEvents">
+                <span class="event-type">{{ event.eventType }}</span>
+                <span class="event-delta" [class.negative]="event.scoreDelta < 0">{{ event.scoreDelta > 0 ? '+' : '' }}{{ event.scoreDelta }}</span>
+                <span class="event-date">{{ formatDateTime(event.occurredAt) }}</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+  </div>

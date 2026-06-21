@@ -1,0 +1,183 @@
+<section class="doctor-public-profile-section">
+  <div class="container">
+    <button type="button" class="doctor-back-btn" (click)="goBack()">
+      <span aria-hidden="true">&#8592;</span>
+      Back
+    </button>
+
+    <div *ngIf="loading" class="doctor-public-state-card">
+      Loading doctor profile...
+    </div>
+
+    <div
+      *ngIf="!loading && errorMessage"
+      class="doctor-public-state-card doctor-public-state-card--error"
+    >
+      {{ errorMessage }}
+    </div>
+
+    <div
+      *ngIf="!loading && !errorMessage && doctor"
+      class="doctor-public-layout"
+    >
+      <div class="doctor-public-header card">
+        <div
+          class="doctor-public-avatar"
+          [style.background]="
+            doctor.profilePictureUrl
+              ? 'transparent'
+              : 'linear-gradient(135deg,#009CE8,#007BCC)'
+          "
+        >
+          <img
+            *ngIf="doctor.profilePictureUrl"
+            [src]="doctor.profilePictureUrl"
+            [alt]="doctorName"
+          />
+          <span *ngIf="!doctor.profilePictureUrl">{{
+            doctorName.charAt(0)
+          }}</span>
+        </div>
+
+        <div class="doctor-public-identity">
+          <h1>{{ doctorName }}</h1>
+          <p>{{ doctorSpecialty }}</p>
+        </div>
+
+        <div class="doctor-public-quick-actions">
+          <button class="doctor-action doctor-action--primary" (click)="openBookAppointment()">
+            <span>Book appointment</span>
+          </button>
+
+          <button class="doctor-action" (click)="openWhatsAppCall()" [disabled]="!doctorWhatsAppReady">
+            <span>Call</span>
+          </button>
+
+          <button class="doctor-action" (click)="openEmailMessage()" [disabled]="!doctorEmailHref">
+            <span>Message</span>
+          </button>
+
+          <button class="doctor-action" (click)="openDirections()" [disabled]="!hasDirections">
+            <span>Directions</span>
+          </button>
+        </div>
+      </div>
+
+      <div class="doctor-public-details-grid">
+        <article class="doctor-public-info-card card">
+          <h3>
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8V7m0 1v8m0 0v1" />
+            </svg>
+            Fee
+          </h3>
+          <p class="value">
+            {{ doctorFeeAmount }}
+            <strong>{{ doctorFeeCurrency }}</strong>
+          </p>
+        </article>
+
+        <article class="doctor-public-info-card card">
+          <h3>
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M20 7h-3V5a2 2 0 0 0-2-2H9a2 2 0 0 0-2 2v2H4a1 1 0 0 0-1 1v11a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V8a1 1 0 0 0-1-1z"/>
+            </svg>
+            Experience
+          </h3>
+          <p class="value">{{ doctorExperience }}</p>
+        </article>
+
+        <article class="doctor-public-info-card card">
+          <h3>
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M4 4h16v16H4z" />
+              <path d="M22 6l-10 7L2 6" />
+            </svg>
+            Contact email
+          </h3>
+          <p>{{ doctorEmail }}</p>
+        </article>
+
+        <article class="doctor-public-info-card card">
+          <h3>
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M22 16.92v3a2 2 0 0 1-2.18 2A19.86 19.86 0 0 1 3.08 5.18 2 2 0 0 1 5.06 3h3a2 2 0 0 1 2 1.72c.12.9.33 1.77.62 2.6a2 2 0 0 1-.45 2.11L9.1 10.6a16 16 0 0 0 4.3 4.3l1.17-1.13a2 2 0 0 1 2.11-.45c.83.29 1.7.5 2.6.62A2 2 0 0 1 22 16.92z" />
+            </svg>
+            Call / WhatsApp
+          </h3>
+          <p>{{ doctorPhone }}</p>
+        </article>
+
+        <article class="doctor-public-info-card card">
+          <h3>
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 1 1 18 0z" />
+              <circle cx="12" cy="10" r="3" />
+            </svg>
+            Clinic address
+          </h3>
+          <p>{{ doctorClinicAddress }}</p>
+        </article>
+
+        <article
+          class="doctor-public-info-card card doctor-public-info-card--full"
+        >
+          <h3>
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <circle cx="12" cy="12" r="10" />
+              <path d="M12 6v6l4 2" />
+            </svg>
+            Availability
+          </h3>
+
+          <div class="availability-chips" *ngIf="doctorAvailabilityChips.length > 0; else noAvailability">
+            <span class="availability-chip" *ngFor="let chip of doctorAvailabilityChips">
+              {{ chip }}
+            </span>
+          </div>
+
+          <ng-template #noAvailability>
+            <p>No availability shared yet.</p>
+          </ng-template>
+        </article>
+
+        <article
+          class="doctor-public-info-card card doctor-public-info-card--full"
+        >
+          <h3>
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <circle cx="12" cy="12" r="10" />
+              <path d="M12 16v-4" />
+              <path d="M12 8h.01" />
+            </svg>
+            {{ doctorAboutLabel }}
+          </h3>
+          <p>{{ doctorBio }}</p>
+        </article>
+
+        <article
+          class="doctor-public-info-card card doctor-public-info-card--full doctor-public-map-card"
+          *ngIf="doctorMapUrl"
+        >
+          <h3>
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M1 6l7-2 8 2 7-2v14l-7 2-8-2-7 2V6z" />
+              <path d="M8 4v14" />
+              <path d="M16 6v14" />
+            </svg>
+            Map
+          </h3>
+
+          <div class="doctor-public-map-frame">
+            <iframe
+              [src]="doctorMapUrl"
+              title="Clinic location map"
+              loading="lazy"
+              referrerpolicy="no-referrer-when-downgrade"
+            ></iframe>
+          </div>
+        </article>
+      </div>
+    </div>
+  </div>
+</section>

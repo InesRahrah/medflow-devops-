@@ -1,0 +1,111 @@
+<section class="dashboard-hero">
+  <div class="container container-max">
+    <div class="hero-header">
+      <div class="hero-identity">
+        <h1 class="hero-h1">{{ fullGreeting }}</h1>
+        <p class="hero-p">Real-time status of your room assignments for this shift</p>
+      </div>
+      <div class="hero-actions">
+        <button class="btn-sync" (click)="refresh()" [disabled]="loading">
+          <i class="fas fa-sync-alt" [class.fa-spin]="loading"></i>
+          <span>Refresh</span>
+        </button>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="dashboard-main">
+  <div class="container container-max">
+    <!-- 1. Quick Stats Grid (High Level) -->
+    <div class="stats-grid">
+      <div class="stat-card">
+        <div class="stat-icon rooms"><i class="fas fa-bed"></i></div>
+        <div class="stat-details">
+          <span class="stat-label">Assigned Rooms</span>
+          <h3 class="stat-value">{{ stats.assignedRooms }}</h3>
+        </div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-icon patients"><i class="fas fa-user-injured"></i></div>
+        <div class="stat-details">
+          <span class="stat-label">Total Patients</span>
+          <h3 class="stat-value">{{ stats.patientsCount }}</h3>
+        </div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-icon pending"><i class="fas fa-clock"></i></div>
+        <div class="stat-details">
+          <span class="stat-label">Pending Tasks</span>
+          <h3 class="stat-value">{{ stats.pendingTasks }}</h3>
+        </div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-icon completed"><i class="fas fa-check-double"></i></div>
+        <div class="stat-details">
+          <span class="stat-label">Done Today</span>
+          <h3 class="stat-value">{{ stats.completedTasks }}</h3>
+        </div>
+      </div>
+    </div>
+
+    <!-- 2. Main Content Grid -->
+    <div class="dashboard-layout">
+      <!-- Left: Summary & Tasks -->
+      <div class="overview-main">
+        <div class="summary-block">
+          <div class="summary-header">
+            <h3>Today's Shift Summary</h3>
+            <span class="shift-badge">Day Shift (08 - 20)</span>
+          </div>
+          <div class="summary-content">
+            <p>You have <strong>{{ stats.assignedRooms }}</strong> active rooms with <strong>{{ stats.pendingTasks }}</strong> pending tasks awaiting action.</p>
+          </div>
+          
+          <!-- Repositioned Contextual Actions -->
+          <div class="summary-actions">
+            <a routerLink="/nurse/my-rooms" class="btn-dash primary">
+              <i class="fas fa-layer-group"></i>
+              <span>Room Inventory</span>
+            </a>
+            <a routerLink="/nurse/tasks" class="btn-dash secondary">
+              <i class="fas fa-list-check"></i>
+              <span>Manage Tasks</span>
+            </a>
+          </div>
+        </div>
+
+        <div class="preview-section">
+          <div class="preview-header">
+            <div class="title-with-count">
+              <h3>Recent Tasks</h3>
+              <span class="count-pill">{{ recentTasks.length }}</span>
+            </div>
+            <a routerLink="/nurse/tasks" class="view-all-link">View All Tasks <i class="fas fa-arrow-right"></i></a>
+          </div>
+          <div class="tasks-preview-list">
+            <div class="preview-item" *ngFor="let task of recentTasks">
+              <div class="item-status" [class]="task.priority.toLowerCase()"></div>
+              <div class="item-info">
+                <span class="item-title">{{ task.title }}</span>
+                <span class="item-time"><i class="far fa-clock"></i> {{ task.createdAt | date:'shortTime' }}</span>
+              </div>
+              <div class="item-tag" [class]="task.priority.toLowerCase()">{{ task.priority }}</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Right: Pinned Priorities -->
+      <div class="overview-side">
+        <div class="focus-card">
+          <div class="focus-header">
+            <i class="fas fa-thumbtack"></i>
+            <h4>Shift Focus</h4>
+          </div>
+          <p>Prioritize medication assessments for room #105 as per the latest schedule update.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>

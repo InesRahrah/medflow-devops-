@@ -1,0 +1,65 @@
+<div class="drug-details-container">
+  <!-- Header -->
+  <div class="drug-header">
+    <button class="btn-back" (click)="goBack()">
+      <span>← Back to Stock</span>
+    </button>
+    <h1 class="drug-title">{{ drugName }}</h1>
+  </div>
+
+  <!-- Loading State -->
+  <div *ngIf="isLoading" class="loading-state">
+    <div class="spinner"></div>
+    <p>Loading drug information...</p>
+  </div>
+
+  <!-- Error State -->
+  <div *ngIf="errorMessage && !isLoading" class="error-state">
+    <div class="error-icon">⚠️</div>
+    <h2>Error</h2>
+    <p>{{ errorMessage }}</p>
+    <button class="btn-retry" (click)="loadDrugDetails()">Retry</button>
+  </div>
+
+  <!-- Content -->
+  <div *ngIf="!isLoading && !errorMessage" class="drug-content">
+    <!-- Drug Info Card -->
+    <div class="drug-info-card">
+      <div class="info-header">
+        <h2>💊 Drug Information</h2>
+        <span class="badge-verified">✓ Verified</span>
+      </div>
+      <div class="info-body">
+        <div class="drug-name-display">{{ drugName }}</div>
+        <p class="info-subtitle">Digital Drug Notice</p>
+      </div>
+    </div>
+
+    <!-- AI Generated Notice Card -->
+    <div class="notice-card">
+      <div class="notice-header">
+        <h2>🤖 AI-Generated Drug Notice</h2>
+        <span class="badge-ai">AI Generated</span>
+      </div>
+      <div class="notice-body">
+        <div class="notice-content" [innerHTML]="aiNotice"></div>
+      </div>
+    </div>
+
+    <!-- Actions -->
+    <div class="actions-section">
+      <button class="btn-action btn-copy" (click)="copyToClipboard()" title="Copy notice to clipboard">
+        📋 Copy Notice
+      </button>
+      <button class="btn-action btn-download" title="Download this notice">
+        📥 Download
+      </button>
+      <button class="btn-action btn-share" title="Share this drug information">
+        🔗 Share
+      </button>
+      <button class="btn-action btn-back-home" (click)="goBack()">
+        ← Back
+      </button>
+    </div>
+  </div>
+</div>

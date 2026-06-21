@@ -1,0 +1,41 @@
+<div class="auth-page">
+  <div class="auth-frame" [class.is-transitioning]="isTransitioning">
+    <!-- Overlapping background section with opacity/blur transitions -->
+    <div class="bg-section">
+      <!-- Login Background (Bottom layer) -->
+      <div class="bg-image-half login-bg" [class.active]="!isRegister">
+        <img
+          src="assets/images/login-background3.png"
+          alt="Login Background"
+          class="bg-image"
+        />
+        <div class="overlay"></div>
+      </div>
+
+      <!-- Register Background (Top layer, fades in over login) -->
+      <div class="bg-image-half register-bg" [class.active]="isRegister">
+        <img
+          src="assets/images/register-background3.png"
+          alt="Register Background"
+          class="bg-image"
+        />
+        <div class="overlay flip-overlay"></div>
+      </div>
+    </div>
+
+    <!-- Forms Section: Single container that slides left/right across the screen -->
+    <div class="forms-wrapper">
+      <div class="auth-slider-container" [class.register-mode]="isRegister">
+        <!-- Login Form (Fades in when login is active) -->
+        <div class="form-layer" [class.active]="!isRegister">
+          <app-login (toggleMode)="toggleMode()"></app-login>
+        </div>
+
+        <!-- Register Form (Fades in when register is active) -->
+        <div class="form-layer" [class.active]="isRegister">
+          <app-register (toggleMode)="toggleMode()"></app-register>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

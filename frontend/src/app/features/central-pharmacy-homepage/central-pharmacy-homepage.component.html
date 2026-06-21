@@ -1,0 +1,180 @@
+<div class="homepage-container">
+  <!-- Animated Background Elements -->
+  <div class="floating-shapes">
+    <div class="shape shape-1"></div>
+    <div class="shape shape-2"></div>
+    <div class="shape shape-3"></div>
+  </div>
+
+  <!-- Hero Section with Personalized Greeting -->
+  <section class="hero-section">
+    <div class="hero-overlay"></div>
+    <div class="hero-content">
+      <div class="greeting-box">
+        <h1 class="hero-title">
+          <span class="greeting-emoji">👋</span>
+          {{ getGreeting() }}, <span class="user-name">{{ userFirstName }}</span>!
+        </h1>
+        <p class="hero-subtitle">
+          <span class="region-badge">📍 {{ region }}</span>
+          Managing pharmaceutical requests across your region
+        </p>
+      </div>
+      <div class="hero-time">{{ 'now' | date:'EEEE, MMMM dd, yyyy' }}</div>
+    </div>
+  </section>
+
+  <!-- Stats Grid with Enhanced Design -->
+  <section class="stats-section">
+    <h2 class="section-title">📊 Request Overview</h2>
+    <div class="stats-container">
+      <div class="stat-card stat-total" [@fadeInUp]>
+        <div class="stat-header">
+          <div class="stat-icon">
+            <i class="fas fa-inbox"></i>
+          </div>
+          <span class="stat-badge total">Total</span>
+        </div>
+        <div class="stat-body">
+          <p class="stat-label">Total Requests</p>
+          <p class="stat-value">{{ stats.totalRequests }}</p>
+          <div class="stat-progress">
+            <div class="progress-bar" [style.width.%]="100"></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="stat-card stat-pending" [@fadeInUp]>
+        <div class="stat-header">
+          <div class="stat-icon">
+            <i class="fas fa-hourglass-half"></i>
+          </div>
+          <span class="stat-badge pending">Pending</span>
+        </div>
+        <div class="stat-body">
+          <p class="stat-label">Pending Review</p>
+          <p class="stat-value">{{ stats.pendingRequests }}</p>
+          <div class="stat-progress">
+            <div class="progress-bar" [style.width.%]="stats.totalRequests > 0 ? (stats.pendingRequests / stats.totalRequests * 100) : 0"></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="stat-card stat-approved" [@fadeInUp]>
+        <div class="stat-header">
+          <div class="stat-icon">
+            <i class="fas fa-check-circle"></i>
+          </div>
+          <span class="stat-badge approved">Approved</span>
+        </div>
+        <div class="stat-body">
+          <p class="stat-label">Approved</p>
+          <p class="stat-value">{{ stats.approvedRequests }}</p>
+          <div class="stat-progress">
+            <div class="progress-bar" [style.width.%]="stats.totalRequests > 0 ? (stats.approvedRequests / stats.totalRequests * 100) : 0"></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="stat-card stat-rejected" [@fadeInUp]>
+        <div class="stat-header">
+          <div class="stat-icon">
+            <i class="fas fa-times-circle"></i>
+          </div>
+          <span class="stat-badge rejected">Rejected</span>
+        </div>
+        <div class="stat-body">
+          <p class="stat-label">Rejected</p>
+          <p class="stat-value">{{ stats.rejectedRequests }}</p>
+          <div class="stat-progress">
+            <div class="progress-bar" [style.width.%]="stats.totalRequests > 0 ? (stats.rejectedRequests / stats.totalRequests * 100) : 0"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Quick Actions with Modern Cards -->
+  <section class="quick-actions">
+    <div class="section-header">
+      <h2 class="section-title">⚡ Quick Actions</h2>
+      <p class="section-subtitle">Access key features in one click</p>
+    </div>
+    <div class="actions-grid">
+      <button class="action-btn action-request" (click)="onReviewRequests()" 
+              title="View and manage pending requests">
+        <div class="action-icon-wrapper">
+          <i class="fas fa-tasks"></i>
+        </div>
+        <div class="action-content">
+          <span class="action-title">Review Requests</span>
+          <span class="action-desc">Check pending approvals</span>
+        </div>
+        <i class="fas fa-arrow-right action-arrow"></i>
+      </button>
+
+      <button class="action-btn action-analytics" (click)="onViewAnalytics()"
+              title="View detailed analytics and reports">
+        <div class="action-icon-wrapper">
+          <i class="fas fa-chart-line"></i>
+        </div>
+        <div class="action-content">
+          <span class="action-title">View Analytics</span>
+          <span class="action-desc">Detailed metrics & trends</span>
+        </div>
+        <i class="fas fa-arrow-right action-arrow"></i>
+      </button>
+
+      <button class="action-btn action-profile" (click)="onEditProfile()"
+              title="Update your profile information">
+        <div class="action-icon-wrapper">
+          <i class="fas fa-user-edit"></i>
+        </div>
+        <div class="action-content">
+          <span class="action-title">Edit Profile</span>
+          <span class="action-desc">Update your settings</span>
+        </div>
+        <i class="fas fa-arrow-right action-arrow"></i>
+      </button>
+    </div>
+  </section>
+
+  <!-- Tips & Resources Section -->
+  <section class="resources-section">
+    <div class="section-header">
+      <h2 class="section-title">💡 Best Practices & Tips</h2>
+      <p class="section-subtitle">Optimize your workflow with these recommendations</p>
+    </div>
+    <div class="tips-container">
+      <div class="tip-card">
+        <div class="tip-icon-box check">
+          <i class="fas fa-check-double"></i>
+        </div>
+        <div class="tip-content">
+          <h3>Regular Reviews</h3>
+          <p>Review pending requests daily to maintain smooth operations and prevent delays.</p>
+        </div>
+      </div>
+
+      <div class="tip-card">
+        <div class="tip-icon-box package">
+          <i class="fas fa-boxes"></i>
+        </div>
+        <div class="tip-content">
+          <h3>Inventory Management</h3>
+          <p>Keep medications properly inventoried and tracked to ensure accurate stock levels.</p>
+        </div>
+      </div>
+
+      <div class="tip-card">
+        <div class="tip-icon-box analytics">
+          <i class="fas fa-chart-pie"></i>
+        </div>
+        <div class="tip-content">
+          <h3>Data Analytics</h3>
+          <p>Use the analytics dashboard to identify trends and optimize your distribution network.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+</div>

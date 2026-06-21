@@ -1,0 +1,141 @@
+<section class="hero" id="home">
+  <div class="container hero-inner">
+    <!-- Left Content -->
+    <div class="hero-content">
+      <span class="hero-label">
+        <span class="pulse-dot"></span> Trusted Healthcare Provider
+      </span>
+      <h1 class="hero-heading">
+        Your Health,<br />
+        <span class="text-primary">Our Priority</span>
+      </h1>
+      <p class="hero-desc">
+        We deliver world-class medical care with compassion and cutting-edge
+        technology. Book an appointment with top specialists and get the best
+        care for you and your family.
+      </p>
+
+      <div class="hero-actions">
+        <a routerLink="/appointments" class="btn-primary">
+          Book Appointment
+          <svg
+            width="16"
+            height="16"
+            fill="none"
+            viewBox="0 0 24 24"
+            stroke="currentColor"
+            style="margin-left: 4px"
+          >
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              d="M17 8l4 4m0 0l-4 4m4-4H3"
+            />
+          </svg>
+        </a>
+        <a routerLink="/services" class="btn-outline">Our Services</a>
+      </div>
+
+      <!-- Mini stats -->
+      <div class="hero-stats">
+        <div class="stat" *ngFor="let s of stats">
+          <span class="stat-value">{{ s.value }}</span>
+          <span class="stat-label">{{ s.label }}</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Right Visual -->
+    <div class="hero-visual">
+      <div class="hero-card-main">
+        <div class="inner-circle"></div>
+        <div class="inner-circle-2"></div>
+
+        <div class="medical-illustration">
+          <!-- Stethoscope floating card -> Consultations -->
+          <div class="floating-card card-consultations">
+            <div class="fc-icon fc-blue">
+              <svg
+                width="16"
+                height="16"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="white"
+                stroke-width="2"
+              >
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"
+                />
+              </svg>
+            </div>
+            <div>
+              <strong>Consultations</strong>
+              <span>Available now</span>
+            </div>
+          </div>
+
+          <!-- Certified badge -->
+          <div class="floating-card card-certified">
+            <div class="fc-icon fc-blue">
+              <svg
+                width="16"
+                height="16"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="white"
+                stroke-width="2.5"
+              >
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
+                />
+              </svg>
+            </div>
+            <div>
+              <strong>Certified</strong>
+              <span>Professionals</span>
+            </div>
+          </div>
+
+          <!-- Heart rate card -> Success -->
+          <div class="floating-card card-success">
+            <div class="fc-icon fc-blue">
+              <svg width="16" height="16" fill="white" viewBox="0 0 24 24">
+                <path
+                  d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"
+                />
+              </svg>
+            </div>
+            <div>
+              <strong>98% Success</strong>
+              <span>Rate</span>
+            </div>
+          </div>
+
+          <!-- Center doctor icon group -->
+          <div class="center-icon-wrap">
+            <svg
+              width="100"
+              height="100"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="white"
+              stroke-width="1.2"
+            >
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"
+              />
+            </svg>
+            <div class="check-badge"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>

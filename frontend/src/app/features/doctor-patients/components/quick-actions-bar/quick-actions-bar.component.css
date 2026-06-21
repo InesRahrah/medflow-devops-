@@ -1,0 +1,120 @@
+.quick-actions-bar {
+  --qa-glass-bg: linear-gradient(135deg, rgba(255, 255, 255, 0.74), rgba(247, 251, 255, 0.58));
+  --qa-glass-border: rgba(148, 163, 184, 0.26);
+  --qa-primary-a: #12b4ff;
+  --qa-primary-b: #0b93d5;
+  --qa-primary-shadow: rgba(0, 156, 232, 0.3);
+  --qa-soft-shadow: 0 10px 26px rgba(15, 23, 42, 0.08);
+  --qa-soft-inset: inset 0 1px 0 rgba(255, 255, 255, 0.55);
+  background: var(--qa-glass-bg);
+  border-bottom: 1px solid var(--qa-glass-border);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  padding: 1rem;
+  flex-shrink: 0;
+  box-shadow: var(--qa-soft-shadow);
+}
+
+.actions-container {
+  display: flex;
+  align-items: center;
+  gap: 0.85rem;
+  max-width: 1400px;
+  margin: 0 auto;
+  flex-wrap: wrap;
+}
+
+.actions-right {
+  margin-left: auto;
+  display: flex;
+  gap: 0.75rem;
+}
+
+.action-btn {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.62rem 1.1rem;
+  border-radius: 0.75rem;
+  border: none;
+  font-size: 0.9rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.25s ease;
+  font-family: 'Inter', sans-serif;
+  white-space: nowrap;
+}
+
+.action-btn:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 3px rgba(56, 189, 248, 0.26);
+}
+
+.action-btn.primary {
+  background: linear-gradient(135deg, #4177c6, #4dabf7);
+  color: white;
+  box-shadow: 0 6px 16px rgba(13, 110, 253, 0.25);
+}
+
+.action-btn.secondary {
+  background: rgba(13, 110, 253, 0.1);
+  color: #0d6efd;
+}
+
+.action-btn.ghost {
+  background: rgba(255, 255, 255, 0.6);
+  color: #334155;
+  border: 1px solid rgba(0, 0, 0, 0.05);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+}
+
+.action-btn:hover {
+  transform: translateY(-1px);
+}
+
+.action-btn:active {
+  transform: translateY(0);
+}
+
+.action-btn svg {
+  flex-shrink: 0;
+  opacity: 0.95;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .actions-container {
+    gap: 0.6rem;
+  }
+
+  .actions-right {
+    margin-left: 0;
+    width: 100%;
+    justify-content: flex-start;
+  }
+
+  .action-btn {
+    padding: 0.55rem 0.8rem;
+    font-size: 0.85rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .actions-container {
+    flex-direction: row;
+    gap: 0.55rem;
+  }
+
+  .actions-right {
+    width: 100%;
+    justify-content: flex-start;
+  }
+
+  .action-btn {
+    flex: 1 1 calc(50% - 0.55rem);
+    min-width: 0;
+    justify-content: center;
+  }
+}
+

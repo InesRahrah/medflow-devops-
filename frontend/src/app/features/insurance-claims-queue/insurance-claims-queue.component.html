@@ -1,0 +1,320 @@
+<div class="dashboard-container">
+
+  <!-- Header -->
+  <header class="page-header">
+    <div class="header-content">
+      <span class="badge">Insurance Portal</span>
+      <h1>Claims Queue</h1>
+      <p>Review and process pending insurance claims from clinical providers.</p>
+    </div>
+    <div class="header-actions">
+      <button class="btn btn-secondary" (click)="loadClaims()">
+        <i class="fas fa-sync-alt"></i> Refresh
+      </button>
+      <button class="btn btn-primary" (click)="openCreateModal()">
+        <i class="fas fa-plus"></i> New Claim
+      </button>
+    </div>
+  </header>
+
+  <!-- Success Message -->
+  <div *ngIf="successMessage" class="success-toast">
+    <i class="fas fa-check-circle"></i> {{ successMessage }}
+  </div>
+
+  <!-- Stats dynamiques — cliquables pour filtrer -->
+  <div class="stats-overview">
+    <div class="stat-card" [class.active-filter]="statusFilter === 'ALL'"
+         (click)="filterBy('ALL')" style="cursor:pointer">
+      <div class="stat-icon pending"><i class="fas fa-list"></i></div>
+      <div class="stat-info">
+        <h3>{{ claims.length }}</h3>
+        <p>All Claims</p>
+      </div>
+    </div>
+    <div class="stat-card" [class.active-filter]="statusFilter === 'PENDING'"
+         (click)="filterBy('PENDING')" style="cursor:pointer">
+      <div class="stat-icon pending"><i class="fas fa-clock"></i></div>
+      <div class="stat-info">
+        <h3>{{ stats['PENDING'] || 0 }}</h3>
+        <p>Pending Review</p>
+      </div>
+    </div>
+    <div class="stat-card" [class.active-filter]="statusFilter === 'APPROVED'"
+         (click)="filterBy('APPROVED')" style="cursor:pointer">
+      <div class="stat-icon approved"><i class="fas fa-check-circle"></i></div>
+      <div class="stat-info">
+        <h3>{{ stats['APPROVED'] || 0 }}</h3>
+        <p>Approved</p>
+      </div>
+    </div>
+    <div class="stat-card" [class.active-filter]="statusFilter === 'REJECTED'"
+         (click)="filterBy('REJECTED')" style="cursor:pointer">
+      <div class="stat-icon rejected"><i class="fas fa-times-circle"></i></div>
+      <div class="stat-info">
+        <h3>{{ stats['REJECTED'] || 0 }}</h3>
+        <p>Rejected</p>
+      </div>
+    </div>
+    <div class="stat-card" [class.active-filter]="statusFilter === 'PAID'"
+         (click)="filterBy('PAID')" style="cursor:pointer">
+      <div class="stat-icon paid"><i class="fas fa-dollar-sign"></i></div>
+      <div class="stat-info">
+        <h3>{{ stats['PAID'] || 0 }}</h3>
+        <p>Paid</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Loading -->
+  <div *ngIf="isLoading" class="loading-state">
+    <i class="fas fa-spinner fa-spin"></i> Loading claims...
+  </div>
+
+  <!-- Erreur -->
+  <div *ngIf="errorMessage && !isLoading" class="error-state">
+    <i class="fas fa-exclamation-circle"></i> {{ errorMessage }}
+    <button class="btn btn-secondary" (click)="loadClaims()">
+      <i class="fas fa-redo"></i> Retry
+    </button>
+  </div>
+
+  <!-- Table -->
+  <section class="claims-table-section" *ngIf="!isLoading && !errorMessage">
+    <div class="table-container">
+      <table class="claims-table">
+        <thead>
+          <tr>
+            <th>Claim ID</th>
+            <th>Patient Name</th>
+            <th>Insurance Company</th>
+            <th>Amount</th>
+            <th>Date Submitted</th>
+            <th>Status</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let claim of filteredClaims">
+            <td class="claim-id">#{{ claim.id }}</td>
+            <td class="patient-name">{{ claim.patientName }}</td>
+            <td>{{ claim.insuranceCompany }}</td>
+            <td>{{ claim.amount | currency:'USD' }}</td>
+            <td>{{ claim.createdAt | date:'yyyy-MM-dd' }}</td>
+            <td>
+              <span [class]="'status-badge ' + getStatusClass(claim.status || '')">
+                {{ claim.status }}
+              </span>
+            </td>
+            <td>
+              <!-- Approve : seulement si PENDING -->
+              <button class="btn-icon btn-approve" title="Approve"
+                *ngIf="claim.status === 'PENDING'"
+                (click)="approveClaim(claim.id!)">
+                <i class="fas fa-check"></i>
+              </button>
+
+              <!-- Reject : seulement si PENDING -->
+              <button class="btn-icon btn-reject" title="Reject"
+                *ngIf="claim.status === 'PENDING'"
+                (click)="openRejectModal(claim.id!)">
+                <i class="fas fa-times"></i>
+              </button>
+
+              <!-- Mark as Paid : seulement si APPROVED -->
+              <button class="btn-icon btn-paid" title="Mark as Paid"
+                *ngIf="claim.status === 'APPROVED'"
+                (click)="markAsPaid(claim.id!)">
+                <i class="fas fa-dollar-sign"></i>
+              </button>
+
+              <!-- Edit : toujours visible -->
+              <button class="btn-icon btn-edit" title="Edit"
+                (click)="openEditModal(claim)">
+                <i class="fas fa-pen"></i>
+              </button>
+
+              <!-- Delete : toujours visible -->
+              <button class="btn-icon btn-danger" title="Delete"
+                (click)="openDeleteModal(claim.id!)">
+                <i class="fas fa-trash"></i>
+              </button>
+            </td>
+          </tr>
+
+          <!-- Empty state -->
+          <tr *ngIf="filteredClaims.length === 0">
+            <td colspan="7" class="empty-state">
+              <i class="fas fa-inbox"></i>
+              No claims found.
+              <button class="btn btn-primary" style="margin-left:1rem"
+                (click)="openCreateModal()">
+                <i class="fas fa-plus"></i> Create one
+              </button>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+</div>
+
+<!-- ══════════════ MODAL: CREATE ══════════════ -->
+<div class="modal-overlay" *ngIf="showCreateModal" (click)="closeAllModals()">
+  <div class="modal-box modal-large" (click)="$event.stopPropagation()">
+    <div class="modal-header">
+      <h3><i class="fas fa-plus-circle"></i> New Claim</h3>
+      <button class="modal-close-btn" (click)="closeAllModals()">
+        <i class="fas fa-times"></i>
+      </button>
+    </div>
+    <form [formGroup]="createForm" (ngSubmit)="submitCreate()">
+      <div class="form-grid">
+        <div class="form-group">
+          <label>Patient ID *</label>
+          <input type="text" formControlName="patientId" placeholder="UUID du patient"/>
+          <span class="field-error"
+            *ngIf="createForm.get('patientId')?.invalid && createForm.get('patientId')?.touched">
+            Requis
+          </span>
+        </div>
+        <div class="form-group">
+          <label>Doctor ID *</label>
+          <input type="text" formControlName="doctorId" placeholder="UUID du médecin"/>
+          <span class="field-error"
+            *ngIf="createForm.get('doctorId')?.invalid && createForm.get('doctorId')?.touched">
+            Requis
+          </span>
+        </div>
+        <div class="form-group">
+          <label>Patient Name *</label>
+          <input type="text" formControlName="patientName" placeholder="Nom complet"/>
+        </div>
+        <div class="form-group">
+          <label>Insurance Company *</label>
+          <input type="text" formControlName="insuranceCompany" placeholder="Ex: STAR"/>
+        </div>
+        <div class="form-group">
+          <label>Patient Email</label>
+          <input type="email" formControlName="patientEmail" placeholder="email@example.com"/>
+        </div>
+        <div class="form-group">
+          <label>Patient Phone</label>
+          <input type="text" formControlName="patientPhone" placeholder="+216 XX XXX XXX"/>
+        </div>
+        <div class="form-group">
+          <label>Amount ($) *</label>
+          <input type="number" formControlName="amount" placeholder="0.00" min="0" step="0.01"/>
+          <span class="field-error"
+            *ngIf="createForm.get('amount')?.invalid && createForm.get('amount')?.touched">
+            Montant requis
+          </span>
+        </div>
+        <div class="form-group">
+          <label>Consultation ID</label>
+          <input type="number" formControlName="consultationId" placeholder="Optionnel"/>
+        </div>
+        <div class="form-group form-full">
+          <label>Description</label>
+          <textarea formControlName="description" rows="3"
+            placeholder="Description du claim..."></textarea>
+        </div>
+      </div>
+      <div class="modal-actions">
+        <button type="button" class="btn btn-secondary" (click)="closeAllModals()">Annuler</button>
+        <button type="submit" class="btn btn-primary" [disabled]="createForm.invalid || isLoading">
+          <i class="fas fa-save"></i>
+          {{ isLoading ? 'Création...' : 'Créer le claim' }}
+        </button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- ══════════════ MODAL: EDIT ══════════════ -->
+<div class="modal-overlay" *ngIf="showEditModal" (click)="closeAllModals()">
+  <div class="modal-box modal-large" (click)="$event.stopPropagation()">
+    <div class="modal-header">
+      <h3><i class="fas fa-pen"></i> Edit Claim #{{ selectedClaim?.id }}</h3>
+      <button class="modal-close-btn" (click)="closeAllModals()">
+        <i class="fas fa-times"></i>
+      </button>
+    </div>
+    <form [formGroup]="editForm" (ngSubmit)="submitEdit()">
+      <div class="form-grid">
+        <div class="form-group">
+          <label>Patient ID *</label>
+          <input type="text" formControlName="patientId"/>
+        </div>
+        <div class="form-group">
+          <label>Doctor ID *</label>
+          <input type="text" formControlName="doctorId"/>
+        </div>
+        <div class="form-group">
+          <label>Patient Name *</label>
+          <input type="text" formControlName="patientName"/>
+        </div>
+        <div class="form-group">
+          <label>Insurance Company *</label>
+          <input type="text" formControlName="insuranceCompany"/>
+        </div>
+        <div class="form-group">
+          <label>Patient Email</label>
+          <input type="email" formControlName="patientEmail"/>
+        </div>
+        <div class="form-group">
+          <label>Patient Phone</label>
+          <input type="text" formControlName="patientPhone"/>
+        </div>
+        <div class="form-group">
+          <label>Amount ($) *</label>
+          <input type="number" formControlName="amount" min="0" step="0.01"/>
+        </div>
+        <div class="form-group">
+          <label>Consultation ID</label>
+          <input type="number" formControlName="consultationId"/>
+        </div>
+        <div class="form-group form-full">
+          <label>Description</label>
+          <textarea formControlName="description" rows="3"></textarea>
+        </div>
+      </div>
+      <div class="modal-actions">
+        <button type="button" class="btn btn-secondary" (click)="closeAllModals()">Annuler</button>
+        <button type="submit" class="btn btn-primary" [disabled]="editForm.invalid || isLoading">
+          <i class="fas fa-save"></i> Sauvegarder
+        </button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- ══════════════ MODAL: REJECT ══════════════ -->
+<div class="modal-overlay" *ngIf="showRejectModal">
+  <div class="modal-box">
+    <h3><i class="fas fa-times-circle"></i> Reject Claim</h3>
+    <p>Please provide a reason for rejection :</p>
+    <textarea [(ngModel)]="rejectionReason" rows="4"
+      placeholder="Enter rejection reason..."
+      class="rejection-input"></textarea>
+    <div class="modal-actions">
+      <button class="btn btn-secondary" (click)="cancelReject()">Cancel</button>
+      <button class="btn btn-danger" (click)="confirmReject()"
+        [disabled]="!rejectionReason.trim()">
+        Confirm Rejection
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════ MODAL: DELETE ══════════════ -->
+<div class="modal-overlay" *ngIf="showDeleteModal">
+  <div class="modal-box">
+    <h3><i class="fas fa-trash"></i> Delete Claim</h3>
+    <p>Are you sure you want to delete this claim? This action cannot be undone.</p>
+    <div class="modal-actions">
+      <button class="btn btn-secondary" (click)="cancelDelete()">Cancel</button>
+      <button class="btn btn-danger" (click)="confirmDelete()">Confirm Delete</button>
+    </div>
+  </div>
+</div>

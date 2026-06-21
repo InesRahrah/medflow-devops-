@@ -1,0 +1,163 @@
+<section class="task-hero">
+  <div class="container container-max">
+    <div class="hero-header">
+      <div class="hero-identity">
+        <h1>Shift Tasks</h1>
+        <p>Manage and track your assigned tasks for this shift</p>
+      </div>
+      <div class="hero-actions">
+        <button class="btn-refresh" (click)="loadTasks()" [disabled]="loading">
+          <i class="fas fa-sync" [class.fa-spin]="loading"></i>
+          <span>Refresh</span>
+        </button>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="task-workspace">
+  <div class="container container-max">
+    <div *ngIf="loading && tasks.length === 0" class="loading-state">
+      <div class="spinner"></div>
+      <p>Fetching your tasks...</p>
+    </div>
+
+    <div *ngIf="error" class="error-state">
+      <i class="fas fa-exclamation-circle"></i>
+      <p>{{ error }}</p>
+    </div>
+
+  <!-- Kanban Workspace -->
+  <main class="task-workspace">
+    <div class="container">
+      
+      <!-- Board Loading / Error States -->
+      <div *ngIf="loading" class="loading-state">
+        <div class="spinner"></div>
+        <p>Syncing task board...</p>
+      </div>
+
+      <div *ngIf="error" class="error-state">
+        <i class="fas fa-exclamation-circle"></i>
+        <p>{{ error }}</p>
+        <button class="btn-refresh" (click)="loadTasks()">Retry Connection</button>
+      </div>
+
+      <!-- Kanban Board -->
+      <div class="kanban-board" *ngIf="!loading && !error" cdkDropListGroup>
+        
+        <!-- Pending Column -->
+        <div class="kanban-column">
+          <div class="column-header">
+            <div class="header-left">
+              <h3>Pending</h3>
+              <span class="task-count">{{ pendingTasks.length }}</span>
+            </div>
+            <button class="btn-more"><i class="fas fa-ellipsis"></i></button>
+          </div>
+          
+          <div class="task-list" 
+               cdkDropList 
+               [cdkDropListData]="pendingTasks"
+               (cdkDropListDropped)="onDrop($event, TaskStatus.PENDING)">
+            <div class="task-card" 
+                 *ngFor="let task of pendingTasks" 
+                 [class]="task.priority.toLowerCase()"
+                 cdkDrag>
+              <div class="card-content">
+                <div class="card-top">
+                  <span class="category-label">{{ task.origin }}</span>
+                  <span class="time-meta"><i class="far fa-clock"></i> {{ task.createdAt | date:'shortTime' }}</span>
+                </div>
+                <h4 class="task-title">{{ task.title }}</h4>
+                <p class="task-desc">{{ task.description }}</p>
+                <div class="card-footer">
+                  <div class="meta-info">
+                    <i class="far fa-clock"></i>
+                    <span>Created {{ task.createdAt | date:'shortTime' }}</span>
+                  </div>
+                  <button class="btn-card-action" (click)="updateStatus(task.id, TaskStatus.IN_PROGRESS)">Start</button>
+                </div>
+              </div>
+            </div>
+            <button class="btn-add-task"><i class="fas fa-plus"></i> Add Task</button>
+          </div>
+        </div>
+
+        <!-- In Progress Column -->
+        <div class="kanban-column">
+          <div class="column-header">
+            <div class="header-left">
+              <h3>In Progress</h3>
+              <span class="task-count">{{ inProgressTasks.length }}</span>
+            </div>
+            <button class="btn-more"><i class="fas fa-ellipsis"></i></button>
+          </div>
+
+          <div class="task-list"
+               cdkDropList 
+               [cdkDropListData]="inProgressTasks"
+               (cdkDropListDropped)="onDrop($event, TaskStatus.IN_PROGRESS)">
+            <div class="task-card" 
+                 *ngFor="let task of inProgressTasks" 
+                 [class]="task.priority.toLowerCase()"
+                 cdkDrag>
+              <div class="card-content">
+                <div class="card-top">
+                  <span class="category-label">{{ task.origin }}</span>
+                  <span class="time-meta"><i class="far fa-clock"></i> {{ task.createdAt | date:'shortTime' }}</span>
+                </div>
+                <h4 class="task-title">{{ task.title }}</h4>
+                <p class="task-desc">{{ task.description }}</p>
+                <div class="card-footer">
+                  <div class="meta-info">
+                    <i class="far fa-clock"></i>
+                    <span>Created {{ task.createdAt | date:'shortTime' }}</span>
+                  </div>
+                  <button class="btn-card-success" (click)="updateStatus(task.id, TaskStatus.DONE)">Complete</button>
+                </div>
+              </div>
+            </div>
+            <button class="btn-add-task"><i class="fas fa-plus"></i> Add Task</button>
+          </div>
+        </div>
+
+        <!-- Completed Column -->
+        <div class="kanban-column">
+          <div class="column-header">
+            <div class="header-left">
+              <h3>Completed</h3>
+              <span class="task-count">{{ completedTasks.length }}</span>
+            </div>
+            <button class="btn-more"><i class="fas fa-ellipsis"></i></button>
+          </div>
+
+          <div class="task-list"
+               cdkDropList 
+               [cdkDropListData]="completedTasks"
+               (cdkDropListDropped)="onDrop($event, TaskStatus.DONE)">
+            <div class="task-card done" 
+                 *ngFor="let task of completedTasks" 
+                 [class]="task.priority.toLowerCase()"
+                 cdkDrag>
+              <div class="card-content">
+                <div class="card-top">
+                  <span class="category-label">{{ task.origin }}</span>
+                  <i class="fas fa-circle-check verified-icon"></i>
+                </div>
+                <h4 class="task-title">{{ task.title }}</h4>
+                <div class="card-footer">
+                  <div class="meta-info">
+                    <i class="fas fa-check-double"></i>
+                    <span>Created {{ task.createdAt | date:'shortTime' }}</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <button class="btn-add-task"><i class="fas fa-plus"></i> Archive All</button>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </main>

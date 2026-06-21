@@ -1,0 +1,147 @@
+<section class="preconsultation-hero">
+  <div class="container">
+    <div class="hero-content">
+      <span class="section-label">PATIENT INTAKE</span>
+      <h1 class="section-title">Preconsultation form</h1>
+      <p>Answer these questions before your appointment so your doctor can review the most important details in advance.</p>
+    </div>
+  </div>
+</section>
+
+<section class="preconsultation-section">
+  <div class="container">
+    <div class="state-card" *ngIf="isLoading">
+      <p>Loading your preconsultation form...</p>
+    </div>
+
+    <div class="state-card error" *ngIf="!isLoading && loadError">
+      <h3>Form unavailable</h3>
+      <p>{{ loadError }}</p>
+      <button type="button" class="btn-outline" (click)="goToAppointments()">Back to appointments</button>
+    </div>
+
+    <div class="state-card" *ngIf="!isLoading && formDefinition?.skipped">
+      <h3>No intake needed for this appointment</h3>
+      <p>This doctor only asks for preconsultation answers on first visits, and this appointment does not require it.</p>
+      <button type="button" class="btn-primary" (click)="goToAppointments()">Go to my appointments</button>
+    </div>
+
+    <div class="state-card" *ngIf="!isLoading && formDefinition?.alreadySubmitted">
+      <h3>Preconsultation already submitted</h3>
+      <p>Your answers for this appointment are already on file.</p>
+      <button type="button" class="btn-primary" (click)="goToAppointments()">Go to my appointments</button>
+    </div>
+
+    <div class="state-card success" *ngIf="submittedResponse">
+      <h3>Answers submitted</h3>
+      <p>Your doctor can now review your preconsultation answers before the visit.</p>
+      <span class="risk-pill" [class.priority]="submittedResponse.riskLevel === 'priority'" [class.urgent]="submittedResponse.riskLevel === 'urgent'">
+        Risk level: {{ submittedResponse.riskLevel }}
+      </span>
+      <button type="button" class="btn-primary" (click)="goToAppointments()">Return to appointments</button>
+    </div>
+
+    <form class="form-card" *ngIf="!isLoading && formDefinition && !formDefinition.skipped && !formDefinition.alreadySubmitted && !submittedResponse" (ngSubmit)="submit()">
+      <div class="form-header">
+        <div>
+          <h2>{{ visibleQuestions.length }} question{{ visibleQuestions.length === 1 ? '' : 's' }}</h2>
+          <p>Only the questions relevant to your answers will be shown.</p>
+        </div>
+        <button type="button" class="btn-outline" (click)="goToAppointments()">Cancel</button>
+      </div>
+
+      <p class="validation-error" *ngIf="validationError">{{ validationError }}</p>
+
+      <article class="question-card" *ngFor="let question of visibleQuestions; trackBy: trackQuestion">
+        <div class="question-head">
+          <span class="question-type">{{ question.type.replace('_', ' ') }}</span>
+          <span class="question-required" *ngIf="question.required">Required</span>
+        </div>
+
+        <h3>{{ question.text }}</h3>
+
+        <ng-container [ngSwitch]="question.type">
+          <textarea
+            *ngSwitchCase="'text'"
+            rows="4"
+            [name]="'text-' + (question.id ?? question.order)"
+            [ngModel]="getAnswer(question)"
+            (ngModelChange)="setAnswer(question, $event)"
+            placeholder="Type your answer"
+          ></textarea>
+
+          <div class="binary-group" *ngSwitchCase="'yes_no'">
+            <button
+              type="button"
+              class="binary-btn"
+              [class.active]="getAnswer(question) === true"
+              (click)="setAnswer(question, true)"
+            >
+              Yes
+            </button>
+            <button
+              type="button"
+              class="binary-btn"
+              [class.active]="getAnswer(question) === false"
+              (click)="setAnswer(question, false)"
+            >
+              No
+            </button>
+          </div>
+
+          <div class="choice-grid" *ngSwitchCase="'single_choice'">
+            <label class="choice-card" *ngFor="let option of question.options || []">
+              <input
+                type="radio"
+                [name]="'single-' + (question.id ?? question.order)"
+                [value]="option"
+                [ngModel]="getAnswer(question)"
+                (ngModelChange)="setAnswer(question, $event)"
+              />
+              <span>{{ option }}</span>
+            </label>
+          </div>
+
+          <div class="choice-grid" *ngSwitchCase="'multi_choice'">
+            <label class="choice-card" *ngFor="let option of question.options || []">
+              <input
+                type="checkbox"
+                [checked]="isSelectedOption(question, option)"
+                (change)="toggleMultiChoice(question, option, $any($event.target).checked)"
+              />
+              <span>{{ option }}</span>
+            </label>
+          </div>
+
+          <div class="scale-row" *ngSwitchCase="'scale'">
+            <label class="scale-option" *ngFor="let marker of getScaleMarkers(question)">
+              <input
+                type="radio"
+                [name]="'scale-' + (question.id ?? question.order)"
+                [value]="marker"
+                [ngModel]="getAnswer(question)"
+                (ngModelChange)="setAnswer(question, $event)"
+              />
+              <span>{{ marker }}</span>
+            </label>
+          </div>
+
+          <input
+            *ngSwitchCase="'number'"
+            type="number"
+            [name]="'number-' + (question.id ?? question.order)"
+            [ngModel]="getAnswer(question)"
+            (ngModelChange)="setAnswer(question, $event)"
+            placeholder="Enter a number"
+          />
+        </ng-container>
+      </article>
+
+      <div class="form-footer">
+        <button type="submit" class="btn-primary submit-btn" [disabled]="isSubmitting">
+          {{ isSubmitting ? 'Submitting...' : 'Submit answers' }}
+        </button>
+      </div>
+    </form>
+  </div>
+</section>

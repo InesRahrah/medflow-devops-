@@ -1,0 +1,455 @@
+/* ── Host container ──────────────────────────────────────────────────────── */
+:host {
+  display: block;
+}
+
+/* ── Item wrapper ────────────────────────────────────────────────────────── */
+.notif-item {
+  position: relative;
+  display: flex;
+  gap: 12px;
+  padding: 14px 16px;
+  background: var(--bg-surface, #ffffff);
+  border-bottom: 1px solid var(--border-color, #f0f2f5);
+  cursor: pointer;
+  transition: background 0.15s ease;
+}
+
+.notif-item:last-child {
+  border-bottom: none;
+}
+
+.notif-item:hover {
+  background: var(--primary-bg, #f0f7ff);
+}
+
+.notif-item.unread {
+  background: rgba(var(--primary-rgb, 0, 156, 232), 0.045);
+}
+
+.notif-item.compact {
+  padding: 11px 14px;
+  gap: 10px;
+}
+
+.notif-item.final-state {
+  background: var(--bg-surface, #ffffff);
+  opacity: 0.94;
+}
+
+/* ── Unread left accent ───────────────────────────────────────────────────── */
+.unread-accent {
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: 3px;
+  background: var(--primary, #009ce8);
+  border-radius: 0 2px 2px 0;
+}
+
+/* ── Avatar ──────────────────────────────────────────────────────────────── */
+.notif-avatar {
+  flex-shrink: 0;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: #fff;
+  margin-top: 1px;
+  transition: transform 0.2s ease;
+}
+
+.notif-item.compact .notif-avatar {
+  width: 34px;
+  height: 34px;
+  font-size: 0.75rem;
+}
+
+.notif-item:hover .notif-avatar {
+  transform: scale(1.05);
+}
+
+.avatar-cancel   { background: #ef4444; }
+.avatar-postpone { background: #f59e0b; }
+.avatar-counter  { background: #8b5cf6; }
+.avatar-info     { background: var(--primary, #009ce8); }
+
+/* ── Counter-proposal block ──────────────────────────────────────────────── */
+.counter-proposal-block {
+  margin: 6px 0 8px;
+  border-radius: 10px;
+  border: 1.5px solid rgba(139, 92, 246, 0.25);
+  background: rgba(139, 92, 246, 0.05);
+  overflow: hidden;
+}
+
+.counter-rejected-banner {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 12px;
+  background: rgba(239, 68, 68, 0.08);
+  border-bottom: 1px solid rgba(239, 68, 68, 0.15);
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: #dc2626;
+}
+
+.counter-times-grid {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 12px;
+  flex-wrap: wrap;
+}
+
+.counter-time-col {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  flex: 1;
+  min-width: 0;
+}
+
+.counter-time-label {
+  font-size: 0.7rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--text-secondary, #9ca3af);
+}
+
+.counter-time-col.original .counter-time-value {
+  font-size: 0.82rem;
+  color: var(--text-primary, #374151);
+  text-decoration: line-through;
+  opacity: 0.7;
+}
+
+.counter-time-col.proposed .counter-time-value {
+  font-size: 0.82rem;
+  font-weight: 700;
+  color: #8b5cf6;
+}
+
+.counter-arrow {
+  color: var(--text-secondary, #9ca3af);
+  flex-shrink: 0;
+}
+
+/* Compact counter-proposal summary */
+.counter-compact-times {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  margin: 2px 0 6px;
+  font-size: 0.75rem;
+}
+
+.counter-compact-label {
+  font-weight: 600;
+  color: var(--text-secondary, #9ca3af);
+}
+
+.counter-compact-value {
+  font-weight: 600;
+  color: #8b5cf6;
+}
+
+:host-context(.dark-theme) .counter-proposal-block {
+  background: rgba(139, 92, 246, 0.1);
+  border-color: rgba(139, 92, 246, 0.3);
+}
+
+:host-context(.dark-theme) .counter-rejected-banner {
+  background: rgba(239, 68, 68, 0.12);
+}
+
+
+/* ── Content ─────────────────────────────────────────────────────────────── */
+.notif-content {
+  flex: 1;
+  min-width: 0;
+}
+
+/* ── Doctor row ──────────────────────────────────────────────────────────── */
+.notif-doctor-row {
+  display: flex;
+  align-items: baseline;
+  gap: 4px;
+  flex-wrap: wrap;
+  margin-bottom: 4px;
+}
+
+.notif-doctor-name {
+  font-size: 0.875rem;
+  font-weight: 700;
+  color: var(--text-primary, #111827);
+}
+
+.notif-sep {
+  color: var(--text-secondary, #9ca3af);
+  font-size: 0.75rem;
+}
+
+.notif-doctor-specialty {
+  font-size: 0.78rem;
+  color: var(--text-secondary, #6b7280);
+}
+
+.notif-time {
+  margin-left: auto;
+  font-size: 0.75rem;
+  color: var(--text-secondary, #9ca3af);
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+/* ── Message ─────────────────────────────────────────────────────────────── */
+.notif-message {
+  font-size: 0.845rem;
+  color: var(--text-secondary, #6b7280);
+  line-height: 1.45;
+  margin: 0 0 6px;
+}
+
+.notif-message.bold {
+  color: var(--text-primary, #374151);
+  font-weight: 500;
+}
+
+/* ── Appointment times ───────────────────────────────────────────────────── */
+.notif-times {
+  margin-bottom: 8px;
+}
+
+.time-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.8rem;
+  margin-bottom: 3px;
+}
+
+.time-label {
+  color: var(--text-secondary, #9ca3af);
+  font-weight: 600;
+  min-width: 62px;
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+}
+
+.time-value {
+  color: var(--text-primary, #374151);
+}
+
+.time-row.proposed .time-value {
+  color: #10b981;
+  font-weight: 600;
+}
+
+/* ── Status messages ─────────────────────────────────────────────────────── */
+.msg-success {
+  font-size: 0.8rem;
+  color: #10b981;
+  font-weight: 600;
+  margin: 4px 0 0;
+}
+
+.msg-error {
+  font-size: 0.8rem;
+  color: #ef4444;
+  margin: 4px 0 0;
+  line-height: 1.4;
+}
+
+/* ── Final status badge ─────────────────────────────────────────────────── */
+.status-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.76rem;
+  font-weight: 700;
+  border-radius: 999px;
+  padding: 4px 10px;
+  margin: 2px 0 8px;
+}
+
+.status-icon {
+  font-size: 0.78rem;
+  line-height: 1;
+}
+
+.status-accepted {
+  background: rgba(16, 185, 129, 0.12);
+  color: #047857;
+  border: 1px solid rgba(16, 185, 129, 0.32);
+}
+
+.status-rejected {
+  background: rgba(239, 68, 68, 0.1);
+  color: #b91c1c;
+  border: 1px solid rgba(239, 68, 68, 0.25);
+}
+
+.status-counter {
+  background: rgba(139, 92, 246, 0.12);
+  color: #6d28d9;
+  border: 1px solid rgba(139, 92, 246, 0.25);
+}
+
+.status-pending {
+  background: rgba(59, 130, 246, 0.1);
+  color: #1d4ed8;
+  border: 1px solid rgba(59, 130, 246, 0.24);
+}
+
+/* ── Action buttons ──────────────────────────────────────────────────────── */
+.notif-actions {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+  margin-top: 8px;
+}
+
+.btn-action {
+  padding: 5px 14px;
+  border-radius: 7px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  border: 1.5px solid transparent;
+  cursor: pointer;
+  transition: all 0.18s ease;
+  line-height: 1.4;
+  font-family: inherit;
+}
+
+.btn-action:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.btn-primary {
+  background: var(--primary, #009ce8);
+  color: #fff;
+  border-color: var(--primary, #009ce8);
+}
+.btn-primary:hover:not(:disabled) {
+  filter: brightness(1.1);
+  box-shadow: 0 3px 8px rgba(var(--primary-rgb, 0, 156, 232), 0.35);
+}
+
+.btn-danger {
+  background: #ef4444;
+  color: #fff;
+  border-color: #ef4444;
+}
+.btn-danger:hover:not(:disabled) {
+  background: #dc2626;
+  border-color: #dc2626;
+}
+
+.btn-outline {
+  background: transparent;
+  color: var(--primary, #009ce8);
+  border-color: var(--primary, #009ce8);
+}
+.btn-outline:hover:not(:disabled) {
+  background: rgba(var(--primary-rgb, 0, 156, 232), 0.08);
+}
+
+.btn-ghost {
+  background: transparent;
+  color: var(--text-secondary, #6b7280);
+  border-color: var(--border-color, #e5e7eb);
+}
+.btn-ghost:hover:not(:disabled) {
+  background: var(--gray-100, #f3f4f6);
+  color: var(--text-primary, #374151);
+}
+
+.btn-propose {
+  background: #10b981;
+  color: #fff;
+  border-color: #10b981;
+}
+.btn-propose:hover:not(:disabled) {
+  background: #059669;
+  border-color: #059669;
+}
+
+/* ── Counter-propose form ────────────────────────────────────────────────── */
+.counter-form {
+  margin-top: 8px;
+  display: grid;
+  gap: 7px;
+}
+
+.counter-label {
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: var(--text-secondary, #6b7280);
+}
+
+.counter-input {
+  height: 36px;
+  border: 1.5px solid var(--border-color, #d1d5db);
+  border-radius: 8px;
+  padding: 0 10px;
+  font-size: 0.85rem;
+  color: var(--text-primary, #111827);
+  background: var(--bg-surface, #fff);
+  outline: none;
+  font-family: inherit;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.counter-input:focus {
+  border-color: var(--primary, #009ce8);
+  box-shadow: 0 0 0 2px rgba(var(--primary-rgb, 0, 156, 232), 0.15);
+}
+
+.counter-btns {
+  display: flex;
+  gap: 6px;
+}
+
+/* ── Dark theme ──────────────────────────────────────────────────────────── */
+:host-context(.dark-theme) .notif-item {
+  background: var(--bg-card, #161b22);
+  border-color: var(--border-color, #30363d);
+}
+
+:host-context(.dark-theme) .notif-item:hover,
+:host-context(.dark-theme) .notif-item.unread {
+  background: rgba(var(--primary-rgb, 0, 156, 232), 0.08);
+}
+
+:host-context(.dark-theme) .counter-input {
+  background: var(--bg-secondary, #21262d);
+  border-color: var(--border-color, #30363d);
+  color: var(--text-primary, #e6edf3);
+}
+
+:host-context(.dark-theme) .btn-ghost {
+  border-color: var(--border-color, #30363d);
+  color: var(--text-secondary, #8b949e);
+}
+
+:host-context(.dark-theme) .status-accepted {
+  color: #34d399;
+}
+
+:host-context(.dark-theme) .status-rejected {
+  color: #f87171;
+}
+
+:host-context(.dark-theme) .status-counter {
+  color: #c4b5fd;
+}

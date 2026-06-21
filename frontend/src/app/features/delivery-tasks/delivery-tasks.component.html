@@ -1,0 +1,228 @@
+<div class="delivery-dashboard">
+  <!-- Header Section -->
+  <div class="header-section">
+    <div class="header-content">
+      <div class="header-title">
+        <h1>🚚 Delivery Dashboard</h1>
+        <p class="subtitle">View your assigned deliveries and track routes</p>
+      </div>
+      <button 
+        class="btn-refresh" 
+        (click)="loadMyDeliveries()" 
+        [disabled]="isLoading">
+        <span>⟳</span>
+        {{ isLoading ? 'Loading...' : 'Refresh' }}
+      </button>
+    </div>
+  </div>
+
+  <!-- Stats Dashboard -->
+  <div class="stats-grid">
+    <div class="stat-card" [class.stat-total]="true">
+      <div class="stat-icon">📦</div>
+      <div>
+        <div class="stat-label">Total</div>
+        <div class="stat-value">{{ stats.total }}</div>
+      </div>
+    </div>
+    <div class="stat-card" [class.stat-pending]="true">
+      <div class="stat-icon">⏳</div>
+      <div>
+        <div class="stat-label">Pending</div>
+        <div class="stat-value">{{ stats.pending }}</div>
+      </div>
+    </div>
+    <div class="stat-card" [class.stat-completed]="true">
+      <div class="stat-icon">✓</div>
+      <div>
+        <div class="stat-label">Completed</div>
+        <div class="stat-value">{{ stats.completed }}</div>
+      </div>
+    </div>
+    <div class="stat-card" [class.stat-user]="true">
+      <div class="stat-icon">📍</div>
+      <div>
+        <div class="stat-label">Location</div>
+        <div class="stat-value">{{ hasGeolocation ? 'Active' : 'Off' }}</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Main Layout: Map + Cards -->
+  <div class="dashboard-layout">
+    
+    <!-- Map Section -->
+    <div class="map-section">
+      <div class="map-header">
+        <h2>📍 Route Map</h2>
+        <p class="map-subtitle">
+          <span *ngIf="hasGeolocation" class="geo-badge active">● Geolocation Active</span>
+          <span *ngIf="!hasGeolocation" class="geo-badge">○ Geolocation Off</span>
+        </p>
+      </div>
+      <div 
+        #mapContainer 
+        class="map-container"
+        [class.map-loading]="!mapInitialized">
+        <div *ngIf="!mapInitialized" class="map-placeholder">
+          <div class="spinner"></div>
+          <p>Loading map...</p>
+        </div>
+      </div>
+      <div class="map-legend">
+        <div class="legend-item">
+          <span class="legend-marker blue">●</span>
+          <span>Your Location</span>
+        </div>
+        <div class="legend-item">
+          <span class="legend-marker red">●</span>
+          <span>Delivery Destination</span>
+        </div>
+        <div class="legend-item">
+          <span class="legend-marker orange">—</span>
+          <span>Route</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Deliveries Section -->
+    <div class="deliveries-section">
+      <div class="deliveries-header">
+        <h2>🚛 Available Routes</h2>
+        <span class="deliveries-count">{{ deliveries.length }} deliveries</span>
+      </div>
+
+      <!-- Loading State -->
+      <div *ngIf="isLoading" class="loading-state">
+        <div class="spinner"></div>
+        <p>Loading deliveries...</p>
+      </div>
+
+      <!-- Empty State -->
+      <div *ngIf="!isLoading && deliveries.length === 0" class="empty-state">
+        <div class="empty-icon">📭</div>
+        <h3>No Deliveries Assigned</h3>
+        <p>Check back later for new delivery tasks</p>
+      </div>
+
+      <!-- Delivery Cards Grid -->
+      <div *ngIf="!isLoading && deliveries.length > 0" class="delivery-cards">
+        <div 
+          *ngFor="let delivery of deliveries" 
+          class="delivery-card"
+          [class.selected]="selectedDelivery?.id === delivery.id"
+          [style.border-left]="'4px solid ' + getStatusColor(delivery.deliveryStatus)">
+          
+          <!-- Card Header -->
+          <div class="card-header">
+            <div class="delivery-id">
+               <span 
+                class="status-badge"
+                [style.background]="getStatusColor(delivery.deliveryStatus)"
+                [style.color]="'white'">
+                {{ delivery.deliveryStatus }}
+              </span>
+            </div>
+            <button 
+              class="btn-details"
+              (click)="openDeliveryDetails(delivery)"
+              title="View Details">
+              📋
+            </button>
+          </div>
+
+          <!-- Card Body -->
+          <div class="card-body">
+            <div class="delivery-item">
+              <span class="label">📍 Region:</span>
+              <span class="value">{{ getRegionName(delivery) }}</span>
+            </div>
+            <div class="delivery-item">
+              <span class="label">🚗 Vehicle:</span>
+              <span class="value">{{ getVehicleType(delivery) }}</span>
+            </div>
+            <div class="delivery-item">
+              <span class="label">📦 Tracking:</span>
+              <span class="value tracking-number">{{ delivery.trackingNumber || delivery.id }}</span>
+            </div>
+          </div>
+
+          <!-- Card Footer -->
+          <div class="card-footer">
+            <button 
+              class="btn-map"
+              (click)="viewDeliveryLocation(delivery)"
+              [disabled]="actionInProgress"
+              title="View on Map">
+              🗺️ View Location
+            </button>
+            <button 
+              class="btn-accept"
+              (click)="acceptDelivery(delivery.id)"
+              [disabled]="delivery.deliveryStatus !== 'PENDING' || actionInProgress"
+              title="Accept Delivery">
+              ✓ Accept
+            </button>
+            <button 
+              class="btn-complete"
+              (click)="completeDelivery(delivery.id)"
+              [disabled]="delivery.deliveryStatus === 'PENDING' || actionInProgress"
+              title="Mark as Complete">
+              ✔ Complete
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Details Modal -->
+  <div *ngIf="showModal && selectedDelivery" class="modal-overlay" (click)="closeModal()">
+    <div class="modal-content" (click)="$event.stopPropagation()">
+      <div class="modal-header">
+        <h3>Delivery Details</h3>
+        <button class="btn-close" (click)="closeModal()">✕</button>
+      </div>
+      <div class="modal-body">
+        <div class="detail-item">
+          <span class="label">Status:</span>
+          <span 
+            class="status-badge"
+            [style.background]="getStatusColor(selectedDelivery.deliveryStatus)">
+            {{ selectedDelivery.deliveryStatus }}
+          </span>
+        </div>
+        <div class="detail-item" *ngIf="selectedDelivery.request?.hospitalName">
+          <span class="label">🏥 Hospital:</span>
+          <span class="value">{{ selectedDelivery.request.hospitalName }}</span>
+        </div>
+        <div class="detail-item" [class.location-fallback]="!selectedDelivery?.request?.region && !selectedDelivery?.region">
+          <span class="label">{{ getLocationIcon(selectedDelivery) }} Region:</span>
+          <span class="value" [class.has-data]="hasLocationData(selectedDelivery)">
+            {{ getLocationLabel(selectedDelivery) }}
+          </span>
+        </div>
+        <div class="detail-item" *ngIf="distance">
+          <span class="label">📏 Distance:</span>
+          <span class="value">{{ distance | number:'1.1-1' }} km</span>
+        </div>
+        <div class="detail-item">
+          <span class="label">🚗 Vehicle Type:</span>
+          <span class="value">{{ getVehicleType(selectedDelivery) }}</span>
+        </div>
+        <div class="detail-item">
+          <span class="label">📦 Tracking Number:</span>
+          <span class="value">{{ selectedDelivery.trackingNumber || selectedDelivery.id }}</span>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn-secondary" (click)="closeModal()">Close</button>
+        <button 
+          class="btn-primary"
+          (click)="viewDeliveryLocation(selectedDelivery)">
+          View on Map
+        </button>
+      </div>
+    </div>
+  </div>
+</div>

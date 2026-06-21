@@ -1,0 +1,86 @@
+<div class="notification-container" #dropdownPanel>
+  <!-- Bell Icon Button -->
+  <button class="bell-button" (click)="toggleDropdown($event)" [attr.aria-label]="'Notifications'">
+    <svg class="bell-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+      <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path>
+      <path d="M13.73 21a2 2 0 0 1-3.46 0"></path>
+    </svg>
+    
+    <!-- Unread Count Badge -->
+    <div class="badge" *ngIf="(unreadCount$ | async) as count" [class.hidden]="count === 0">
+      {{ count > 99 ? '99+' : count }}
+    </div>
+  </button>
+
+  <!-- Dropdown Panel -->
+  <div class="dropdown-panel" [class.open]="isDropdownOpen">
+    <div class="dropdown-header">
+      <h3>Notifications</h3>
+      <button class="close-btn" (click)="isDropdownOpen = false" aria-label="Close notifications">
+        ×
+      </button>
+    </div>
+
+    <div class="alerts-container">
+      <!-- Alerts List -->
+      <div class="alerts-list" *ngIf="(alerts$ | async) as alerts">
+        <ng-container *ngIf="alerts.length > 0; else noAlerts">
+          <div
+            class="alert-item"
+            *ngFor="let alert of alerts"
+            [class.unread]="!alert.read"
+            [class.read]="alert.read"
+            (click)="markAsRead(alert, $event)"
+          >
+            <!-- Alert Content -->
+            <div class="alert-content">
+              <div class="alert-header">
+                <span class="alert-type" [ngClass]="getAlertTypeClass(alert.type)">
+                  {{ alert.type | uppercase }}
+                </span>
+                <span class="alert-time">{{ formatDate(alert.createdAt) }}</span>
+              </div>
+              <h4 class="alert-title">{{ alert.title }}</h4>
+              <p class="alert-message">{{ alert.message }}</p>
+            </div>
+
+            <!-- Alert Actions -->
+            <div class="alert-actions">
+              <button
+                class="action-btn mark-read-btn"
+                *ngIf="!alert.read"
+                (click)="markAsRead(alert, $event)"
+                title="Mark as read"
+                aria-label="Mark as read"
+              >
+                ✓
+              </button>
+              <button
+                class="action-btn delete-btn"
+                (click)="deleteAlert(alert.id, $event)"
+                title="Delete alert"
+                aria-label="Delete alert"
+              >
+                🗑️
+              </button>
+            </div>
+
+            <!-- Unread Indicator Dot -->
+            <div class="unread-indicator" *ngIf="!alert.read"></div>
+          </div>
+        </ng-container>
+
+        <!-- No Alerts State -->
+        <ng-template #noAlerts>
+          <div class="empty-state">
+            <svg class="empty-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path>
+              <path d="M13.73 21a2 2 0 0 1-3.46 0"></path>
+            </svg>
+            <p>No notifications</p>
+          </div>
+        </ng-template>
+      </div>
+    </div>
+  </div>
+</div>

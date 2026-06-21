@@ -1,0 +1,408 @@
+<div class="dashboard-content">
+
+  <!-- LOADING SKELETON -->
+  <div *ngIf="loading" class="dashboard-card">
+    <div class="sk sk-title"></div>
+    <div class="sk sk-line"></div>
+    <div class="sk sk-line w70"></div>
+    <div class="sk sk-block"></div>
+    <div class="sk sk-line w50"></div>
+  </div>
+
+  <ng-container *ngIf="!loading && blog as b">
+
+    <!-- BACK -->
+    <button class="back-link" (click)="goBack()">
+      <i class="fas fa-arrow-left"></i> Back to Articles
+    </button>
+
+    <!-- HERO -->
+    <div class="article-hero"
+     [style.background]="heroGradient"
+     [style.background-size]="heroBgSize"
+     [style.background-position]="heroBgPosition">
+      <div class="hero-overlay"></div>
+      <div class="hero-content">
+        <div class="hero-top">
+          <span class="hero-category"
+                [style.background]="getCategoryStyle(b.category).bg"
+                [style.color]="getCategoryStyle(b.category).text">
+            <span class="chip-dot" [style.background]="getCategoryStyle(b.category).dot"></span>
+            {{ b.category || 'General' }}
+          </span>
+          <span class="hero-status {{ getStatusClass(b.status) }}">
+            {{ b.status }}
+          </span>
+        </div>
+        <h1>{{ b.title }}</h1>
+        <p class="hero-summary" *ngIf="b.summary">{{ b.summary }}</p>
+        <div class="hero-meta">
+          <span><i class="fas fa-user-md"></i> Dr. {{ b.authorName }}</span>
+          <span><i class="fas fa-calendar-alt"></i> {{ formatDate(b.createdAt) }}</span>
+          <span><i class="fas fa-clock"></i> {{ getReadTime(b.content) }} min read</span>
+          <span><i class="fas fa-eye"></i> {{ b.viewCount || 0 }} views</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- MAIN LAYOUT -->
+    <div class="article-layout">
+
+      <!-- LEFT: MAIN CONTENT -->
+      <div class="article-main">
+
+        <!-- Article Body -->
+        <div class="dashboard-card article-body">
+          <div class="article-content" [innerHTML]="b.content"></div>
+        </div>
+
+        <!-- MEDIA SECTION -->
+        <div class="media-section dashboard-card"
+             *ngIf="b.imageUrls?.length || b.videoUrls?.length || b.attachmentUrls?.length || b.referenceLinks?.length">
+
+          <div class="media-section-title">
+            <i class="fas fa-photo-video"></i> Media & Resources
+          </div>
+
+          <!-- Images Gallery -->
+          <div class="media-group" *ngIf="b.imageUrls?.length">
+            <div class="media-group-label">
+              <i class="fas fa-images"></i> Images
+              <span class="media-count">{{ b.imageUrls.length }}</span>
+            </div>
+            <div class="media-image-grid">
+              <div class="media-image-card" *ngFor="let img of b.imageUrls">
+                <img [src]="img" alt="Article image" (click)="openImage(img)"/>
+                <div class="media-image-overlay">
+                  <i class="fas fa-expand-alt"></i>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Videos -->
+          <div class="media-group" *ngIf="b.videoUrls?.length">
+            <div class="media-group-label">
+              <i class="fas fa-video"></i> Videos
+              <span class="media-count">{{ b.videoUrls.length }}</span>
+            </div>
+            <div class="media-video-list">
+              <a class="media-video-card" *ngFor="let vid of b.videoUrls; let i = index"
+                 [href]="vid" target="_blank">
+                <div class="video-thumb">
+                  <img *ngIf="getYoutubeThumbnail(vid)" [src]="getYoutubeThumbnail(vid)" alt="video"/>
+                  <div class="video-thumb-fallback" *ngIf="!getYoutubeThumbnail(vid)">
+                    <i class="fas fa-film"></i>
+                  </div>
+                  <div class="video-play-btn"><i class="fas fa-play"></i></div>
+                </div>
+                <div class="video-info">
+                  <span class="video-label">Video {{ i + 1 }}</span>
+                  <span class="video-url">{{ vid }}</span>
+                  <span class="video-open">Open <i class="fas fa-external-link-alt"></i></span>
+                </div>
+              </a>
+            </div>
+          </div>
+
+          <!-- Attachments -->
+          <div class="media-group" *ngIf="b.attachmentUrls?.length">
+            <div class="media-group-label">
+              <i class="fas fa-paperclip"></i> Attachments
+              <span class="media-count">{{ b.attachmentUrls.length }}</span>
+            </div>
+            <div class="media-file-list">
+              <a class="media-file-card" *ngFor="let att of b.attachmentUrls"
+                 [href]="att" target="_blank">
+                <div class="file-icon">
+                  <i class="fas fa-file-pdf" *ngIf="att.endsWith('.pdf')"></i>
+                  <i class="fas fa-file-word" *ngIf="att.endsWith('.doc') || att.endsWith('.docx')"></i>
+                  <i class="fas fa-file-alt" *ngIf="!att.endsWith('.pdf') && !att.endsWith('.doc') && !att.endsWith('.docx')"></i>
+                </div>
+                <span class="file-name">{{ att.split('/').pop() }}</span>
+                <i class="fas fa-download file-dl"></i>
+              </a>
+            </div>
+          </div>
+
+          <!-- References -->
+          <div class="media-group" *ngIf="b.referenceLinks?.length">
+            <div class="media-group-label">
+              <i class="fas fa-link"></i> References
+              <span class="media-count">{{ b.referenceLinks.length }}</span>
+            </div>
+            <div class="media-ref-list">
+              <a class="media-ref-card" *ngFor="let ref of b.referenceLinks; let i = index"
+                 [href]="ref" target="_blank">
+                <span class="ref-num">{{ i + 1 }}</span>
+                <span class="ref-url">{{ ref }}</span>
+                <i class="fas fa-external-link-alt ref-icon"></i>
+              </a>
+            </div>
+          </div>
+
+        </div>
+
+        <!-- Image Lightbox -->
+        <div class="lightbox" *ngIf="lightboxImg" (click)="lightboxImg = ''">
+          <div class="lightbox-inner" (click)="$event.stopPropagation()">
+            <button class="lightbox-close" (click)="lightboxImg = ''">
+              <i class="fas fa-times"></i>
+            </button>
+            <img [src]="lightboxImg" alt="Full image"/>
+          </div>
+        </div>
+
+        <!-- Actions -->
+        <div class="dashboard-card action-bar">
+          <button class="btn-outline" (click)="goBack()">
+            <i class="fas fa-arrow-left"></i> All Articles
+          </button>
+<button class="btn-primary" (click)="copyLink()" [class.copied]="linkCopied">
+  <i class="fas" [class.fa-link]="!linkCopied" [class.fa-check]="linkCopied"></i>
+  {{ linkCopied ? 'Copied!' : 'Copy Link' }}
+</button>
+        </div>
+
+        <!-- REACTIONS -->
+        <div class="reactions-section">
+          <div class="reaction-counts" *ngIf="totalReactions > 0">
+            <div class="rc-bubbles">
+              <ng-container *ngFor="let r of reactionList">
+                <span class="rc-bubble" *ngIf="getCount(r.type) > 0" [title]="r.label">
+                  <span class="rc-emoji">{{ r.emoji }}</span>
+                  <span class="rc-num">{{ getCount(r.type) }}</span>
+                </span>
+              </ng-container>
+            </div>
+            <span class="rc-total">{{ totalReactions }} {{ totalReactions === 1 ? 'reaction' : 'reactions' }}</span>
+          </div>
+
+          <div class="reaction-divider"></div>
+
+          <p class="reaction-prompt">How did this article make you feel?</p>
+
+          <div class="reaction-buttons">
+            <button
+              *ngFor="let r of reactionList"
+              class="rxn-btn"
+              [class.rxn-active]="userReaction === r.type"
+              [class.rxn-loading]="reactionLoading"
+              (click)="onReact(r.type)"
+              [title]="r.label">
+              <span class="rxn-emoji">{{ r.emoji }}</span>
+              <span class="rxn-label">{{ r.label }}</span>
+              <span class="rxn-count" *ngIf="getCount(r.type) > 0">{{ getCount(r.type) }}</span>
+            </button>
+          </div>
+
+          <div class="rxn-feedback" *ngIf="userReaction">
+            <span>You reacted with</span>
+            <strong>{{ getReactionEmoji(userReaction) }} {{ getReactionLabel(userReaction) }}</strong>
+            <button class="rxn-remove" (click)="onRemoveReaction()">Remove</button>
+          </div>
+        </div>
+
+        <!-- COMMENTS -->
+        <div class="dashboard-card comments-section">
+          <div class="comments-header">
+            <span class="section-label">COMMENTS</span>
+            <span class="comment-count">{{ comments.length }}</span>
+          </div>
+
+          <!-- Comment Form -->
+          <div class="comment-form" *ngIf="currentUser">
+            <div class="cf-avatar">{{ getFirstLetter(currentUser.firstName || '') }}</div>
+            <div class="cf-right">
+              <textarea
+                [(ngModel)]="newComment"
+                placeholder="Share your thoughts on this article..."
+                rows="3">
+              </textarea>
+              <div class="cf-actions">
+                <span class="cf-hint">Write a meaningful comment</span>
+                <button class="btn-primary cf-btn"
+                        (click)="submitComment()"
+                        [disabled]="!newComment.trim() || commentLoading">
+                  <i class="fas fa-paper-plane"></i>
+                  {{ commentLoading ? 'Posting...' : 'Post' }}
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <!-- Comment List -->
+          <div class="comment-list">
+            <div class="comment-item" *ngFor="let c of comments">
+              <div class="comment-avatar">{{ getFirstLetter(c.userFullName) }}</div>
+              <div class="comment-body">
+                <div class="comment-head">
+                  <strong>{{ c.userFullName }}</strong>
+                  <span class="comment-date">{{ formatDate(c.createdAt) }}</span>
+                  <button class="del-btn"
+                          *ngIf="currentUser && c.userId === currentUser.id"
+                          (click)="confirmDelete(c.id)">
+                    <i class="fas fa-trash-alt"></i>
+                  </button>
+                </div>
+                <p>{{ c.content }}</p>
+              </div>
+            </div>
+
+            <!-- Empty -->
+            <div class="empty-comments" *ngIf="comments.length === 0">
+              <i class="fas fa-comment-medical"></i>
+              <p>No comments yet — be the first to start the conversation!</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- AI CHAT -->
+        <div class="ai-chat-section">
+          <div class="ai-chat-header">
+            <div class="ai-icon-wrap">🤖</div>
+            <div>
+              <h3>Ask AI About This Article</h3>
+              <p>Get instant AI-powered answers based on the content of this article.</p>
+            </div>
+          </div>
+
+          <!-- Chat History -->
+          <div class="chat-history" *ngIf="chatHistory.length > 0">
+            <div class="chat-pair" *ngFor="let item of chatHistory">
+              <div class="chat-q">
+                <div class="chat-avatar user-av">{{ getFirstLetter(currentUser.firstName || '') }}</div>
+                <div class="chat-bubble user-bubble">{{ item.question }}</div>
+              </div>
+              <div class="chat-a">
+                <div class="chat-avatar ai-av">🤖</div>
+                <div class="chat-bubble ai-bubble">{{ item.answer }}</div>
+              </div>
+            </div>
+          </div>
+
+          <!-- AI Thinking -->
+          <div class="ai-thinking" *ngIf="aiLoading">
+            <div class="thinking-dots">
+              <span></span><span></span><span></span>
+            </div>
+            <span>AI is thinking...</span>
+          </div>
+
+          <!-- Error -->
+          <div class="ai-error" *ngIf="aiError">
+            <i class="fas fa-exclamation-circle"></i> {{ aiError }}
+          </div>
+
+          <!-- Input -->
+          <div class="ai-input-row">
+            <input [(ngModel)]="aiQuestion"
+                   placeholder="e.g. What are the main symptoms mentioned?"
+                   (keyup.enter)="askAi()"
+                   [disabled]="aiLoading" />
+            <button class="ai-send-btn" (click)="askAi()"
+                    [disabled]="!aiQuestion.trim() || aiLoading">
+              <i class="fas fa-paper-plane"></i>
+            </button>
+          </div>
+        </div>
+
+      </div><!-- /article-main -->
+
+      <!-- RIGHT: SIDEBAR -->
+      <aside class="article-sidebar">
+
+        <!-- Author -->
+<div class="dashboard-card sidebar-card">
+  <span class="section-label">AUTHOR</span>
+  <div class="author-wrap"
+       [routerLink]="['/doctor/profile', b.authorId]"
+       style="cursor: pointer;">
+    <div class="author-avatar-lg">
+      <i class="fas fa-user-md"></i>
+    </div>
+    <div>
+      <div class="author-name-lg author-link">Dr. {{ b.authorName }}</div>
+      <div class="author-role">Medical Professional</div>
+      
+    </div>
+  </div>
+</div>
+
+        
+
+        <!-- Article Info -->
+        <div class="dashboard-card sidebar-card">
+          <span class="section-label">ARTICLE INFO</span>
+          <div class="info-list">
+            <div class="info-row">
+              <span class="info-label">Category</span>
+              <span class="category-chip-sm"
+                    [style.background]="getCategoryStyle(b.category).bg"
+                    [style.color]="getCategoryStyle(b.category).text">
+                {{ b.category }}
+              </span>
+            </div>
+            <div class="info-row">
+              <span class="info-label">Published</span>
+              <span>{{ formatDate(b.createdAt) }}</span>
+            </div>
+            <div class="info-row">
+              <span class="info-label">Read Time</span>
+              <span>{{ getReadTime(b.content) }} min</span>
+            </div>
+            <div class="info-row">
+              <span class="info-label">Views</span>
+              <span><i class="fas fa-eye" style="color:#0ea5e9; margin-right:4px;"></i>{{ b.viewCount || 0 }}</span>
+            </div>
+            <div class="info-row">
+              <span class="info-label">Comments</span>
+              <span>{{ comments.length }}</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Share -->
+        <div class="dashboard-card sidebar-card share-card">
+          <span class="section-label">SHARE ARTICLE</span>
+          <button class="share-social-btn fb" (click)="share('facebook')">
+            <i class="fab fa-facebook"></i> Share on Facebook
+          </button>
+          <button class="share-social-btn tw" (click)="share('twitter')">
+            <i class="fab fa-twitter"></i> Share on Twitter
+          </button>
+          <button class="share-social-btn copy" (click)="copyLink()">
+            <i class="fas fa-link"></i> Copy Link
+          </button>
+        </div>
+
+      </aside>
+
+    </div><!-- /layout -->
+
+  </ng-container>
+
+  <!-- NOT FOUND -->
+  <div *ngIf="!loading && !blog" class="dashboard-card empty-state">
+    <i class="fas fa-newspaper"></i>
+    <h3>Article not found</h3>
+    <p>This article may have been removed.</p>
+    <button class="btn-primary" (click)="goBack()">← Back to Articles</button>
+  </div>
+
+  <!-- Delete Confirm Popup -->
+<div class="confirm-overlay" *ngIf="showDeleteConfirm">
+  <div class="confirm-box">
+    <h3>Are you sure you want to delete this comment?</h3>
+    <div class="confirm-actions">
+      <button class="btn-cancel-confirm" (click)="showDeleteConfirm = false">
+        Cancel
+      </button>
+      <button class="btn-delete-confirm" (click)="deleteComment()">
+        Yes, Delete
+      </button>
+    </div>
+  </div>
+</div>
+
+</div>

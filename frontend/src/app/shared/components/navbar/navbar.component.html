@@ -1,0 +1,263 @@
+<nav class="navbar" [class.scrolled]="isScrolled">
+  <div class="container nav-inner">
+    <!-- Logo -->
+    <a (click)="onLogoClick($event)" class="logo" style="cursor: pointer;">
+      <div class="logo-icon">
+        <img
+          src="assets/images/logo-medflow.png"
+          alt="MedFlow Logo"
+          class="logo-icon-img"
+        />
+      </div>
+    </a>
+
+    <!-- Desktop Nav -->
+    <ul class="nav-links">
+      <li *ngFor="let link of filteredNavLinks">
+        <a
+          [routerLink]="link.route"
+          routerLinkActive="active"
+          [routerLinkActiveOptions]="link.route === '/' ? { exact: true } : { exact: false }"
+          class="nav-link"
+          (click)="closeMenu()"
+          >{{ link.label }}</a
+        >
+      </li>
+    </ul>
+
+    <!-- CTA -->
+    <div class="nav-actions">
+      <a
+        *ngIf="!isLoggedIn"
+        routerLink="/login"
+        class="btn-outline btn-sm"
+        style="margin-right: 5px"
+        >Login</a
+      >
+      <a *ngIf="!isLoggedIn" routerLink="/contact" class="btn-primary btn-sm"
+        >Contact</a
+      >
+
+      <!-- Notification Bell Component (new) -->
+
+      <div class="notif-wrap" *ngIf="isLoggedIn">
+        <button
+          class="notif-btn"
+          (click)="toggleNotifications($event)"
+          aria-label="Notifications and Alerts"
+        >
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/>
+            <path d="M13.73 21a2 2 0 0 1-3.46 0"/>
+          </svg>
+         
+        </button>
+
+        <div class="notif-dropdown" *ngIf="isNotificationsOpen">
+          <!-- Header -->
+          <div class="notif-dropdown-header">
+            <span class="notif-dropdown-title">Notifications & Alerts</span>
+            <button
+              *ngIf="hasUnread"
+              type="button"
+              class="notif-mark-all-btn"
+              (click)="markAllAsRead()"
+            >Mark all as read</button>
+          </div>
+
+          <!-- Loading skeleton -->
+          <div class="notif-state" *ngIf="isNotificationsLoading">
+            <div class="notif-skeleton" *ngFor="let s of [1,2,3]"></div>
+          </div>
+
+          <!-- Empty state -->
+          <div class="notif-empty-state" *ngIf="!isNotificationsLoading && notifications.length === 0 && alerts.length === 0">
+            <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
+            <p>You're all caught up!</p>
+          </div>
+
+        
+
+          <!-- Notification items -->
+          <div class="notif-dropdown-body" *ngIf="!isNotificationsLoading && notifications.length > 0">
+            <div class="section-title" *ngIf="alerts.length > 0">Notifications</div>
+            <app-notification-item
+              *ngFor="let n of notifications | slice:0:6; trackBy: trackById"
+              [notification]="n"
+              [compact]="true"
+              (readRequest)="onMarkRead($event)"
+              (actionDone)="onActionDone($event)"
+            ></app-notification-item>
+          </div>
+
+          <!-- Alerts items -->
+          <div class="alerts-dropdown-body" *ngIf="!isNotificationsLoading && alerts.length > 0">
+            <div class="section-title" *ngIf="notifications.length > 0">Alerts</div>
+            <div *ngFor="let alert of alerts | slice:0:6" class="alert-item-row" [ngClass]="'alert-' + alert.type">
+              <div class="alert-icon-circle">
+                <span>{{ getAlertIcon(alert.type) }}</span>
+              </div>
+              <div class="alert-content-wrapper">
+                <div class="alert-title">{{ alert.title }}</div>
+                <div class="alert-message">{{ alert.message }}</div>
+                <div class="alert-time">{{ formatAlertTime(alert.createdAt) }}</div>
+              </div>
+              <div class="alert-actions-row">
+                <button class="delete-alert-btn" (click)="deleteAlert(alert, $event)" title="Delete">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <line x1="18" y1="6" x2="6" y2="18"></line>
+                    <line x1="6" y1="6" x2="18" y2="18"></line>
+                  </svg>
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <!-- Footer -->
+          <div class="notif-dropdown-footer" *ngIf="!isNotificationsLoading && (notifications.length > 0 || alerts.length > 0)">
+            <a
+              routerLink="/patient/notifications"
+              (click)="closeNotifications()"
+            >View all notifications</a>
+          </div>
+        </div>
+      </div>
+
+      <div
+        *ngIf="isLoggedIn"
+        class="profile-menu-wrap"
+        style="margin-right: 10px"
+        (mouseenter)="openProfileMenu()"
+        (mouseleave)="closeProfileMenu()"
+      >
+        <button class="profile-trigger" (click)="toggleProfileMenu($event)">
+          <span class="profile-avatar">
+            <img *ngIf="profilePictureUrl" [src]="profilePictureUrl" alt="Avatar" style="width: 100%; height: 100%; object-fit: cover; border-radius: 50%" />
+            <span *ngIf="!profilePictureUrl">{{ userName.charAt(0).toUpperCase() }}</span>
+          </span>
+          <span class="profile-identity">
+            <span class="profile-name">{{ userName }}</span>
+            <span class="profile-role">{{ userRoleLabel }}</span>
+          </span>
+          <svg
+            class="profile-caret"
+            width="14"
+            height="14"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+          >
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              d="M6 9l6 6 6-6"
+            />
+          </svg>
+        </button>
+
+        <div class="profile-dropdown" *ngIf="isProfileMenuOpen">
+          <div class="profile-dropdown-actions">
+            <button
+              type="button"
+              class="profile-action"
+              (click)="goToProfile()"
+            >
+              <svg
+                width="16"
+                height="16"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+              >
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  d="M20 21a8 8 0 10-16 0M12 11a4 4 0 100-8 4 4 0 000 8z"
+                />
+              </svg>
+              <span>Profile</span>
+            </button>
+            <button
+              type="button"
+              class="profile-action danger"
+              (click)="logout()"
+            >
+              <svg
+                width="16"
+                height="16"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+              >
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  d="M15 3h4a2 2 0 012 2v14a2 2 0 01-2 2h-4M10 17l5-5-5-5M15 12H3"
+                />
+              </svg>
+              <span>Logout</span>
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <a
+        *ngIf="isLoggedIn && userRole === 'PATIENT'"
+        routerLink="/doctors"
+        class="btn-primary btn-sm"
+        >Book Appointment</a
+      >
+      <button
+        class="hamburger"
+        (click)="toggleMobileMenu()"
+        [class.open]="isMobileMenuOpen"
+        aria-label="Toggle menu"
+      >
+        <span></span><span></span><span></span>
+      </button>
+
+      <!-- Theme Toggle -->
+      <button class="theme-toggle-btn" (click)="toggleTheme()" aria-label="Toggle theme">
+        <svg *ngIf="!isDarkMode" xmlns="http://www.w3.org/20event/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg>
+        <svg *ngIf="isDarkMode" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="5"></circle><line x1="12" y1="1" x2="12" y2="3"></line><line x1="12" y1="21" x2="12" y2="23"></line><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line><line x1="1" y1="12" x2="3" y2="12"></line><line x1="21" y1="12" x2="23" y2="12"></line><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line></svg>
+      </button>
+    </div>
+  </div>
+
+  <!-- Mobile Menu -->
+  <div class="mobile-menu" [class.open]="isMobileMenuOpen">
+    <ul>
+      <li *ngIf="isLoggedIn">
+        <a (click)="goToProfile(); closeMenu()"
+          >{{ userName }} ({{ userRoleLabel }})</a
+        >
+      </li>
+      <li *ngIf="!isLoggedIn">
+        <a routerLink="/login" (click)="closeMenu()">Login</a>
+      </li>
+      <li *ngFor="let link of filteredNavLinks">
+        <a
+          [routerLink]="link.route"
+          routerLinkActive="active"
+          [routerLinkActiveOptions]="link.route === '/' ? { exact: true } : { exact: false }"
+          (click)="closeMenu()"
+          >{{ link.label }}</a
+        >
+      </li>
+      <li *ngIf="isLoggedIn">
+        <a (click)="logout(); closeMenu()">Logout</a>
+      </li>
+      <li *ngIf="isLoggedIn && userRole === 'PATIENT'">
+        <a
+          routerLink="/doctors"
+          class="btn-primary mobile-cta"
+          (click)="closeMenu()"
+          >Book Appointment</a
+        >
+      </li>
+    </ul>
+  </div>
+</nav>

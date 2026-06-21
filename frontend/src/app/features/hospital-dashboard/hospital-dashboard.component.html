@@ -1,0 +1,408 @@
+<div class="dashboard-container">
+  <header class="page-header">
+    <div class="header-left">
+      <span class="role-chip">Administration</span>
+      <h1 class="page-title">
+        <svg class="header-icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <path d="M3 21H21" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+          <path d="M5 21V7L12 3L19 7V21" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+          <path d="M9 11H15" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+          <path d="M9 15H15" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+        Hospital Operations Dashboard
+      </h1>
+      <p class="page-subtitle">Live overview of structure, departments, beds, and staffing across your hospital modules.</p>
+    </div>
+
+    <div class="header-actions">
+      <span class="status-indicator">System Normal</span>
+      <button class="btn-add" (click)="navigateToCreate('manage-structure')">
+        <i class="fas fa-layer-group"></i>
+        <span>Manage Structure</span>
+      </button>
+    </div>
+  </header>
+
+  <div class="error-banner" *ngIf="errorMessage">{{ errorMessage }}</div>
+
+  <div class="loading-state" *ngIf="isLoading">
+    <i class="fas fa-spinner fa-spin"></i>
+    <span>Loading operational metrics...</span>
+  </div>
+
+  <section class="stats-grid" *ngIf="!isLoading">
+    <article class="stat-card glass">
+      <div class="stat-icon floors"><i class="fas fa-layer-group"></i></div>
+      <div>
+        <p class="stat-label">Total Floors</p>
+        <h3 class="stat-value">{{ totalFloors }}</h3>
+      </div>
+    </article>
+
+    <article class="stat-card glass">
+      <div class="stat-icon rooms"><i class="fas fa-door-open"></i></div>
+      <div>
+        <p class="stat-label">Total Rooms</p>
+        <h3 class="stat-value">{{ totalRooms }}</h3>
+      </div>
+    </article>
+
+    <article class="stat-card glass">
+      <div class="stat-icon beds"><i class="fas fa-bed"></i></div>
+      <div>
+        <p class="stat-label">Total Beds</p>
+        <h3 class="stat-value">{{ totalBeds }}</h3>
+      </div>
+    </article>
+
+    <article class="stat-card glass">
+      <div class="stat-icon occupancy"><i class="fas fa-procedures"></i></div>
+      <div>
+        <p class="stat-label">Occupied vs Available</p>
+        <h3 class="stat-value">{{ occupiedBeds }} / {{ availableBeds }}</h3>
+        <p class="stat-meta">{{ occupancyRate }}% occupancy</p>
+      </div>
+    </article>
+
+    <article class="stat-card glass">
+      <div class="stat-icon departments"><i class="fas fa-building"></i></div>
+      <div>
+        <p class="stat-label">Total Departments</p>
+        <h3 class="stat-value">{{ totalDepartments }}</h3>
+      </div>
+    </article>
+
+    <article class="stat-card glass">
+      <div class="stat-icon staff"><i class="fas fa-user-nurse"></i></div>
+      <div>
+        <p class="stat-label">Total Staff</p>
+        <h3 class="stat-value">{{ totalStaff }}</h3>
+      </div>
+    </article>
+  </section>
+
+  <section class="graphics-strip" *ngIf="!isLoading">
+    <article class="graphic-card pulse-card glass">
+      <div class="graphic-head">
+        <h3><i class="fas fa-wave-square"></i> Capacity Pulse</h3>
+        <span>{{ occupancyRate }}% live occupancy</span>
+      </div>
+      <svg class="pulse-chart" viewBox="0 0 360 120" preserveAspectRatio="none" role="img" aria-label="Capacity pulse chart">
+        <defs>
+          <linearGradient id="pulseFill" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0%" stop-color="#0092df" stop-opacity="0.36"></stop>
+            <stop offset="100%" stop-color="#0092df" stop-opacity="0"></stop>
+          </linearGradient>
+        </defs>
+        <path d="M0 105 L0 90 L40 82 L80 76 L120 68 L160 70 L200 60 L240 54 L280 56 L320 45 L360 38 L360 105 Z" fill="url(#pulseFill)"></path>
+        <polyline points="0,90 40,82 80,76 120,68 160,70 200,60 240,54 280,56 320,45 360,38" fill="none" stroke="#0092df" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"></polyline>
+      </svg>
+      <div class="graphic-meta">
+        <span><strong>{{ occupiedBeds }}</strong> occupied beds</span>
+        <span><strong>{{ totalBeds }}</strong> total beds</span>
+      </div>
+    </article>
+
+    <article class="graphic-card donut-card glass">
+      <div class="graphic-head compact">
+        <h3><i class="fas fa-chart-pie"></i> Bed Mix</h3>
+      </div>
+      <div class="donut-wrap">
+        <div
+          class="donut"
+          [style.background]="'conic-gradient(#0092df 0% ' + occupancyRate + '%, #e2e8f0 ' + occupancyRate + '% 100%)'"
+        >
+          <div class="donut-center">
+            <strong>{{ occupancyRate }}%</strong>
+            <span>Occupied</span>
+          </div>
+        </div>
+      </div>
+      <div class="legend-row">
+        <span><i class="dot used"></i>Used {{ occupiedBeds }}</span>
+        <span><i class="dot free"></i>Free {{ availableBeds }}</span>
+      </div>
+    </article>
+
+    <article class="graphic-card bars-card glass">
+      <div class="graphic-head compact">
+        <h3><i class="fas fa-chart-bar"></i> Operations Snapshot</h3>
+      </div>
+
+      <div class="metric-line">
+        <div class="line-label">
+          <span>Active Staff</span>
+          <strong>{{ activeStaff }}/{{ totalStaff }}</strong>
+        </div>
+        <div class="mini-track">
+          <div class="mini-fill staff" [style.width.%]="totalStaff ? (activeStaff / totalStaff) * 100 : 0"></div>
+        </div>
+      </div>
+
+      <div class="metric-line">
+        <div class="line-label">
+          <span>Active Departments</span>
+          <strong>{{ activeDepartments }}/{{ totalDepartments }}</strong>
+        </div>
+        <div class="mini-track">
+          <div
+            class="mini-fill dept"
+            [style.width.%]="totalDepartments ? (activeDepartments / totalDepartments) * 100 : 0"
+          ></div>
+        </div>
+      </div>
+
+      <div class="metric-line">
+        <div class="line-label">
+          <span>Staff Coverage</span>
+          <strong>{{ staffCoverageRate }}%</strong>
+        </div>
+        <div class="mini-track">
+          <div class="mini-fill coverage" [style.width.%]="staffCoverageRate"></div>
+        </div>
+      </div>
+    </article>
+  </section>
+
+  <div class="main-grid" *ngIf="!isLoading">
+    <section class="insights-column">
+      <article class="panel glass">
+        <div class="panel-header">
+          <div>
+            <h2>Bed Occupancy Overview</h2>
+            <p>Current utilization by floor</p>
+          </div>
+        </div>
+
+        <div class="occupancy-summary">
+          <div class="summary-head">
+            <span>Hospital Occupancy</span>
+            <strong>{{ occupancyRate }}%</strong>
+          </div>
+          <div class="progress-track">
+            <div class="progress-fill" [style.width.%]="occupancyRate"></div>
+          </div>
+          <div class="summary-meta">
+            <span>{{ occupiedBeds }} occupied beds</span>
+            <span>{{ availableBeds }} available beds</span>
+          </div>
+        </div>
+
+        <div class="floor-occupancy-list" *ngIf="floorOccupancyInsights.length > 0; else noFloorData">
+          <div class="floor-row" *ngFor="let floor of floorOccupancyInsights">
+            <div class="row-head">
+              <span class="name">{{ floor.floorName }}</span>
+              <span class="rate">{{ floor.occupancyRate }}%</span>
+            </div>
+            <div class="progress-track slim">
+              <div class="progress-fill" [style.width.%]="floor.occupancyRate"></div>
+            </div>
+            <div class="row-meta">
+              <span>{{ floor.occupiedBeds }} occupied</span>
+              <span>{{ floor.availableBeds }} free</span>
+            </div>
+          </div>
+        </div>
+      </article>
+
+      <article class="panel glass">
+        <div class="panel-header">
+          <div>
+            <h2>Department Distribution</h2>
+            <p>Rooms and beds allocation by department</p>
+          </div>
+          <button class="btn-link" (click)="navigateToCreate('view-departments')">View all</button>
+        </div>
+
+        <div class="dept-list" *ngIf="departmentInsights.length > 0; else noDepartmentData">
+          <div class="dept-row" *ngFor="let department of departmentInsights">
+            <div class="dept-main">
+              <span class="dept-dot" [style.background]="department.color"></span>
+              <div>
+                <h3>{{ department.name }}</h3>
+                <p>{{ department.roomCount }} rooms · {{ department.bedCount }} beds</p>
+              </div>
+            </div>
+            <div class="dept-occupancy">
+              <strong>{{ department.occupancyRate }}%</strong>
+              <div class="progress-track slim">
+                <div
+                  class="progress-fill"
+                  [style.width.%]="department.occupancyRate"
+                  [style.background]="'linear-gradient(90deg, ' + department.color + ', var(--primary-dark))'"
+                ></div>
+              </div>
+              <span>{{ department.occupiedBedCount }} occupied</span>
+            </div>
+          </div>
+        </div>
+      </article>
+
+      <article class="panel glass">
+        <div class="panel-header">
+          <div>
+            <h2>Staff Workload & Tasks</h2>
+            <p>Active clinical staff and their current task assignments</p>
+          </div>
+          <button class="btn-link" (click)="navigateToCreate('staff')">Manage Staff</button>
+        </div>
+
+        <div class="table-container" *ngIf="staffWorkloads.length > 0; else noStaffData">
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th>Staff Member</th>
+                <th>Role</th>
+                <th>Tasks (P/C)</th>
+                <th>Workload</th>
+                <th class="text-right">Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr *ngFor="let workload of staffWorkloads">
+                <td>
+                  <div class="staff-cell">
+                    <div class="staff-avatar-mini">{{ workload.staffName.charAt(0) }}</div>
+                    <span>{{ workload.staffName }}</span>
+                  </div>
+                </td>
+                <td><span class="badge role-badge" [ngClass]="workload.role.toLowerCase()">{{ workload.role }}</span></td>
+                <td>
+                  <div class="tasks-summary">
+                    <span class="pending">{{ workload.pendingTasks }}</span>
+                    <span class="divider">/</span>
+                    <span class="completed">{{ workload.completedTasks }}</span>
+                  </div>
+                </td>
+                <td>
+                  <div class="workload-bar-wrap">
+                    <div class="workload-bar" [style.width.%]="workload.workloadPercentage" [ngClass]="{
+                      'low': workload.workloadPercentage < 40,
+                      'med': workload.workloadPercentage >= 40 && workload.workloadPercentage < 80,
+                      'high': workload.workloadPercentage >= 80
+                    }"></div>
+                  </div>
+                </td>
+                <td class="text-right">
+                  <button class="btn-icon-text" (click)="viewStaffTasks(workload.staffId, workload.staffName)">
+                    <i class="fas fa-eye"></i>
+                    <span>View Tasks</span>
+                  </button>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </article>
+    </section>
+
+    <aside class="side-column">
+      <article class="panel glass status-panel">
+        <div class="panel-header">
+          <div>
+            <h2>Operational Status</h2>
+            <p>Quick health indicators</p>
+          </div>
+        </div>
+
+        <div class="status-list">
+          <div class="status-item">
+            <span>Active Departments</span>
+            <strong>{{ activeDepartments }}/{{ totalDepartments }}</strong>
+          </div>
+          <div class="status-item">
+            <span>Active Staff</span>
+            <strong>{{ activeStaff }}/{{ totalStaff }}</strong>
+          </div>
+          <div class="status-item">
+            <span>Staff Coverage</span>
+            <strong>{{ staffCoverageRate }}%</strong>
+          </div>
+          <div class="status-item">
+            <span>Bed Capacity Utilization</span>
+            <strong>{{ occupancyRate }}%</strong>
+          </div>
+        </div>
+      </article>
+
+      <article class="panel glass">
+        <div class="panel-header">
+          <div>
+            <h2>Quick Actions</h2>
+            <p>Jump directly to core administration tasks</p>
+          </div>
+        </div>
+
+        <div class="quick-actions-grid">
+          <button class="quick-action" (click)="navigateToCreate('floor')">
+            <i class="fas fa-layer-group"></i>
+            <div>
+              <span>Add Floor</span>
+              <small>Create new floor level</small>
+            </div>
+          </button>
+
+          <button class="quick-action" (click)="navigateToCreate('room')">
+            <i class="fas fa-door-open"></i>
+            <div>
+              <span>Add Room</span>
+              <small>Assign room to floor</small>
+            </div>
+          </button>
+
+          <button class="quick-action" (click)="navigateToCreate('department')">
+            <i class="fas fa-building"></i>
+            <div>
+              <span>Add Department</span>
+              <small>Organize service units</small>
+            </div>
+          </button>
+
+          <button class="quick-action highlight" (click)="openTaskModal()">
+            <i class="fas fa-clipboard-list"></i>
+            <div>
+              <span>Assign Task</span>
+              <small>Send task to staff</small>
+            </div>
+          </button>
+        </div>
+      </article>
+    </aside>
+  </div>
+
+  <!-- Shared Task Assignment Modal -->
+  <app-assign-task-modal
+    [showModal]="showTaskModal"
+    (close)="showTaskModal = false"
+    (assigned)="onTaskAssigned()">
+  </app-assign-task-modal>
+
+  <!-- Staff Tasks View Modal -->
+  <app-staff-tasks-modal
+    [showModal]="showStaffTasksModal"
+    [staffId]="selectedStaffForTasks?.id || ''"
+    [staffName]="selectedStaffForTasks?.name || 'Selected Staff'"
+    [tasks]="selectedStaffTasks"
+    (close)="showStaffTasksModal = false">
+  </app-staff-tasks-modal>
+</div>
+
+<!-- Toast Notification -->
+<div class="toast-success" *ngIf="taskSuccess">
+  <i class="fas fa-check-circle"></i> {{ taskSuccess }}
+</div>
+
+<ng-template #noFloorData>
+  <p class="empty-inline">No floor occupancy data available yet.</p>
+</ng-template>
+
+<ng-template #noDepartmentData>
+  <p class="empty-inline">No department distribution data available yet.</p>
+</ng-template>
+
+<ng-template #noStaffData>
+  <div class="empty-state">
+    <i class="fas fa-user-nurse"></i>
+    <p>No staff workload data available.</p>
+  </div>
+</ng-template>

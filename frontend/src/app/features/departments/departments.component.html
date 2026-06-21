@@ -1,0 +1,53 @@
+<section class="departments-section" id="departments">
+  <div class="container">
+    <div class="section-header">
+      <span class="section-label">DEPARTMENTS</span>
+      <h2 class="section-title">Our Speciality Departments</h2>
+      <p class="section-subtitle">
+        Explore our wide range of specialized departments, each equipped with
+        cutting-edge technology and expert medical professionals.
+      </p>
+    </div>
+
+    <div class="departments-grid">
+      <div class="dept-card card" *ngFor="let dept of departments">
+        <div class="dept-icon" [style.background]="dept.color + '15'">
+          <svg
+            width="28"
+            height="28"
+            fill="none"
+            viewBox="0 0 24 24"
+            [attr.stroke]="dept.color"
+            stroke-width="1.8"
+          >
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              [attr.d]="dept.svgPath"
+            />
+          </svg>
+        </div>
+        <h4>{{ dept.name }}</h4>
+        <p class="dept-count">{{ dept.count }} Specialists</p>
+        <a routerLink="/doctors" class="dept-link" [style.color]="dept.color">
+          View Doctors
+          <svg
+            width="14"
+            height="14"
+            fill="none"
+            viewBox="0 0 24 24"
+            stroke="currentColor"
+          >
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              d="M17 8l4 4m0 0l-4 4m4-4H3"
+            />
+          </svg>
+        </a>
+        <div class="dept-accent-line" [style.background]="dept.color"></div>
+      </div>
+    </div>
+  </div>
+</section>

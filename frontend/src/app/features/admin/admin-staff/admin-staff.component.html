@@ -1,0 +1,63 @@
+<div class="admin-page">
+  <header class="page-header">
+    <div class="title-group">
+      <h1>Medical Staff</h1>
+      <p>Manage healthcare professionals, their active shifts and department status.</p>
+    </div>
+    <div class="header-actions">
+      <div class="search-box">
+        <i class="fas fa-search"></i>
+        <input type="text" placeholder="Filter staff..." />
+      </div>
+      <button class="btn-primary">
+        <i class="fas fa-plus"></i>
+        <span>Add Staff Member</span>
+      </button>
+    </div>
+  </header>
+
+  <div class="table-container">
+    <table class="admin-table">
+      <thead>
+        <tr>
+          <th>Staff Member</th>
+          <th>Department</th>
+          <th>Role</th>
+          <th>Shift Schedule</th>
+          <th>Duty Status</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let staff of staffList">
+          <td>
+            <div class="user-identity">
+              <div class="avatar-sm"><i class="fas fa-user-md"></i></div>
+              <div class="user-info">
+                <span class="user-name">{{ staff.name }}</span>
+              </div>
+            </div>
+          </td>
+          <td>{{ staff.department }}</td>
+          <td>
+            <span class="role-chip">{{ staff.role }}</span>
+          </td>
+          <td>{{ staff.shifts }}</td>
+          <td>
+            <span class="status-badge" [class.status-active]="staff.status === 'On Duty'" 
+                  [class.status-pending]="staff.status === 'Off Duty'"
+                  [class.status-inactive]="staff.status === 'On Leave'">
+              {{ staff.status }}
+            </span>
+          </td>
+          <td>
+            <div class="table-actions">
+              <button class="icon-btn" title="Edit"><i class="fas fa-edit"></i></button>
+              <button class="icon-btn delete" title="Suspend"><i class="fas fa-power-off"></i></button>
+            </div>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</div>

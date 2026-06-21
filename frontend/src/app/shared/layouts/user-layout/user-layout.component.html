@@ -1,0 +1,34 @@
+<div class="app-layout" [class.has-sidebar]="isSidebarRole" [class.has-fixed-navbar]="!isSidebarRole">
+  <!-- Shared Navbar (Visible for Patients and Guests) -->
+  <app-navbar *ngIf="!isSidebarRole"></app-navbar>
+
+  <!-- Sidebar (Visible only for Sidebar Roles) -->
+  <app-sidebar *ngIf="isSidebarRole"></app-sidebar>
+
+  <!-- Main Viewport Stack -->
+  <div class="main-viewport" [class.main-viewport-sidebar]="isSidebarRole">
+
+    <!-- Top Bar for Sidebar Roles -->
+    <app-sidebar-top-bar *ngIf="isSidebarRole"></app-sidebar-top-bar>
+
+    <!-- Scrollable Content Area -->
+    <div class="content-scroll-container">
+      <!-- Profile Onboarding Banner -->
+      <app-profile-banner (openWizard)="openWizard()"></app-profile-banner>
+
+      <main [@routeAnimations]="prepareRoute(outlet)" class="router-main">
+        <router-outlet #outlet="outlet"></router-outlet>
+      </main>
+
+      <!-- Shared Footer (Visible when not in Sidebar Mode) -->
+      <app-footer *ngIf="!isSidebarRole"></app-footer>
+
+      <!-- Centralized Wizard -->
+      <app-profile-wizard
+        *ngIf="showWizard"
+        [openSession]="wizardOpenSession"
+        (closed)="showWizard = false"
+      ></app-profile-wizard>
+    </div>
+  </div>
+</div>

@@ -1,0 +1,104 @@
+
+<div class="dashboard-container">
+  <header class="dashboard-header">
+    <div class="welcome-text">
+       <div class="badge-row">
+         <span class="role-chip">Infrastructure</span>
+         <span class="status-indicator online">System Normal</span>
+       </div>
+      <h1>Asset Management</h1>
+    </div>
+    <div class="header-actions">
+      <button class="btn-primary-sm">
+        <i class="fas fa-plus"></i> Add Unit
+      </button>
+    </div>
+  </header>
+
+  <div class="filter-bar glass">
+    <div class="search-input">
+      <i class="fas fa-search"></i>
+      <input type="text" placeholder="Filter assets...">
+    </div>
+    <div class="filter-groups">
+      <app-custom-dropdown
+        [(ngModel)]="selectedStatus"
+        [options]="statusOptions"
+        [placeholder]="'Select Status'"
+      ></app-custom-dropdown>
+      <button class="icon-tool-btn"><i class="fas fa-filter"></i></button>
+    </div>
+  </div>
+
+  <div class="table-container glass">
+    <table class="compact-table">
+      <thead>
+        <tr>
+          <th>Asset</th>
+          <th>ID</th>
+          <th>Location</th>
+          <th>Status</th>
+          <th>Last Service</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>
+            <div class="asset-cell">
+              <div class="asset-icon"><i class="fas fa-hdd"></i></div>
+              <span class="asset-name">MRI Nexus 3.0T</span>
+            </div>
+          </td>
+          <td><span class="id-badge">#EQ-01</span></td>
+          <td class="loc-text">Radiology A</td>
+          <td><span class="dot active"></span> <span class="status-txt">Ready</span></td>
+          <td class="date-text">12 Jan</td>
+          <td>
+            <div class="action-row">
+              <button class="action-btn-sm"><i class="fas fa-pen"></i></button>
+              <button class="action-btn-sm"><i class="fas fa-history"></i></button>
+            </div>
+          </td>
+        </tr>
+        <tr>
+          <td>
+            <div class="asset-cell">
+              <div class="asset-icon"><i class="fas fa-laptop-medical"></i></div>
+              <span class="asset-name">Digital X-Ray</span>
+            </div>
+          </td>
+          <td><span class="id-badge">#EQ-05</span></td>
+          <td class="loc-text">ER Block 2</td>
+          <td><span class="dot warning"></span> <span class="status-txt">Service</span></td>
+          <td class="date-text">05 Feb</td>
+          <td>
+            <div class="action-row">
+              <button class="action-btn-sm"><i class="fas fa-pen"></i></button>
+              <button class="action-btn-sm"><i class="fas fa-history"></i></button>
+            </div>
+          </td>
+        </tr>
+        <tr>
+          <td>
+            <div class="asset-cell">
+              <div class="asset-icon"><i class="fas fa-heart"></i></div>
+              <span class="asset-name">ICU Monitor X2</span>
+            </div>
+          </td>
+          <td><span class="id-badge">#EQ-09</span></td>
+          <td class="loc-text">ICU Room 4</td>
+          <td><span class="dot active"></span> <span class="status-txt">Ready</span></td>
+          <td class="date-text">20 Feb</td>
+          <td>
+            <div class="action-row">
+              <button class="action-btn-sm"><i class="fas fa-pen"></i></button>
+              <button class="action-btn-sm"><i class="fas fa-history"></i></button>
+            </div>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+

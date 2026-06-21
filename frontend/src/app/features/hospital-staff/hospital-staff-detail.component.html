@@ -1,0 +1,432 @@
+<div class="staff-detail-container">
+  <!-- Top Level Overload Alert (Full Width) -->
+  <div class="overload-alert-container top-alert" *ngIf="!isLoading && staff && !isStaffAdmin && (isOverloaded || isNearingCapacity)">
+    <div class="overload-alert shadow-sm" [class.danger]="isOverloaded" [class.warning]="isNearingCapacity">
+      <div class="alert-main">
+        <div class="alert-icon-wrap">
+          <i class="fas" [class.fa-exclamation-triangle]="isOverloaded" [class.fa-exclamation-circle]="isNearingCapacity"></i>
+        </div>
+        <div class="alert-text-body">
+          <h4 class="alert-title">{{ isOverloaded ? 'Staff Overloaded' : 'Nearing Capacity' }}</h4>
+          <p class="alert-msg">
+            This staff member is assigned to {{ assignedRoomCount }} rooms, 
+            {{ isOverloaded ? 'exceeding the recommended limit' : 'approaching their maximum capacity' }}.
+          </p>
+          
+          <!-- Actionable Suggestion Pill -->
+          <div class="suggestion-pill" *ngIf="reassignmentSuggestions.length > 0" (click)="openReassignWithTarget(reassignmentSuggestions[0])">
+            <i class="fas fa-magic pulse-icon"></i>
+            <span>Best option: <strong>{{ reassignmentSuggestions[0].firstName }} {{ reassignmentSuggestions[0].lastName }}</strong> ({{ reassignmentSuggestions[0].assignedRoomCount || 0 }}/{{ getMaxCapacity(reassignmentSuggestions[0].role) }} rooms)</span>
+            <i class="fas fa-arrow-right"></i>
+          </div>
+        </div>
+      </div>
+      <div class="alert-side-action">
+        <button class="btn-reassign-action" (click)="openReassignModal()">
+          <i class="fas fa-exchange-alt"></i> Reassign Rooms
+        </button>
+      </div>
+    </div>
+  </div>
+  <div class="header-row">
+    <button class="btn-back" (click)="goBack()">
+      <i class="fas fa-arrow-left"></i>
+      Back to Staff
+    </button>
+    <div style="display: flex; gap: 8px;">
+      <button class="btn-primary" *ngIf="staff?.role === 'NURSE'" (click)="openAssignTask()" [disabled]="isLoading">
+        <i class="fas fa-clipboard-list"></i> Assign Task
+      </button>
+      <button class="btn-danger" (click)="openDeleteModal()" [disabled]="isDeleting || isLoading">
+        <i class="fas fa-trash"></i>
+        {{ isDeleting ? 'Deleting...' : '' }}
+      </button>
+    </div>
+  </div>
+
+  <div class="error-banner" *ngIf="errorMessage">{{ errorMessage }}</div>
+  <div class="success-banner" *ngIf="successMessage">{{ successMessage }}</div>
+
+  <div class="loading-state" *ngIf="isLoading">
+    <i class="fas fa-spinner fa-spin"></i>
+    <span>Loading staff details...</span>
+  </div>
+
+  <div class="detail-layout" *ngIf="!isLoading && staff">
+    <!-- Main Cards Grid -->
+    <aside class="sidebar-col">
+      <section class="card profile-card">
+        <div class="avatar-header">
+          <div class="avatar-glow"></div>
+          <div class="avatar">{{ getInitials() }}</div>
+        </div>
+        <h2 class="staff-name">{{ staff.firstName }} {{ staff.lastName }}</h2>
+        <div class="role-department">
+          <span class="badge role-badge" [ngClass]="{'doc': staff.role === 'DOCTOR', 'nurse': staff.role === 'NURSE', 'adm': staff.role === 'STAFF_ADMIN'}">
+            {{ staff.role }}
+          </span>
+          <span class="dept-name">{{ getDepartmentName(staff.departmentId) }}</span>
+        </div>
+
+        <button class="edit-profile-btn" (click)="openEditModal()">
+          <i class="fas fa-edit"></i> Edit Profile
+        </button>
+
+        <div class="divider"></div>
+
+        <div class="meta-list">
+          <div class="meta-item">
+            <span class="meta-label">Status</span>
+            <span class="badge status-badge" [ngClass]="{'active': staff.status === 'ACTIVE'}">
+              {{ staff.status }}
+            </span>
+          </div>
+          <div class="meta-item">
+            <span class="meta-label">Employment</span>
+            <strong class="meta-value">{{ staff.employmentType.replace('_', ' ') }}</strong>
+          </div>
+          <div class="meta-item" *ngIf="!isStaffAdmin">
+            <span class="meta-label">Workload</span>
+            <strong class="meta-value" [class.highlight]="!isOverloaded" [class.danger]="isOverloaded">
+              {{ assignedRoomCount }}/{{ maxCapacity }} Rooms
+            </strong>
+          </div>
+        </div>
+
+        <div class="activity-box" *ngIf="detail?.activitySummary">
+          <h4><i class="fas fa-chart-line pulse-icon"></i> Activity Summary</h4>
+          <p>{{ detail?.activitySummary }}</p>
+        </div>
+      </section>
+    </aside>
+
+    <main class="content-col" *ngIf="!isStaffAdmin">
+
+      <section class="card assignments-card">
+        <div class="card-header">
+          <h3><i class="fas fa-door-open text-primary"></i> Room Assignments</h3>
+          <p class="section-note">Rooms managed by this staff member.</p>
+        </div>
+
+        <div class="assignments-toolbar">
+          <div class="search-box">
+            <i class="fas fa-search search-icon"></i>
+            <input type="text" [(ngModel)]="roomSearchQuery" placeholder="Search rooms..." />
+          </div>
+          <div class="filter-group">
+            <app-custom-dropdown
+              [(ngModel)]="roomGroupMode"
+              [options]="groupOptions"
+              placeholder="Group by..."
+            ></app-custom-dropdown>
+            <button class="btn-reset" (click)="roomSearchQuery = ''; roomGroupMode = 'NONE'" *ngIf="roomSearchQuery || roomGroupMode !== 'NONE'">
+              <i class="fas fa-redo-alt"></i>
+            </button>
+          </div>
+        </div>
+
+        <ng-container *ngIf="groupedRooms.length > 0; else noRooms">
+          <div class="room-group" *ngFor="let group of groupedRooms">
+            <h4 class="group-title" *ngIf="roomGroupMode !== 'NONE'">{{ group.name }}</h4>
+            <div class="rooms-grid">
+              <label class="room-tile-solid" *ngFor="let room of group.rooms" [class.selected]="selectedRoomIds.has(room.id)">
+                <input type="checkbox" hidden [checked]="selectedRoomIds.has(room.id)" (change)="toggleRoom(room.id, $any($event.target).checked)" />
+                <div class="tile-inner">
+                  <div class="room-num">Room {{ room.roomNumber }}</div>
+                  <div class="room-meta">{{ room.type }} • {{ room.status }}</div>
+                  <div class="select-indicator"><i class="fas fa-check"></i></div>
+                </div>
+              </label>
+            </div>
+          </div>
+        </ng-container>
+
+        <ng-template #noRooms>
+          <div class="empty-state-flat">
+            <i class="fas fa-search"></i>
+            <p>No rooms match your criteria.</p>
+          </div>
+        </ng-template>
+
+        <div class="actions-row mt-4">
+          <button class="btn-save-assignments" (click)="saveAssignments()" [disabled]="isSavingAssignments">
+            <i class="fas fa-link" *ngIf="!isSavingAssignments"></i>
+            <i class="fas fa-spinner fa-spin" *ngIf="isSavingAssignments"></i>
+            {{ isSavingAssignments ? 'Processing...' : 'Sync Assignments' }}
+          </button>
+        </div>
+      </section>
+    </main>
+
+    <!-- Admin-Specific View -->
+    <main class="content-col" *ngIf="isStaffAdmin">
+      <section class="card admin-overview-card">
+        <div class="admin-hero-solid">
+          <div class="admin-shield"><i class="fas fa-shield-halved"></i></div>
+          <h3>Administrative Account</h3>
+          <p>System administrators manage platform operations and do not have clinical assignments.</p>
+        </div>
+
+        <div class="admin-perks-grid">
+          <div class="perk-card">
+            <i class="fas fa-layer-group"></i>
+            <strong>Structure Management</strong>
+            <p>Full control over floors, departments, and room layouts.</p>
+          </div>
+          <div class="perk-card">
+            <i class="fas fa-users-cog"></i>
+            <strong>Staff Governance</strong>
+            <p>Onboard, verify, and manage all hospital personnel credentials.</p>
+          </div>
+          <div class="perk-card">
+            <i class="fas fa-chart-pie"></i>
+            <strong>System Analytics</strong>
+            <p>Access hospital-wide usage data and operational reports.</p>
+          </div>
+        </div>
+      </section>
+    </main>
+  </div>
+</div>
+
+<!-- Edit Profile Modal -->
+<div class="modal-overlay" *ngIf="showEditModal" (click)="closeEditModal()">
+  <div class="modal-content-wrapper" (click)="$event.stopPropagation()">
+    <section class="card details-card mb-0">
+      <div class="card-header header-flex">
+        <div>
+          <h3><i class="fas fa-id-card-clip text-primary"></i> Edit Profile Information</h3>
+          <p class="section-note">Update personal and employment details below.</p>
+        </div>
+        <button class="modal-close-btn" (click)="closeEditModal()" [disabled]="isSavingProfile">
+          <i class="fas fa-times"></i>
+        </button>
+      </div>
+
+      <div class="error-banner modal-error" *ngIf="editModalErrorMessage">{{ editModalErrorMessage }}</div>
+
+      <div class="form-grid">
+        <div class="field">
+          <label>First Name</label>
+          <input
+            type="text"
+            name="editFirstName"
+            #editFirstNameModel="ngModel"
+            required
+            minlength="2"
+            maxlength="50"
+            [(ngModel)]="formData.firstName"
+            placeholder="First Name"
+            [class.input-invalid]="isEditFieldInvalid('firstName', editFirstNameModel)"
+          />
+          <small class="field-error" *ngIf="isEditFieldInvalid('firstName', editFirstNameModel)">
+            {{ getEditFieldError('firstName', editFirstNameModel) }}
+          </small>
+        </div>
+
+        <div class="field">
+          <label>Last Name</label>
+          <input
+            type="text"
+            name="editLastName"
+            #editLastNameModel="ngModel"
+            required
+            minlength="2"
+            maxlength="50"
+            [(ngModel)]="formData.lastName"
+            placeholder="Last Name"
+            [class.input-invalid]="isEditFieldInvalid('lastName', editLastNameModel)"
+          />
+          <small class="field-error" *ngIf="isEditFieldInvalid('lastName', editLastNameModel)">
+            {{ getEditFieldError('lastName', editLastNameModel) }}
+          </small>
+        </div>
+
+        <div class="field">
+          <label>Role</label>
+          <app-custom-dropdown
+            [(ngModel)]="formData.role"
+            [options]="roleOptions"
+            placeholder="Select role"
+          ></app-custom-dropdown>
+        </div>
+
+        <div class="field">
+          <label>Department</label>
+          <app-custom-dropdown
+            [(ngModel)]="formData.departmentId"
+            [options]="departmentOptions"
+            placeholder="Select department"
+          ></app-custom-dropdown>
+        </div>
+
+        <div class="field">
+          <label>Employment Type</label>
+          <app-custom-dropdown
+            [(ngModel)]="formData.employmentType"
+            [options]="employmentTypeOptions"
+            placeholder="Select employment"
+          ></app-custom-dropdown>
+        </div>
+
+        <div class="field">
+          <label>Status</label>
+          <app-custom-dropdown
+            [(ngModel)]="formData.status"
+            [options]="statusOptions"
+            placeholder="Select status"
+          ></app-custom-dropdown>
+        </div>
+      </div>
+
+      <div class="actions-row right-align">
+        <button class="btn-primary" (click)="saveProfile()" [disabled]="isSavingProfile || isEditProfileDisabled">
+          <i class="fas fa-save" *ngIf="!isSavingProfile"></i>
+          <i class="fas fa-spinner fa-spin" *ngIf="isSavingProfile"></i>
+          {{ isSavingProfile ? 'Saving...' : 'Save Profile' }}
+        </button>
+      </div>
+    </section>
+  </div>
+</div>
+
+<!-- Delete Confirmation Modal -->
+<div class="modal-overlay" *ngIf="showDeleteModal" (click)="closeDeleteModal()">
+  <div class="modal-content-wrapper delete-modal" (click)="$event.stopPropagation()">
+    <div class="modal-header delete-header">
+      <div class="warning-icon">
+        <i class="fas fa-exclamation-triangle"></i>
+      </div>
+      <h2>Delete Staff Member</h2>
+    </div>
+
+    <div class="modal-body text-center">
+      <p style="margin: 0 0 8px 0; font-size: 15px; color: var(--text-main);">
+        Are you sure you want to delete <strong>{{ staff?.firstName }} {{ staff?.lastName }}</strong>?
+      </p>
+      <p style="margin: 0 0 24px 0; font-size: 14px; color: var(--text-muted);">
+        Room assignments will be removed automatically. This action cannot be undone.
+      </p>
+    </div>
+
+    <div class="modal-footer" style="display: flex; justify-content: center; gap: 12px;">
+      <button class="btn-danger-solid" (click)="deleteStaff()" [disabled]="isDeleting">
+        <i class="fas fa-trash" *ngIf="!isDeleting"></i>
+        <i class="fas fa-spinner fa-spin" *ngIf="isDeleting"></i>
+        {{ isDeleting ? 'Deleting...' : 'Yes, Delete' }}
+      </button>
+      <button class="btn-secondary" (click)="closeDeleteModal()" [disabled]="isDeleting">Cancel</button>
+    </div>
+  </div>
+</div>
+
+<!-- Shared Task Assignment Modal -->
+<app-assign-task-modal
+  [showModal]="assigningTask"
+  [preSelectedStaffId]="staff?.id || ''"
+  (close)="assigningTask = false"
+  (assigned)="onTaskAssigned()">
+</app-assign-task-modal>
+
+<!-- SOLID Structured Reassignment Modal -->
+<div class="modal-overlay" *ngIf="showReassignModal" (click)="closeReassignModal()">
+  <div class="modal-content-solid reassign-modal-content" (click)="$event.stopPropagation()">
+    <div class="modal-header-solid">
+      <div class="header-text">
+        <h2>Reassign Rooms</h2>
+        <p>Transfer assignments to balance staff workloads</p>
+      </div>
+      <button class="btn-close-solid" (click)="closeReassignModal()" [disabled]="isReassigning">
+        <i class="fas fa-times"></i>
+      </button>
+    </div>
+
+    <div class="horizontal-stepper">
+      <div class="step-item" [class.active]="reassignStep === 1" [class.completed]="reassignStep > 1">
+        <div class="step-circle">1</div>
+        <span class="step-title">Select Rooms</span>
+      </div>
+      <div class="step-item" [class.active]="reassignStep === 2" [class.completed]="reassignStep > 2">
+        <div class="step-circle">2</div>
+        <span class="step-title">Target Staff</span>
+      </div>
+      <div class="step-item" [class.active]="reassignStep === 3">
+        <div class="step-circle">3</div>
+        <span class="step-title">Confirm</span>
+      </div>
+    </div>
+
+    <div class="modal-body-fixed">
+      <div class="error-strip" *ngIf="reassignError">
+        <i class="fas fa-exclamation-circle"></i> {{ reassignError }}
+      </div>
+
+      <!-- Step 1: Room Selection -->
+      <div class="pane" *ngIf="reassignStep === 1">
+        <p class="pane-help">Choose rooms to move from <strong>{{ staff?.firstName }}</strong>.</p>
+        <div class="selection-cards">
+          <div class="selectable-card-solid" *ngFor="let room of detail?.assignedRooms" [class.active]="selectedRoomsToReassign.has(room.roomId)" (click)="toggleRoomToMove(room.roomId)">
+            <div class="check-box-ui"><i class="fas fa-check" *ngIf="selectedRoomsToReassign.has(room.roomId)"></i></div>
+            <div class="card-text">
+              <span class="card-name">Room {{ room.roomNumber }}</span>
+              <span class="card-sub">{{ room.departmentName }} • Floor {{ room.floorName }}</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Step 2: Staff Selection -->
+      <div class="pane" *ngIf="reassignStep === 2">
+        <p class="pane-help">Select the staff member to receive these <strong>{{ selectedRoomsToReassign.size }} rooms</strong>.</p>
+        <div class="selection-cards">
+          <div class="selectable-card-solid" *ngFor="let suggestion of reassignmentSuggestions" [class.active]="targetStaffMember?.id === suggestion.id" (click)="selectTargetStaff(suggestion)">
+            <div class="radio-ui"><div class="radio-dot" *ngIf="targetStaffMember?.id === suggestion.id"></div></div>
+            <div class="card-text">
+              <span class="card-name">{{ suggestion.firstName }} {{ suggestion.lastName }}</span>
+              <span class="card-sub">Current: {{ suggestion.assignedRoomCount || 0 }}/{{ getMaxCapacity(suggestion.role) }} rooms</span>
+            </div>
+            <div class="rec-badge" *ngIf="(suggestion.assignedRoomCount || 0) === 0">Recommended</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Step 3: Confirmation -->
+      <div class="pane" *ngIf="reassignStep === 3">
+        <div class="transfer-graph-solid">
+          <div class="graph-node from">
+            <label>Moving From</label>
+            <div class="node-box">{{ staff?.firstName }}</div>
+          </div>
+          <div class="graph-connector">
+            <div class="count-bubble">{{ selectedRoomsToReassign.size }}</div>
+            <div class="line-ui"></div>
+          </div>
+          <div class="graph-node to">
+            <label>Moving To</label>
+            <div class="node-box highlight">{{ targetStaffMember?.firstName }}</div>
+          </div>
+        </div>
+        <div class="info-notice-solid">
+          <i class="fas fa-info-circle"></i>
+          <span>This action will instantly synchronize assignments across both staff members.</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="modal-footer-solid">
+      <button class="btn-cancel-solid" (click)="closeReassignModal()" [disabled]="isReassigning">Cancel</button>
+      <div class="footer-actions-solid">
+        <button class="btn-back-solid" *ngIf="reassignStep > 1" (click)="prevReassignStep()" [disabled]="isReassigning">Previous</button>
+        <button class="btn-next-solid" *ngIf="reassignStep < 3" (click)="nextReassignStep()">Continue</button>
+        <button class="btn-confirm-solid" *ngIf="reassignStep === 3" (click)="confirmReassignment()" [disabled]="isReassigning">
+          <i class="fas fa-spinner fa-spin" *ngIf="isReassigning"></i>
+          {{ isReassigning ? 'Executing...' : 'Confirm Move' }}
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="toast-success" *ngIf="successMessage">
+  <i class="fas fa-check-circle"></i> {{ successMessage }}
+</div>

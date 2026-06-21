@@ -1,0 +1,55 @@
+<div class="modal-overlay" *ngIf="showModal" (click)="closeModal()">
+  <div class="modal-content" (click)="$event.stopPropagation()">
+    <div class="modal-header">
+      <div class="header-main">
+        <h2>Tasks for {{ staffName }}</h2>
+        <span class="count-badge">{{ tasks.length }} Tasks</span>
+      </div>
+      <button class="btn-close" (click)="closeModal()" aria-label="Close" title="Close">&times;</button>
+    </div>
+
+    <div class="modal-body custom-scrollbar">
+      <div class="loading-state" *ngIf="isLoading">
+        <i class="fas fa-spinner fa-spin"></i>
+        <span>Loading latest tasks...</span>
+      </div>
+
+      <div class="alert error" *ngIf="errorMessage">{{ errorMessage }}</div>
+
+      <div class="tasks-container" *ngIf="!isLoading && !errorMessage">
+        <div class="empty-state" *ngIf="tasks.length === 0">
+          <i class="fas fa-clipboard-check"></i>
+          <p>No tasks assigned to this staff member.</p>
+        </div>
+
+        <div class="task-list" *ngIf="tasks.length > 0">
+          <div class="task-item" *ngFor="let task of tasks">
+            <div class="task-info">
+              <h4 class="task-title">{{ task.title }}</h4>
+              <p class="task-desc" *ngIf="task.description">{{ task.description }}</p>
+              
+              <div class="task-meta">
+                <span class="meta-item">
+                  <i class="fas fa-calendar-alt"></i> {{ task.createdAt | date:'short' }}
+                </span>
+              </div>
+            </div>
+
+            <div class="task-badges">
+              <span class="badge" [ngClass]="getStatusClass(task.status)">
+                {{ task.status.replace('_', ' ') }}
+              </span>
+              <span class="badge" [ngClass]="getPriorityClass(task.priority)">
+                {{ task.priority }}
+              </span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="modal-footer">
+      <button class="btn-minimal" (click)="closeModal()">Close</button>
+    </div>
+  </div>
+</div>

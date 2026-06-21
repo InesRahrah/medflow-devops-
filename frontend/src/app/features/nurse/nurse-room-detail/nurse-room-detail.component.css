@@ -1,0 +1,368 @@
+/* ==========================================
+   NURSE ROOM DETAIL — Read-Only View
+   Adapted from Hospital Structure Room Detail
+   ========================================== */
+
+.page-container {
+  padding: 32px 40px;
+  max-width: 1400px;
+  margin: 0 auto;
+  animation: fadeIn 0.4s ease;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(12px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* ---- Breadcrumb ---- */
+.page-nav { margin-bottom: 24px; }
+
+.breadcrumb {
+  display: inline-flex;
+  align-items: center;
+  gap: 12px;
+  background: rgba(255,255,255,0.9);
+  backdrop-filter: blur(10px);
+  padding: 8px 16px;
+  border-radius: 12px;
+  border: 1px solid #e2e8f0;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.02);
+}
+
+.breadcrumb-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background: transparent;
+  border: none;
+  font-size: 14px;
+  font-weight: 500;
+  color: #64748b;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  padding: 4px 8px;
+  border-radius: 6px;
+}
+
+.breadcrumb-link:hover { color: #0092df; background: #f1f5f9; }
+
+.breadcrumb-separator { color: #cbd5e1; font-size: 10px; }
+
+.breadcrumb-current {
+  font-size: 14px;
+  font-weight: 600;
+  color: #0f172a;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+/* ---- States ---- */
+.state-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 80px 32px;
+  text-align: center;
+  color: #64748b;
+}
+
+.state-container h3 { font-size: 18px; font-weight: 600; color: #1e293b; margin: 16px 0 8px; }
+.state-container p { font-size: 14px; color: #94a3b8; margin: 0 0 24px; max-width: 360px; }
+
+.spinner {
+  width: 40px; height: 40px;
+  border: 3px solid #e2e8f0;
+  border-top-color: #0092df;
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+
+.btn-back {
+  padding: 10px 24px;
+  border-radius: 10px;
+  border: 1px solid #e2e8f0;
+  background: #fff;
+  color: #1e293b;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+.btn-back:hover { border-color: #0092df; color: #0092df; }
+
+/* ---- Page Header ---- */
+.page-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 28px;
+}
+
+.title-with-icon { display: flex; align-items: center; gap: 16px; }
+
+.header-icon-main {
+  width: 56px; height: 56px;
+  background: #f1f5f9;
+  border-radius: 16px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 24px; color: #0092df;
+  border: 1px solid #e2e8f0;
+}
+
+.page-title {
+  font-size: 28px;
+  font-weight: 700;
+  color: #0f172a;
+  margin: 0 0 6px 0;
+  letter-spacing: -0.02em;
+}
+
+.room-meta { display: flex; gap: 8px; flex-wrap: wrap; }
+
+.meta-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 10px;
+  border-radius: 6px;
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+}
+.meta-badge i { font-size: 10px; }
+
+.meta-badge.dept { background: #f0fdf4; color: #16a34a; }
+.meta-badge.floor { background: #f0f9ff; color: #0092df; border: 1px solid #bae6fd; }
+.meta-badge.status { background: #f8fafc; color: #64748b; }
+.meta-badge.status.available { background: #f0fdf4; color: #16a34a; }
+.meta-badge.status.occupied { background: #fef2f2; color: #dc2626; }
+.meta-badge.status.maintenance { background: #fffbeb; color: #d97706; }
+
+.readonly-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 20px;
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  font-size: 13px;
+  font-weight: 600;
+  color: #94a3b8;
+  letter-spacing: 0.02em;
+}
+.readonly-badge i { font-size: 14px; }
+
+/* ---- Capacity Progress ---- */
+.capacity-progress-card {
+  margin: -8px 0 20px;
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  padding: 12px 14px;
+}
+
+.capacity-progress-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 8px;
+}
+
+.capacity-progress-title { color: #334155; font-size: 12px; font-weight: 700; }
+.capacity-progress-count { color: #64748b; font-size: 12px; font-weight: 600; }
+
+.capacity-progress-track {
+  width: 100%; height: 8px;
+  border-radius: 999px;
+  background: #e2e8f0;
+  overflow: hidden;
+}
+
+.capacity-progress-fill {
+  height: 100%;
+  border-radius: 999px;
+  transition: width 0.25s ease;
+}
+.capacity-progress-fill.safe { background: #22c55e; }
+.capacity-progress-fill.warning { background: #f59e0b; }
+.capacity-progress-fill.full { background: #f97316; }
+
+/* ---- Stats Bar ---- */
+.stats-bar { display: flex; gap: 12px; margin-bottom: 32px; flex-wrap: wrap; }
+
+.stat-chip {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 20px;
+  border-radius: 14px;
+  background: #ffffff;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.02);
+  border: 1px solid #e2e8f0;
+}
+
+.stat-dot { width: 8px; height: 8px; border-radius: 50%; }
+.stat-count { font-size: 20px; font-weight: 700; color: #1e293b; }
+.stat-label { font-size: 13px; color: #64748b; font-weight: 500; }
+
+/* ---- Bed Blueprint Surface ---- */
+.room-blueprint-container {
+  background: #fdfdfd;
+  border: 1px solid #e2e8f0;
+  border-radius: 20px;
+  padding: 40px;
+  min-height: 600px;
+  position: relative;
+  overflow: visible;
+  box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05);
+}
+
+.blueprint-surface {
+  background: #ffffff;
+  width: 100%; height: 100%;
+  border: 2px solid #94a3b8;
+  border-radius: 4px;
+  position: relative;
+  min-height: 520px;
+  box-shadow: inset 0 0 60px rgba(0,0,0,0.01);
+  background-image: radial-gradient(#e2e8f0 1px, transparent 1px);
+  background-size: 24px 24px;
+}
+
+.beds-layout-grid {
+  position: relative;
+  width: 100%; height: 100%;
+  min-height: 520px;
+  padding: 24px;
+  z-index: 1;
+}
+
+.bed-unit-wrapper {
+  position: absolute;
+  display: flex;
+  justify-content: center;
+  width: 140px;
+  min-height: 170px;
+  transition: all 0.4s cubic-bezier(0.34,1.56,0.64,1);
+}
+
+.bed-icon-container {
+  width: 100px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  position: relative;
+  transition: all 0.3s ease;
+}
+
+.bed-unit-wrapper:hover .bed-icon-container {
+  transform: translateY(-8px) scale(1.05);
+}
+
+.bed-custom-icon {
+  width: 80px; height: 120px;
+  background-image: url("/assets/images/bed-free.png");
+  background-size: contain;
+  background-repeat: no-repeat;
+  background-position: center;
+  transition: all 0.3s ease;
+  position: relative;
+  filter: drop-shadow(0 8px 12px rgba(0,0,0,0.1));
+}
+
+.icon-free { background-image: url("/assets/images/bed-free.png"); }
+.icon-occupied { background-image: url("/assets/images/bed-full.png"); }
+.icon-reserved { background-image: url("/assets/images/bed-reserve.png"); }
+.icon-out-of-service { background-image: url("/assets/images/bed-no-svc.png"); }
+
+/* Status Glow */
+.bed-icon-container::before {
+  content: "";
+  position: absolute;
+  inset: -10px;
+  border-radius: 50%;
+  opacity: 0;
+  transition: all 0.3s ease;
+  z-index: -1;
+}
+.free:hover::before { background: radial-gradient(circle, rgba(16,185,129,0.15), transparent 70%); opacity: 1; }
+.occupied:hover::before { background: radial-gradient(circle, rgba(239,68,68,0.15), transparent 70%); opacity: 1; }
+.reserved:hover::before { background: radial-gradient(circle, rgba(245,158,11,0.15), transparent 70%); opacity: 1; }
+.out_of_service:hover::before { background: radial-gradient(circle, rgba(148,163,184,0.15), transparent 70%); opacity: 1; }
+
+.bed-icon-footer {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  padding: 6px 10px;
+  border-radius: 12px;
+  transition: all 0.25s ease;
+}
+
+.bed-icon-label {
+  font-size: 13px;
+  font-weight: 700;
+  color: #1e293b;
+  letter-spacing: -0.01em;
+}
+
+.bed-icon-status-badge {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 2px 8px;
+  background: white;
+  border-radius: 100px;
+  border: 1px solid #e2e8f0;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.02);
+}
+
+.status-dot { width: 6px; height: 6px; border-radius: 50%; }
+.free .status-dot { background: #10b981; }
+.occupied .status-dot { background: #ef4444; }
+.reserved .status-dot { background: #f59e0b; }
+.out_of_service .status-dot { background: #94a3b8; }
+
+.status-label {
+  font-size: 9px;
+  font-weight: 700;
+  text-transform: uppercase;
+  color: #64748b;
+  letter-spacing: 0.05em;
+}
+
+/* ---- Empty State ---- */
+.empty-state {
+  text-align: center;
+  padding: 80px 32px;
+  background: #ffffff;
+  border-radius: 20px;
+  border: 1px solid #e2e8f0;
+}
+
+.empty-state-visual {
+  width: 80px; height: 80px;
+  border-radius: 50%;
+  background: #f1f5f9;
+  display: flex; align-items: center; justify-content: center;
+  margin: 0 auto 24px;
+  font-size: 32px; color: #94a3b8;
+}
+
+.empty-title { font-size: 18px; font-weight: 600; color: #1e293b; margin: 0 0 8px; }
+.empty-subtitle { font-size: 14px; color: #94a3b8; margin: 0; }
+
+/* ---- Responsive ---- */
+@media (max-width: 768px) {
+  .page-container { padding: 16px; }
+  .page-header { flex-direction: column; align-items: flex-start; gap: 16px; }
+  .stats-bar { flex-wrap: wrap; }
+  .room-blueprint-container { padding: 16px; }
+}

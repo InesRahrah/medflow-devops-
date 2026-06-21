@@ -1,0 +1,45 @@
+<div class="pharmacist-dashboard-container">
+  <!-- Welcome Banner -->
+  <div class="welcome-banner">
+    <div class="banner-content">
+      <h1 class="banner-title">Pharmacist Dashboard</h1>
+      <p class="banner-subtitle">Welcome! Access a complete overview of your pharmaceutical operations</p>
+    </div>
+  </div>
+
+  <!-- Navigation Cards Grid -->
+  <div class="navigation-cards">
+    <a routerLink="/pharmacist/stock" class="nav-card stock-card">
+      <div class="card-icon">📦</div>
+      <h3 class="card-title">Stock Management</h3>
+      <p class="card-description">View and manage medication inventory</p>
+      <span class="card-arrow">→</span>
+    </a>
+
+    <a routerLink="/pharmacist/requests" class="nav-card request-card">
+      <div class="card-icon">📋</div>
+      <h3 class="card-title">Requests</h3>
+      <p class="card-description">Create and process prescription requests</p>
+      <span class="card-arrow">→</span>
+    </a>
+
+    <a routerLink="/pharmacist/homepage" class="nav-card home-card">
+      <div class="card-icon">🏠</div>
+      <h3 class="card-title">Home</h3>
+      <p class="card-description">View your personal dashboard</p>
+      <span class="card-arrow">→</span>
+    </a>
+
+    <a routerLink="/pharmacist/profile" class="nav-card profile-card">
+      <div class="card-icon">👤</div>
+      <h3 class="card-title">My Profile</h3>
+      <p class="card-description">Update your personal information</p>
+      <span class="card-arrow">→</span>
+    </a>
+  </div>
+
+  <!-- Charts Section -->
+  <div class="charts-section">
+    <app-stock-chart></app-stock-chart>
+  </div>
+</div>

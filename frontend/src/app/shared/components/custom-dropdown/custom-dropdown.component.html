@@ -1,0 +1,56 @@
+<div
+  class="custom-dropdown-container"
+  [class.open]="isOpen"
+  [class.disabled]="isDisabled"
+>
+  <div class="dropdown-trigger" (click)="toggleDropdown($event)">
+    <span class="dropdown-value" [class.placeholder]="!value">{{
+      displayValue
+    }}</span>
+    <svg
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      stroke-width="2.5"
+      class="dropdown-arrow"
+    >
+      <polyline points="6 9 12 15 18 9"></polyline>
+    </svg>
+  </div>
+
+  <div class="dropdown-menu" *ngIf="isOpen">
+    <div class="dropdown-search-wrap" *ngIf="searchable">
+      <input
+        type="text"
+        class="dropdown-search-input"
+        [value]="searchTerm"
+        (input)="onSearchInput($event)"
+        (click)="$event.stopPropagation()"
+        placeholder="Search..."
+      />
+    </div>
+
+    <div
+      class="dropdown-option"
+      *ngFor="let opt of filteredOptions"
+      [class.selected]="isSelected(opt)"
+      (click)="selectOption(opt)"
+    >
+      <span class="option-label">{{ getLabel(opt) }}</span>
+      <svg
+        *ngIf="isSelected(opt)"
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        stroke-width="3"
+        class="option-check"
+      >
+        <polyline points="20 6 9 17 4 12"></polyline>
+      </svg>
+    </div>
+
+    <div class="dropdown-empty" *ngIf="filteredOptions.length === 0">
+      No matches found
+    </div>
+  </div>
+</div>

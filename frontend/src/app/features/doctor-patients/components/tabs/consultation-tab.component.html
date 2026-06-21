@@ -1,0 +1,38 @@
+<div class="consultation-tab">
+  <div class="status-message error" *ngIf="errorMessage">
+    {{ errorMessage }}
+  </div>
+
+  <div class="form-section app-card">
+    <h3>Add Consultation</h3>
+    <div class="form-group">
+      <label>Notes</label>
+      <textarea
+        class="form-textarea"
+        [(ngModel)]="consultationNotes"
+        maxlength="1000"
+        (blur)="markConsultationNotesTouched()"
+        rows="4"
+        placeholder="Enter consultation notes..."
+      ></textarea>
+      <p class="input-hint">{{ consultationNotes.length }}/1000 characters</p>
+      <p
+        class="input-error"
+        *ngIf="consultationNotesTouched && consultationNotesError"
+      >
+        {{ consultationNotesError }}
+      </p>
+    </div>
+    <button
+      class="primary-btn"
+      (click)="addConsultation()"
+      [disabled]="!canSubmitConsultation"
+    >
+      {{ submitting ? "Saving..." : "Add Consultation" }}
+    </button>
+  </div>
+
+  <div *ngIf="loading" class="empty-state">
+    <p>Loading consultations...</p>
+  </div>
+</div>

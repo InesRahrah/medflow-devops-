@@ -1,0 +1,171 @@
+.consultation-tab {
+  display: flex;
+  flex-direction: column;
+  gap: 2rem;
+}
+
+.status-message {
+  padding: 0.75rem 1rem;
+  border-radius: 0.625rem;
+  font-size: 0.9rem;
+  font-weight: 500;
+}
+
+.status-message.error {
+  background-color: #fee2e2;
+  color: #991b1b;
+  border: 1px solid #fecaca;
+}
+
+.form-section {
+  padding: 1.5rem;
+}
+
+.form-section h3 {
+  margin: 0 0 1rem 0;
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: var(--text-primary, #1f2937);
+}
+
+.form-group {
+  margin-bottom: 1rem;
+}
+
+.input-hint {
+  margin: 0.4rem 0 0;
+  color: var(--text-secondary, #6b7280);
+  font-size: 0.78rem;
+}
+
+.input-error {
+  margin: 0.35rem 0 0;
+  color: #ff6b6b;
+  font-size: 0.78rem;
+  font-weight: 600;
+}
+
+label {
+  display: block;
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: var(--text-primary, #1f2937);
+  margin-bottom: 0.5rem;
+}
+
+.form-input,
+.form-textarea {
+  width: 100%;
+  padding: 0.75rem 1rem;
+  border: 1px solid var(--border-color, #e5e7eb);
+  border-radius: 0.625rem;
+  font-size: 0.95rem;
+  font-family: "Inter", sans-serif;
+}
+
+.form-input:focus,
+.form-textarea:focus {
+  outline: none;
+  border-color: var(--primary, #009ce8);
+  box-shadow: 0 0 0 3px rgba(0, 156, 232, 0.1);
+}
+
+.primary-btn {
+  margin-top: 0;
+  width: fit-content;
+  min-width: 170px;
+  padding: 0.62rem 1.05rem;
+  background: rgba(0, 156, 232, 0.082);
+  color: #009ce8;
+  border: none;
+  border-radius: 0.68rem;
+  font-size: 0.82rem;
+  font-weight: 700;
+  cursor: pointer;
+  box-shadow: none;
+  transition: all 0.2s ease;
+  display: block;
+  margin-left: auto;
+}
+
+.primary-btn:hover {
+  transform: none;
+  box-shadow: none;
+  background: rgba(0, 156, 232, 0.16);
+  color: #0089cc;
+}
+
+.primary-btn:disabled {
+  opacity: 0.62;
+  cursor: not-allowed;
+  transform: none;
+  box-shadow: none;
+}
+
+.consultations-list {
+  padding: 1.5rem;
+}
+
+.consultations-list h3 {
+  margin: 0 0 1rem 0;
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: var(--text-primary, #1f2937);
+}
+
+.consultation-card {
+  padding: 1rem;
+  border: 0;
+  border-bottom: 1px solid rgba(15, 23, 42, 0.08);
+  margin-bottom: 0.75rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+}
+
+.consultation-card:last-child {
+  border-bottom: 0;
+  margin-bottom: 0;
+}
+
+.consultation-date {
+  font-weight: 600;
+  color: var(--text-primary, #1f2937);
+  font-size: 0.95rem;
+}
+
+.consultation-notes {
+  color: var(--text-secondary, #6b7280);
+  font-size: 0.9rem;
+  margin: 0.5rem 0;
+}
+
+.btn-delete {
+  width: 2.25rem;
+  height: 2.25rem;
+  background-color: #fee2e2;
+  color: #991b1b;
+  border: none;
+  border-radius: 0.5rem;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+}
+
+.btn-delete:hover {
+  background-color: #fecaca;
+}
+
+.btn-delete:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.empty-state {
+  text-align: center;
+  padding: 2rem;
+  color: var(--text-secondary, #6b7280);
+}
+

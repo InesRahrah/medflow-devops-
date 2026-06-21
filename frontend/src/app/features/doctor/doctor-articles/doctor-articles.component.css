@@ -1,0 +1,28 @@
+.article-actions {
+  display: flex;
+  gap: 0.5rem;
+  align-items: center;
+}
+
+.btn-edit-action {
+  background: #eff6ff;
+  color: #1a73e8;
+  border: 1px solid #bfdbfe;
+  border-radius: 8px;
+  padding: 0.4rem 0.65rem;
+  cursor: pointer;
+  transition: all 0.2s;
+  &:hover { background: #1a73e8; color: #fff; }
+}
+
+.btn-delete-action {
+  background: #fff0f0;
+  color: #ef4444;
+  border: 1px solid #fecaca;
+  border-radius: 8px;
+  padding: 0.4rem 0.65rem;
+  cursor: pointer;
+  transition: all 0.2s;
+  &:hover { background: #ef4444; color: #fff; }
+}
+

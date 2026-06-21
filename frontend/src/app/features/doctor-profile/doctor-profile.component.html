@@ -1,0 +1,390 @@
+
+<div class="profile-container">
+  <div class="container">
+    <div class="profile-layout">
+      <!-- Sidebar / Info Card -->
+      <aside class="profile-sidebar">
+        <div class="profile-card">
+          <div class="profile-avatar-wrapper">
+            <div class="profile-avatar">
+              <img
+                *ngIf="doctorData.profilePictureUrl"
+                [src]="doctorData.profilePictureUrl"
+                alt="Profile"
+                class="avatar-img"
+              />
+              <span
+                *ngIf="!doctorData.profilePictureUrl"
+                class="avatar-initials"
+              >
+                {{ (doctorData.firstName?.[0] || '') + (doctorData.lastName?.[0] || '') | uppercase }}
+              </span>
+            </div>
+            <div class="avatar-actions">
+              <button class="edit-avatar-btn" (click)="fileInput.click()" title="Update Picture">
+                <svg
+                  width="16"
+                  height="16"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="2"
+                >
+                  <path
+                    d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"
+                  ></path>
+                  <circle cx="12" cy="13" r="4"></circle>
+                </svg>
+              </button>
+              <button *ngIf="doctorData.profilePictureUrl" class="remove-avatar-btn" (click)="removeProfilePicture()" title="Remove Picture">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <line x1="18" y1="6" x2="6" y2="18"></line>
+                  <line x1="6" y1="6" x2="18" y2="18"></line>
+                </svg>
+              </button>
+            </div>
+            <input
+              type="file"
+              #fileInput
+              hidden
+              accept="image/*"
+              (change)="onFileSelected($event)"
+            />
+          </div>
+
+          <div class="profile-identity-header">
+            <h2>Dr. {{ doctorData.firstName }} {{ doctorData.lastName }}</h2>
+            <p class="specialty-badge">
+              {{ doctorData.specialization || "Professional Profile" }}
+            </p>
+          </div>
+
+          <div class="profile-quick-stats">
+            <div class="quick-stat">
+              <span class="stat-num">{{
+                doctorData.yearsOfExperience || "0"
+              }}</span>
+              <span class="stat-label">Years Exp.</span>
+            </div>
+            <div class="quick-stat">
+              <span class="stat-num">{{
+                doctorData.consultationFee || "0"
+              }}</span>
+              <span class="stat-label">Fee (TND)</span>
+            </div>
+          </div>
+
+          <nav class="profile-tabs">
+            <button class="tab-link active">General Info</button>
+            <button class="tab-link">Schedule</button>
+          </nav>
+        </div>
+      </aside>
+
+      <!-- Main Content -->
+      <main class="profile-main">
+        <div class="content-card">
+          <div class="card-header">
+            <h3>Professional Profile</h3>
+            <div class="header-actions">
+              <button
+                *ngIf="!isEditing"
+                class="edit-btn"
+                (click)="toggleEdit()"
+              >
+                <svg
+                  width="16"
+                  height="16"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="2"
+                >
+                  <path
+                    d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"
+                  ></path>
+                  <path
+                    d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"
+                  ></path>
+                </svg>
+                Edit Profile
+              </button>
+              <ng-container *ngIf="isEditing">
+                <button
+                  class="cancel-btn"
+                  (click)="toggleEdit()"
+                  [disabled]="isLoading"
+                >
+                  Cancel
+                </button>
+                <button
+                  class="save-btn"
+                  (click)="saveProfile(profileForm)"
+                  [disabled]="isLoading"
+                >
+                  {{ isLoading ? "Saving..." : "Save Changes" }}
+                </button>
+              </ng-container>
+            </div>
+          </div>
+
+          <form class="profile-form" #profileForm="ngForm" novalidate>
+            <div class="form-grid">
+              <div class="form-group">
+                <label>First Name</label>
+                <input
+                  type="text"
+                  [(ngModel)]="doctorData.firstName"
+                  name="firstName"
+                  [readonly]="!isEditing"
+                  required
+                  [class.invalid]="isFieldInvalid(profileForm, 'firstName')"
+                />
+                <small
+                  class="field-error"
+                  *ngIf="isFieldInvalid(profileForm, 'firstName')"
+                >
+                  {{ getFieldError(profileForm, "firstName", "First Name") }}
+                </small>
+              </div>
+              <div class="form-group">
+                <label>Last Name</label>
+                <input
+                  type="text"
+                  [(ngModel)]="doctorData.lastName"
+                  name="lastName"
+                  [readonly]="!isEditing"
+                  required
+                  [class.invalid]="isFieldInvalid(profileForm, 'lastName')"
+                />
+                <small
+                  class="field-error"
+                  *ngIf="isFieldInvalid(profileForm, 'lastName')"
+                >
+                  {{ getFieldError(profileForm, "lastName", "Last Name") }}
+                </small>
+              </div>
+              <div class="form-group">
+                <label>Email Address</label>
+                <input
+                  type="email"
+                  [(ngModel)]="doctorData.email"
+                  name="email"
+                  readonly
+                />
+              </div>
+              <div class="form-group">
+                <label>Phone Number</label>
+                <input
+                  type="text"
+                  pattern="^[0-9]{8}$"
+                  maxlength="8"
+                  [(ngModel)]="doctorData.phone"
+                  name="phone"
+                  [readonly]="!isEditing"
+                  required
+                  [class.invalid]="isFieldInvalid(profileForm, 'phone')"
+                />
+                <small
+                  class="field-error"
+                  *ngIf="isFieldInvalid(profileForm, 'phone')"
+                >
+                  {{ getFieldError(profileForm, "phone", "Phone Number") }}
+                </small>
+              </div>
+              <div class="form-group">
+                <label>Specialization</label>
+                <input
+                  type="text"
+                  [(ngModel)]="doctorData.specialization"
+                  name="specialization"
+                  [readonly]="!isEditing"
+                  required
+                  [class.invalid]="
+                    isFieldInvalid(profileForm, 'specialization')
+                  "
+                />
+                <small
+                  class="field-error"
+                  *ngIf="isFieldInvalid(profileForm, 'specialization')"
+                >
+                  {{
+                    getFieldError(
+                      profileForm,
+                      "specialization",
+                      "Specialization"
+                    )
+                  }}
+                </small>
+              </div>
+              <div class="form-group">
+                <label>Experience (Years)</label>
+                <input
+                  type="number"
+                  [(ngModel)]="doctorData.yearsOfExperience"
+                  name="yearsOfExperience"
+                  [readonly]="!isEditing"
+                  min="0"
+                  [class.invalid]="
+                    isFieldInvalid(profileForm, 'yearsOfExperience')
+                  "
+                />
+                <small
+                  class="field-error"
+                  *ngIf="isFieldInvalid(profileForm, 'yearsOfExperience')"
+                >
+                  {{
+                    getFieldError(
+                      profileForm,
+                      "yearsOfExperience",
+                      "Years of Experience"
+                    )
+                  }}
+                </small>
+              </div>
+              <div class="form-group">
+                <label>Medical License</label>
+                <input
+                  type="text"
+                  [(ngModel)]="doctorData.licenseNumber"
+                  name="licenseNumber"
+                  readonly
+                  [class.invalid]="isFieldInvalid(profileForm, 'licenseNumber')"
+                />
+                <small
+                  class="field-error"
+                  *ngIf="isFieldInvalid(profileForm, 'licenseNumber')"
+                >
+                  {{
+                    getFieldError(
+                      profileForm,
+                      "licenseNumber",
+                      "Medical License"
+                    )
+                  }}
+                </small>
+              </div>
+              <div class="form-group">
+                <label>Consultation Fee</label>
+                <input
+                  type="number"
+                  [(ngModel)]="doctorData.consultationFee"
+                  name="consultationFee"
+                  [readonly]="!isEditing"
+                />
+              </div>
+              <div class="form-group full-width">
+                <label>Clinic Address</label>
+                <input
+                  type="text"
+                  [(ngModel)]="doctorData.clinicAddress"
+                  name="clinicAddress"
+                  [readonly]="!isEditing"
+                  required
+                  [class.invalid]="isFieldInvalid(profileForm, 'clinicAddress')"
+                />
+                <small
+                  class="field-error"
+                  *ngIf="isFieldInvalid(profileForm, 'clinicAddress')"
+                >
+                  {{ getFieldError(profileForm, "clinicAddress", "Clinic Address") }}
+                </small>
+              </div>
+              <div class="form-group full-width">
+                <label>Professional Bio</label>
+                <textarea
+                  rows="3"
+                  [(ngModel)]="doctorData.biography"
+                  name="biography"
+                  [readonly]="!isEditing"
+                ></textarea>
+              </div>
+              <div class="form-group full-width">
+                <label>Availability Schedule</label>
+                <ng-container *ngIf="isEditing; else readonlyAvailability">
+                  <div class="availability-row">
+                    <div class="form-group">
+                      <label class="sub-label">Start Time</label>
+                      <input
+                        type="time"
+                        [ngModel]="startTime"
+                        (ngModelChange)="onAvailabilityStartChange($event)"
+                        name="startTime"
+                        required
+                        [class.invalid]="isFieldInvalid(profileForm, 'startTime')"
+                      />
+                    </div>
+                    <div class="form-group">
+                      <label class="sub-label">End Time</label>
+                      <input
+                        type="time"
+                        [ngModel]="endTime"
+                        (ngModelChange)="onAvailabilityEndChange($event)"
+                        name="endTime"
+                        required
+                        [class.invalid]="isFieldInvalid(profileForm, 'endTime')"
+                      />
+                    </div>
+                  </div>
+                  <small
+                    class="field-error"
+                    *ngIf="isFieldInvalid(profileForm, 'startTime') || isFieldInvalid(profileForm, 'endTime')"
+                  >
+                    Start and end time are required.
+                  </small>
+                </ng-container>
+                <ng-template #readonlyAvailability>
+                  <div *ngIf="formattedAvailability.length > 0; else noSchedule">
+                    <div class="availability-card">
+                      <div class="availability-list-header">
+                        <span class="availability-list-title">
+                          <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align:middle; margin-right:6px;"><rect x="3" y="4" width="18" height="16" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/></svg>
+                          Weekly Schedule
+                        </span>
+                      </div>
+                      <ul class="availability-list">
+                        <li *ngFor="let slot of formattedAvailability">
+                          <span class="availability-day">{{ slot.day }}</span>
+                          <span class="availability-time">{{ slot.from }} - {{ slot.to }}</span>
+                        </li>
+                      </ul>
+                    </div>
+                  </div>
+                  <ng-template #noSchedule>
+                    <span>Not set</span>
+                  </ng-template>
+                </ng-template>
+              </div>
+            </div>
+          </form>
+        </div>
+      </main>
+    </div>
+  </div>
+</div>
+
+<!-- Success Popup -->
+<div class="success-popup" [class.show]="showSuccessPopup">
+  <div class="popup-content">
+    <div class="success-icon">
+      <svg
+        width="24"
+        height="24"
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        stroke-width="3"
+      >
+        <polyline points="20 6 9 17 4 12"></polyline>
+      </svg>
+    </div>
+    <div class="popup-text">
+      <h4>Success!</h4>
+      <p>{{ popupMessage || "Your profile has been updated." }}</p>
+    </div>
+    <button class="close-popup" (click)="showSuccessPopup = false">
+      &times;
+    </button>
+  </div>
+</div>
+

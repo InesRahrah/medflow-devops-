@@ -1,0 +1,86 @@
+<section class="response-hero">
+  <div class="container">
+    <div class="hero-copy">
+      <span class="section-label">PRECONSULTATION REVIEW</span>
+      <h1 class="section-title">Patient intake summary</h1>
+      <p>Review submitted answers before the consultation starts and identify anything that needs urgent attention.</p>
+    </div>
+  </div>
+</section>
+
+<section class="response-section">
+  <div class="container">
+    <div class="state-card" *ngIf="isLoading">
+      <p>Loading submitted intake answers...</p>
+    </div>
+
+    <div class="state-card error" *ngIf="!isLoading && loadError">
+      <h3>Intake not available</h3>
+      <p>{{ loadError }}</p>
+      <button type="button" class="btn-outline" (click)="goBack()">Back to home</button>
+    </div>
+
+    <div class="response-layout" *ngIf="!isLoading && response">
+      <div class="summary-grid">
+        <div class="summary-card">
+          <span class="summary-label">Risk level</span>
+          <strong class="risk-badge" [class.priority]="response.riskLevel === 'priority'" [class.urgent]="response.riskLevel === 'urgent'">
+            {{ response.riskLevel }}
+          </strong>
+        </div>
+
+        <div class="summary-card">
+          <span class="summary-label">Submitted</span>
+          <strong>{{ formatSubmittedAt(response.submittedAt) }}</strong>
+        </div>
+
+        <div class="summary-card">
+          <span class="summary-label">Flagged answers</span>
+          <strong>{{ flaggedAnswersCount }}</strong>
+        </div>
+      </div>
+
+      <div class="answers-card">
+        <div class="answers-header">
+          <div>
+            <h2>Submitted answers</h2>
+            <p>Appointment #{{ response.appointmentId }}</p>
+          </div>
+          <button type="button" class="btn-outline" (click)="goBack()">Back</button>
+        </div>
+
+        <!-- AI-Generated Summary (structured cards) -->
+        <div class="ai-summary-container" *ngIf="isAiSummary && aiSummarySections.length > 0">
+          <div class="ai-summary-badge">
+            <i class="fas fa-robot"></i>
+            <span>AI-Generated Intake Summary</span>
+          </div>
+
+          <div class="ai-sections">
+            <div class="ai-section-card" *ngFor="let section of aiSummarySections">
+              <div class="ai-section-icon">
+                <i class="fas {{ section.icon }}"></i>
+              </div>
+              <div class="ai-section-content">
+                <h4>{{ section.label }}</h4>
+                <p>{{ section.text }}</p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Traditional preconsultation answers -->
+        <ng-container *ngIf="!isAiSummary">
+          <article class="answer-row" *ngFor="let answer of response.answers">
+            <div class="question-meta">
+              <span class="question-type">{{ answer.questionType.replace('_', ' ') }}</span>
+              <span class="flag-chip" *ngIf="answer.isRedFlag">Flagged</span>
+            </div>
+            <h3>{{ answer.questionText }}</h3>
+            <p>{{ formatAnswer(answer) }}</p>
+          </article>
+        </ng-container>
+      </div>
+    </div>
+  </div>
+</section>

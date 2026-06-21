@@ -1,0 +1,646 @@
+<div class="overview-tab">
+  <div *ngIf="loadingPrescriptions" class="loading-state">
+    <div class="spinner"></div>
+    <p>Loading overview...</p>
+  </div>
+
+  <div *ngIf="!loadingPrescriptions" class="overview-content">
+    <section class="overview-section app-card" *ngIf="alerts.length > 0">
+      <h3 class="section-title">Alerts & Warnings</h3>
+      <div class="alerts-container">
+        <div
+          *ngFor="let alert of alerts"
+          class="alert-item"
+          [class]="'alert-' + alert.type"
+        >
+          <span class="alert-icon">{{ getAlertIcon(alert.type) }}</span>
+          <div class="alert-content">
+            <div class="alert-title">{{ alert.title }}</div>
+            <div class="alert-message">{{ alert.message }}</div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="overview-section app-card">
+      <div class="section-header">
+        <h3 class="section-title">Case Timeline</h3>
+      </div>
+
+      <p class="timeline-error" *ngIf="timelineError">{{ timelineError }}</p>
+
+      <div *ngIf="timeline.length > 0" class="timeline-list">
+        <article
+          *ngFor="let event of timeline"
+          class="timeline-card"
+          [class]="'timeline-card timeline-card--' + event.badgeKey"
+        >
+          <div class="timeline-card-top">
+            <div
+              class="timeline-icon"
+              [class]="'timeline-icon timeline-icon--' + event.badgeKey"
+            >
+              <svg
+                width="24"
+                height="24"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+              >
+                <path
+                  *ngFor="let iconPath of getTimelineIconPaths(event.rawType)"
+                  [attr.d]="iconPath"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                ></path>
+              </svg>
+            </div>
+
+            <div class="timeline-headline">
+              <h4 class="timeline-title">{{ event.title }}</h4>
+              <p class="timeline-meta">
+                {{ event.typeLabel }} • By {{ event.doctorLabel }}
+              </p>
+            </div>
+
+            <div class="timeline-date">
+              {{
+                event.date
+                  ? (event.date | date: "MMM d, y, h:mm a")
+                  : "Unknown date"
+              }}
+            </div>
+          </div>
+
+          <div class="timeline-content-row">
+            <div class="timeline-notes">{{ event.notes }}</div>
+
+            <div
+              class="timeline-actions"
+              *ngIf="
+                event.rawType === 'treatment' ||
+                event.canEdit ||
+                hasTimelineFile(event) ||
+                (event.rawType === 'lab_request' && hasScanSelection(event))
+              "
+            >
+              <button
+                *ngIf="hasTimelineFile(event)"
+                type="button"
+                class="timeline-action-btn timeline-action-btn--view-gray"
+                (click)="openTimelineFile(event)"
+              >
+                View File
+              </button>
+
+              <button
+                *ngIf="
+                  event.rawType === 'lab_request' && hasScanSelection(event)
+                "
+                type="button"
+                class="timeline-action-btn timeline-action-btn--view-gray"
+                (click)="openScanSelectionViewer(event)"
+              >
+                View Scan Map
+              </button>
+
+              <button
+                *ngIf="event.rawType === 'treatment'"
+                type="button"
+                class="timeline-action-btn"
+                [class]="
+                  event.canEdit
+                    ? 'timeline-action-btn timeline-action-btn--primary'
+                    : 'timeline-action-btn timeline-action-btn--ghost'
+                "
+                (click)="openPrescriptionModal(event)"
+              >
+                {{ event.canEdit ? "Edit" : "View Doses" }}
+              </button>
+
+              <button
+                *ngIf="event.canEdit && event.rawType !== 'treatment'"
+                type="button"
+                class="timeline-action-btn timeline-action-btn--primary"
+                (click)="beginTimelineEdit(event)"
+              >
+                Edit
+              </button>
+
+              <button
+                *ngIf="event.canEdit"
+                type="button"
+                class="timeline-action-btn timeline-action-btn--danger"
+                (click)="openDeleteTimelineConfirm(event)"
+              >
+                Delete
+              </button>
+            </div>
+          </div>
+
+          <div
+            class="timeline-accent-line"
+            [class]="
+              'timeline-accent-line timeline-accent-line--' + event.badgeKey
+            "
+          ></div>
+        </article>
+      </div>
+
+      <div *ngIf="timeline.length === 0" class="empty-state">
+        <svg width="48" height="48" viewBox="0 0 24 24" fill="none">
+          <circle
+            cx="12"
+            cy="12"
+            r="9"
+            stroke="currentColor"
+            stroke-width="2"
+          />
+          <path
+            d="M8 12h8M12 8v8"
+            stroke="currentColor"
+            stroke-width="2"
+            stroke-linecap="round"
+          />
+        </svg>
+        <p>
+          No consultation, lab, or prescription activities in this case yet.
+        </p>
+      </div>
+    </section>
+  </div>
+</div>
+
+<div
+  *ngIf="showScanSelectionModal && scanSelectionModalEvent"
+  class="timeline-modal-backdrop"
+  (click)="onScanSelectionModalBackdropClick($event)"
+>
+  <div class="timeline-modal-dialog" role="dialog" aria-modal="true">
+    <header class="timeline-modal-header timeline-modal-header--scan">
+      <h3>Requested Scan Map</h3>
+      <p>
+        {{ scanSelectionModalEvent.title }}
+        {{
+          scanSelectionModalEvent.date
+            ? "- " + (scanSelectionModalEvent.date | date: "MMM d, y, h:mm a")
+            : ""
+        }}
+      </p>
+      <button
+        type="button"
+        class="timeline-modal-close-x"
+        aria-label="Close scan map"
+        (click)="closeScanSelectionViewer()"
+      >
+        ×
+      </button>
+    </header>
+
+    <div class="timeline-scan-modal-body">
+      <app-body-scan-selector
+        [readonly]="true"
+        [showSelectedList]="true"
+        [selectedPartIds]="
+          scanSelectionModalEvent.scanSelection?.selectedPartIds || []
+        "
+        [activeLayers]="
+          scanSelectionModalEvent.scanSelection?.activeLayers ||
+          defaultScanLayers
+        "
+        [title]="'Imaging Coverage'"
+        [subtitle]="'Body areas selected by the requesting doctor.'"
+      ></app-body-scan-selector>
+
+      <p
+        class="timeline-scan-modal-notes"
+        *ngIf="
+          scanSelectionModalEvent.notes &&
+          scanSelectionModalEvent.notes !== 'No additional notes.'
+        "
+      >
+        <strong>Clinical Note:</strong> {{ scanSelectionModalEvent.notes }}
+      </p>
+    </div>
+  </div>
+</div>
+
+<div
+  *ngIf="showPrescriptionModal"
+  class="timeline-modal-backdrop"
+  (click)="onPrescriptionModalBackdropClick($event)"
+>
+  <div class="timeline-modal-dialog" role="dialog" aria-modal="true">
+    <header class="timeline-modal-header">
+      <h3>
+        {{
+          activePrescriptionEvent?.canEdit
+            ? "Edit Prescription"
+            : "Prescription Doses"
+        }}
+      </h3>
+      <p>{{ activePrescriptionEvent?.title }}</p>
+    </header>
+
+    <p class="timeline-error" *ngIf="prescriptionModalError">
+      {{ prescriptionModalError }}
+    </p>
+
+    <div class="timeline-modal-loading" *ngIf="prescriptionModalLoading">
+      <div class="spinner"></div>
+      <span>Loading doses...</span>
+    </div>
+
+    <div class="timeline-modal-body" *ngIf="!prescriptionModalLoading">
+      <label
+        class="timeline-modal-field"
+        *ngIf="activePrescriptionEvent?.canEdit"
+      >
+        Prescription Notes
+        <textarea
+          rows="2"
+          [(ngModel)]="prescriptionModalNotes"
+          name="prescriptionModalNotes"
+          maxlength="1000"
+          (blur)="markPrescriptionModalNotesTouched()"
+          [disabled]="savingPrescriptionModal"
+        ></textarea>
+        <span class="timeline-input-hint"
+          >{{ prescriptionModalNotes.length }}/1000 characters</span
+        >
+        <span
+          class="timeline-input-error"
+          *ngIf="prescriptionModalNotesTouched && prescriptionModalNotesError"
+        >
+          {{ prescriptionModalNotesError }}
+        </span>
+      </label>
+
+      <p
+        *ngIf="prescriptionModalDoses.length === 0"
+        class="timeline-doses-state"
+      >
+        No linked doses found.
+      </p>
+
+      <div class="timeline-dose-list" *ngIf="prescriptionModalDoses.length > 0">
+        <article
+          *ngFor="let dose of prescriptionModalDoses; let i = index"
+          class="timeline-dose-item"
+          [class.timeline-dose-item--taken]="
+            activePrescriptionEvent?.canEdit && dose.taken
+          "
+        >
+          <div class="timeline-dose-top">
+            <strong>{{ dose.medicineName }}</strong>
+            <div
+              class="timeline-dose-top-actions"
+              *ngIf="activePrescriptionEvent?.canEdit"
+            >
+              <span
+                class="timeline-dose-status"
+                [class.timeline-dose-status--taken]="dose.taken"
+                [class.timeline-dose-status--not-taken]="!dose.taken"
+              >
+                {{ dose.taken ? "Taken" : "Not taken" }}
+              </span>
+
+              <div
+                class="timeline-dose-delete-wrap"
+                [class.timeline-dose-delete-wrap--locked]="dose.taken"
+              >
+                <button
+                  type="button"
+                  class="timeline-action-btn timeline-action-btn--danger timeline-dose-delete"
+                  [class.is-disabled]="savingPrescriptionModal || dose.taken"
+                  [attr.aria-disabled]="savingPrescriptionModal || dose.taken"
+                  (click)="
+                    !savingPrescriptionModal &&
+                      !dose.taken &&
+                      deleteDoseFromPrescriptionModal(dose.id)
+                  "
+                >
+                  Delete
+                </button>
+
+                <div class="timeline-info-bubble" *ngIf="dose.taken">
+                  Taken doses cannot be edited nor deleted
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div
+            class="timeline-dose-editor"
+            *ngIf="activePrescriptionEvent?.canEdit && !dose.taken"
+          >
+            <label>
+              Quantity
+              <div class="timeline-dose-qty-stepper">
+                <button
+                  type="button"
+                  class="timeline-dose-qty-btn"
+                  [disabled]="savingPrescriptionModal"
+                  (click)="decrementPrescriptionDoseQuantity(dose)"
+                  aria-label="Decrease quantity"
+                >
+                  -
+                </button>
+                <span class="timeline-dose-qty-value">{{ dose.quantity }}</span>
+                <button
+                  type="button"
+                  class="timeline-dose-qty-btn"
+                  [disabled]="savingPrescriptionModal"
+                  (click)="incrementPrescriptionDoseQuantity(dose)"
+                  aria-label="Increase quantity"
+                >
+                  +
+                </button>
+              </div>
+            </label>
+
+            <label>
+              Date
+              <input
+                type="date"
+                [(ngModel)]="dose.date"
+                [name]="'doseDate' + i"
+                (blur)="markPrescriptionDoseDateTouched(dose.id)"
+                [disabled]="savingPrescriptionModal || dose.taken"
+              />
+              <span
+                class="timeline-input-error"
+                *ngIf="
+                  isPrescriptionDoseDateTouched(dose.id) &&
+                  getPrescriptionDoseDateError(dose)
+                "
+              >
+                {{ getPrescriptionDoseDateError(dose) }}
+              </span>
+            </label>
+
+            <label>
+              Time of day
+              <app-custom-dropdown
+                class="timeline-dose-period"
+                [options]="dosePeriodOptions"
+                [(ngModel)]="dose.period"
+              ></app-custom-dropdown>
+            </label>
+
+            <label class="timeline-dose-editor-wide">
+              Notes
+              <textarea
+                rows="2"
+                [(ngModel)]="dose.notes"
+                [name]="'doseNotes' + i"
+                maxlength="280"
+                (blur)="markPrescriptionDoseNotesTouched(dose.id)"
+                [disabled]="savingPrescriptionModal || dose.taken"
+              ></textarea>
+              <span class="timeline-input-hint"
+                >{{ dose.notes.length }}/280 characters</span
+              >
+              <span
+                class="timeline-input-error"
+                *ngIf="
+                  isPrescriptionDoseNotesTouched(dose.id) &&
+                  getPrescriptionDoseNotesError(dose)
+                "
+              >
+                {{ getPrescriptionDoseNotesError(dose) }}
+              </span>
+            </label>
+          </div>
+
+          <div
+            class="timeline-dose-compact"
+            *ngIf="activePrescriptionEvent?.canEdit && dose.taken"
+          >
+            <div class="timeline-dose-compact-item">
+              <span>Qty</span>
+              <strong>{{ dose.quantity }}</strong>
+            </div>
+            <div class="timeline-dose-compact-item">
+              <span>Date</span>
+              <strong>{{
+                dose.date ? (dose.date | date: "MMM d") : "Unknown"
+              }}</strong>
+            </div>
+            <div class="timeline-dose-compact-item">
+              <span>Period</span>
+              <strong>{{ getDosePeriodLabel(dose.period) }}</strong>
+            </div>
+            <div
+              class="timeline-dose-compact-item timeline-dose-compact-item--wide"
+              *ngIf="dose.notes"
+            >
+              <span>Notes</span>
+              <strong>{{ dose.notes }}</strong>
+            </div>
+          </div>
+
+          <div
+            class="timeline-dose-read"
+            *ngIf="!activePrescriptionEvent?.canEdit"
+          >
+            <div class="timeline-dose-read-head">
+              <strong class="timeline-dose-medicine">{{
+                dose.medicineName
+              }}</strong>
+              <span
+                class="timeline-dose-status"
+                [class.timeline-dose-status--taken]="dose.taken"
+                [class.timeline-dose-status--not-taken]="!dose.taken"
+              >
+                {{ dose.taken ? "Taken" : "Not taken" }}
+              </span>
+            </div>
+
+            <div class="timeline-dose-read-grid">
+              <div class="timeline-dose-fact">
+                <span>Quantity</span>
+                <strong>{{ dose.quantity }}</strong>
+              </div>
+              <div class="timeline-dose-fact">
+                <span>Date</span>
+                <strong>{{
+                  dose.date ? (dose.date | date: "MMM d, y") : "Unknown date"
+                }}</strong>
+              </div>
+              <div class="timeline-dose-fact">
+                <span>Period</span>
+                <strong>{{ getDosePeriodLabel(dose.period) }}</strong>
+              </div>
+              <div class="timeline-dose-fact timeline-dose-fact--wide">
+                <span>Notes</span>
+                <strong>{{ dose.notes || "No dose notes." }}</strong>
+              </div>
+            </div>
+          </div>
+        </article>
+      </div>
+    </div>
+
+    <div class="timeline-modal-actions">
+      <button
+        type="button"
+        class="timeline-action-btn timeline-action-btn--ghost"
+        [disabled]="savingPrescriptionModal"
+        (click)="closePrescriptionModal()"
+      >
+        {{ activePrescriptionEvent?.canEdit ? "Cancel" : "Close" }}
+      </button>
+
+      <button
+        *ngIf="activePrescriptionEvent?.canEdit"
+        type="button"
+        class="timeline-action-btn timeline-action-btn--primary"
+        [disabled]="savingPrescriptionModal || !canSavePrescriptionModal"
+        (click)="savePrescriptionModal()"
+      >
+        {{ savingPrescriptionModal ? "Saving..." : "Save Changes" }}
+      </button>
+    </div>
+  </div>
+</div>
+
+<div
+  *ngIf="showTimelineEditModal && activeEditEvent"
+  class="timeline-modal-backdrop"
+  (click)="onTimelineEditModalBackdropClick($event)"
+>
+  <div
+    class="timeline-modal-dialog timeline-modal-dialog--edit"
+    role="dialog"
+    aria-modal="true"
+  >
+    <header class="timeline-modal-header">
+      <h3>Edit {{ activeEditEvent.typeLabel }}</h3>
+      <p>{{ activeEditEvent.title }}</p>
+    </header>
+
+    <p class="timeline-error" *ngIf="timelineError">{{ timelineError }}</p>
+
+    <form class="timeline-edit-form" (ngSubmit)="saveTimelineEdit()">
+      <label
+        *ngIf="activeEditEvent.rawType === 'lab_request'"
+        (click)="markTimelineEditTitleTouched()"
+      >
+        Service Type
+        <app-custom-dropdown
+          class="timeline-edit-lab-type"
+          [options]="testTypeOptions"
+          [searchable]="true"
+          [placeholder]="'Search service type...'"
+          [(ngModel)]="editForm.title"
+          name="timelineEditTitle"
+          (ngModelChange)="markTimelineEditTitleTouched()"
+        ></app-custom-dropdown>
+        <span
+          class="timeline-input-error"
+          *ngIf="timelineEditTitleTouched && timelineEditTitleError"
+        >
+          {{ timelineEditTitleError }}
+        </span>
+      </label>
+
+      <label *ngIf="activeEditEvent.rawType === 'consultation'">
+        Consultation Date
+        <input
+          type="datetime-local"
+          [(ngModel)]="editForm.date"
+          name="timelineEditDate"
+          (blur)="markTimelineEditDateTouched()"
+          [disabled]="savingTimelineEdit"
+        />
+        <span
+          class="timeline-input-error"
+          *ngIf="timelineEditDateTouched && timelineEditDateError"
+        >
+          {{ timelineEditDateError }}
+        </span>
+      </label>
+
+      <label>
+        Notes
+        <textarea
+          rows="3"
+          [(ngModel)]="editForm.notes"
+          name="timelineEditNotes"
+          maxlength="1000"
+          (blur)="markTimelineEditNotesTouched()"
+          [disabled]="savingTimelineEdit"
+        ></textarea>
+        <span class="timeline-input-hint"
+          >{{ editForm.notes.length }}/1000 characters</span
+        >
+        <span
+          class="timeline-input-error"
+          *ngIf="timelineEditNotesTouched && timelineEditNotesError"
+        >
+          {{ timelineEditNotesError }}
+        </span>
+      </label>
+
+      <div class="timeline-modal-actions">
+        <button
+          type="button"
+          class="timeline-action-btn timeline-action-btn--ghost"
+          [disabled]="savingTimelineEdit"
+          (click)="closeTimelineEditModal()"
+        >
+          Cancel
+        </button>
+        <button
+          type="submit"
+          class="timeline-action-btn timeline-action-btn--primary"
+          [disabled]="savingTimelineEdit || !canSaveTimelineEdit"
+        >
+          {{ savingTimelineEdit ? "Saving..." : "Save Changes" }}
+        </button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<div
+  *ngIf="showDeleteConfirmModal"
+  class="timeline-modal-backdrop"
+  (click)="onDeleteConfirmBackdropClick($event)"
+>
+  <div
+    class="timeline-modal-dialog timeline-modal-dialog--small"
+    role="dialog"
+    aria-modal="true"
+  >
+    <header class="timeline-modal-header">
+      <h3>Delete Activity</h3>
+      <p>
+        Are you sure you want to delete
+        <strong>{{ deleteTargetEvent?.title || "this activity" }}</strong
+        >?
+      </p>
+    </header>
+
+    <div class="timeline-modal-actions">
+      <button
+        type="button"
+        class="timeline-action-btn timeline-action-btn--ghost"
+        [disabled]="deletingTimelineItem"
+        (click)="closeDeleteTimelineConfirm()"
+      >
+        Cancel
+      </button>
+      <button
+        type="button"
+        class="timeline-action-btn timeline-action-btn--danger"
+        [disabled]="deletingTimelineItem"
+        (click)="confirmDeleteTimelineItem()"
+      >
+        {{ deletingTimelineItem ? "Deleting..." : "Yes, Delete" }}
+      </button>
+    </div>
+  </div>
+</div>

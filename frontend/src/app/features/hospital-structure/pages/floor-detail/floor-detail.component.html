@@ -1,0 +1,450 @@
+<div class="page-container">
+  <div class="page-nav">
+    <div class="breadcrumb">
+      <button class="breadcrumb-link" (click)="goBack()">
+        <i class="fas fa-building"></i> <span>Hospital Structure</span>
+      </button>
+      <i class="fas fa-chevron-right breadcrumb-separator"></i>
+
+      <div class="floor-selector-dropdown">
+        <button class="breadcrumb-current" (click)="toggleFloorDropdown()">
+          {{ floor?.name || "Floor" }}
+          <i class="fas fa-chevron-down dropdown-icon"></i>
+        </button>
+
+        <div class="dropdown-menu" *ngIf="showFloorDropdown">
+          <button
+            class="dropdown-item"
+            *ngFor="let f of allFloors"
+            [class.active]="f.id === floorId"
+            (click)="switchFloor(f.id)"
+          >
+            <i class="fas fa-layer-group"></i> {{ f.name }}
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="page-header">
+    <div class="header-left">
+      <h1 class="page-title">
+        <i
+          class="fas fa-layer-group"
+          style="color: #0092df; margin-right: 8px"
+        ></i
+        >{{ floor?.name || "Floor" }}
+        <span class="floor-badge">{{ rooms.length }} rooms</span>
+      </h1>
+      <p class="page-subtitle">
+        Manage rooms, beds, and layout for this floor level.
+        <ng-container *ngIf="activeDepartmentId">
+          Viewing department: <strong>{{ activeDepartmentName || 'Selected Department' }}</strong>.
+        </ng-container>
+      </p>
+    </div>
+    <div class="header-actions">
+      <button
+        class="btn-toggle"
+        *ngIf="activeDepartmentId"
+        (click)="clearDepartmentFilter()"
+      >
+        <i class="fas fa-filter"></i> Clear Filter
+      </button>
+      <div class="view-toggle">
+        <button
+          class="btn-toggle"
+          [class.active]="viewMode === 'grid'"
+          (click)="setMode('grid')"
+        >
+          <i class="fas fa-th-large"></i> Grid
+        </button>
+        <button
+          class="btn-toggle"
+          [class.active]="viewMode === 'blueprint' && !isEditMode"
+          (click)="setMode('blueprint-view')"
+        >
+          <i class="fas fa-eye"></i> Blueprint View
+        </button>
+        <button
+          class="btn-toggle"
+          [class.active]="viewMode === 'blueprint' && isEditMode"
+          (click)="setMode('blueprint-edit')"
+        >
+          <i class="fas fa-pen-ruler"></i> Blueprint Edit
+        </button>
+      </div>
+      <button class="btn-add" (click)="openAddRoomModal()">
+        <i class="fas fa-plus"></i>
+        <span>Add Room</span>
+      </button>
+    </div>
+  </div>
+
+  <section class="floor-controls" *ngIf="viewMode === 'grid' && rooms.length > 0">
+    <div class="controls-group controls-search-group">
+      <label class="control-label with-icon" for="roomSearch">
+        <i class="fas fa-search"></i>
+        <span>Search</span>
+      </label>
+      <div class="control-search">
+        <i class="fas fa-search"></i>
+        <input
+          id="roomSearch"
+          type="text"
+          [(ngModel)]="roomSearchTerm"
+          placeholder="Search by room number, type, or status"
+          aria-label="Search rooms"
+        />
+      </div>
+    </div>
+
+    <div class="controls-group controls-filter-group">
+      <label class="control-label with-icon" for="roomStatusFilter">
+        <i class="fas fa-filter"></i>
+        <span>Filter</span>
+      </label>
+      <div class="custom-drop-wrapper">
+        <app-custom-dropdown
+          [options]="roomFilterOptions"
+          [(ngModel)]="roomStatusFilter"
+          placeholder="Filter Rooms"
+        ></app-custom-dropdown>
+      </div>
+    </div>
+
+    <div class="controls-group controls-sort-group">
+      <label class="control-label with-icon" for="roomSortBy">
+        <i class="fas fa-sort-amount-down-alt"></i>
+        <span>Sort</span>
+      </label>
+      <div class="custom-drop-wrapper">
+        <app-custom-dropdown
+          [options]="roomSortOptions"
+          [(ngModel)]="roomSortBy"
+          placeholder="Sort Rooms"
+        ></app-custom-dropdown>
+      </div>
+    </div>
+
+    <div class="controls-group controls-actions-group">
+      <span class="results-badge">
+        <i class="fas fa-door-open"></i>
+        {{ displayedRooms.length }} rooms
+      </span>
+      <button class="btn-clear" type="button" (click)="clearRoomGridFilters()">
+        <i class="fas fa-rotate-left"></i>
+        <span>Reset</span>
+      </button>
+    </div>
+  </section>
+
+  <div class="room-grid" *ngIf="viewMode === 'grid' && displayedRooms.length > 0">
+    <app-room-card
+      *ngFor="let room of displayedRooms; let i = index"
+      [room]="room"
+      (cardClick)="onRoomClick($event)"
+      (edit)="openEditRoomModal($event)"
+      (delete)="deleteRoom($event)"
+      [style.animation-delay]="i * 60 + 'ms'"
+      class="fade-in-card"
+    ></app-room-card>
+  </div>
+
+  <div class="empty-filter-state" *ngIf="viewMode === 'grid' && rooms.length > 0 && displayedRooms.length === 0">
+    <i class="fas fa-filter-circle-xmark"></i>
+    <h3>No matching rooms</h3>
+    <p>Try adjusting search, filter, or sorting criteria.</p>
+    <button class="btn-clear" type="button" (click)="clearRoomGridFilters()">Clear filters</button>
+  </div>
+
+  <div
+    class="blueprint-legend"
+    *ngIf="viewMode === 'blueprint' && roomsWithPositions.length > 0"
+  >
+    <div class="legend-item"><span class="bed-slot free"></span> Free</div>
+    <div class="legend-item">
+      <span class="bed-slot occupied"></span> Occupied
+    </div>
+    <div class="legend-item">
+      <span class="bed-slot reserved"></span> Reserved
+    </div>
+    <div class="legend-item">
+      <span class="bed-slot out_of_service"></span> Out of Service
+    </div>
+    <div class="legend-item">
+      <span class="bed-slot empty"></span> Empty Slot
+    </div>
+  </div>
+
+  <div
+    class="blueprint-workspace"
+    *ngIf="viewMode === 'blueprint' && roomsWithPositions.length > 0"
+    (click)="onWorkspaceClick()"
+    [class.edit-mode]="isEditMode"
+  >
+    <div
+      class="blueprint-room"
+      *ngFor="let room of roomsWithPositions"
+      [class.room-icu]="room.type === 'ICU'"
+      [class.room-normal]="room.type === 'Normal'"
+      [class.selected]="selectedRoomId === room.id"
+      [style.left.px]="room.x"
+      [style.top.px]="room.y"
+      [style.width.px]="room.width"
+      [style.height.px]="room.height"
+      [style.z-index]="room.z"
+      (mousedown)="onRoomInteract($event, room, 'move')"
+    >
+      <div class="room-number-corner">
+        <i class="fas fa-bed"></i>
+        <span>{{ room.capacity }}</span>
+      </div>
+
+      <div class="room-content-bp">
+        <h3 class="room-name-bp">{{ room.roomNumber }}</h3>
+        <span class="room-type-bp">{{ room.type }}</span>
+      </div>
+
+      <div class="beds-container-bp">
+        <div
+          class="bed-slot"
+          *ngFor="let bed of room.displayBeds"
+          [ngClass]="bed ? (bed.status | lowercase) : 'empty'"
+          [title]="bed ? bed.label + ' (' + bed.status + ')' : 'Empty Bed Slot'"
+        ></div>
+      </div>
+
+      <!-- Resize Handle -->
+      <div
+        class="resize-handle"
+        *ngIf="isEditMode"
+        (mousedown)="onRoomInteract($event, room, 'resize')"
+      >
+        <i class="fas fa-expand-arrows-alt"></i>
+      </div>
+
+      <!-- Room Actions (Blueprint) -->
+      <div class="room-selection-actions" *ngIf="isEditMode">
+        <button
+          class="btn-room-action edit"
+          (click)="openEditRoomModal(room, $event)"
+          title="Edit Properties"
+        >
+          <i class="fas fa-edit"></i>
+        </button>
+        <button
+          class="btn-room-action delete"
+          (click)="deleteRoom(room, $event)"
+          title="Delete Room"
+        >
+          <i class="fas fa-trash"></i>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <div class="empty-state" *ngIf="rooms.length === 0">
+    <div class="empty-icon">
+      <i class="fas fa-door-open"></i>
+    </div>
+    <h3>No rooms yet</h3>
+    <p>Add rooms to start organizing this floor.</p>
+    <button class="btn-add" (click)="openAddRoomModal()">
+      <i class="fas fa-plus"></i>
+      <span>Add Room</span>
+    </button>
+  </div>
+
+  <!-- Room Modal (Add / Edit) -->
+  <div class="modal-overlay" [class.closing]="isRoomModalClosing" *ngIf="showRoomModal" (click)="closeRoomModal()">
+    <div class="modal-card" [class.closing]="isRoomModalClosing" (click)="$event.stopPropagation()">
+      <div class="modal-header">
+        <div class="modal-icon">
+          <i class="fas" [ngClass]="isRoomEditMode ? 'fa-cog' : 'fa-plus'"></i>
+        </div>
+        <div class="modal-title-group">
+          <h2 class="modal-title">
+            {{ isRoomEditMode ? "Edit Room" : "Add New Room" }}
+          </h2>
+          <p class="modal-subtitle">
+            {{
+              isRoomEditMode
+                ? "Modify room properties and capacity"
+                : "Define a new room for this floor level"
+            }}
+          </p>
+        </div>
+        <button class="modal-close" (click)="closeRoomModal()">
+          <i class="fas fa-times"></i>
+        </button>
+      </div>
+
+      <div class="modal-body">
+        <div class="modal-error-banner" *ngIf="roomModalErrorMessage">{{ roomModalErrorMessage }}</div>
+
+        <div class="form-grid">
+          <div class="form-group">
+            <label class="input-label">Room Number</label>
+            <div class="input-wrapper">
+              <i class="fas fa-door-open input-icon"></i>
+              <input
+                type="text"
+                class="floor-name-input"
+                name="roomNumber"
+                #roomNumberModel="ngModel"
+                required
+                minlength="2"
+                maxlength="30"
+                [(ngModel)]="currentRoom.roomNumber"
+                placeholder="e.g., 101, 202-A"
+                [class.input-invalid]="isRoomFieldInvalid('roomNumber', roomNumberModel)"
+              />
+            </div>
+            <small class="field-error" *ngIf="isRoomFieldInvalid('roomNumber', roomNumberModel)">
+              {{ getRoomFieldError('roomNumber', roomNumberModel) }}
+            </small>
+          </div>
+
+          <div class="form-row">
+            <div class="form-group">
+              <label class="input-label">Type</label>
+              <div class="input-wrapper custom-drop-wrapper" [class.input-invalid-wrapper]="isRoomFieldInvalid('type', roomTypeModel)">
+                <i class="fas fa-tag input-icon"></i>
+                <app-custom-dropdown
+                  name="roomType"
+                  #roomTypeModel="ngModel"
+                  required
+                  [options]="roomTypes"
+                  [(ngModel)]="currentRoom.type"
+                  (ngModelChange)="onRoomTypeChange()"
+                  placeholder="Select Room Type"
+                >
+                </app-custom-dropdown>
+              </div>
+              <small class="field-error" *ngIf="isRoomFieldInvalid('type', roomTypeModel)">
+                {{ getRoomFieldError('type', roomTypeModel) }}
+              </small>
+            </div>
+
+            <div class="form-group">
+              <label class="input-label">Capacity (Beds)</label>
+              <div class="input-wrapper" [class.disabled]="currentRoom.type === 'OR'">
+                <i class="fas fa-bed input-icon"></i>
+                <input
+                  type="number"
+                  class="floor-name-input"
+                  name="roomCapacity"
+                  #roomCapacityModel="ngModel"
+                  required
+                  [attr.min]="currentRoom.type === 'OR' ? 0 : 1"
+                  [(ngModel)]="currentRoom.capacity"
+                  [max]="maxAllowedCapacity"
+                  [disabled]="currentRoom.type === 'OR'"
+                  [class.input-invalid]="isRoomFieldInvalid('capacity', roomCapacityModel)"
+                />
+              </div>
+              <small class="field-error" *ngIf="isRoomFieldInvalid('capacity', roomCapacityModel)">
+                {{ getRoomFieldError('capacity', roomCapacityModel) }}
+              </small>
+              <small *ngIf="showRoomCapacityLimitHint" style="color: #bb4545; font-size: 0.75rem; margin-top: 6px; display: block; line-height: 1.4;">
+                <i class="fas fa-info-circle" style="margin-right: 4px;"></i>
+                <ng-container *ngIf="roomTypeConfig?.maxBeds === 0">
+                  Operating rooms cannot contain beds.
+                </ng-container>
+                <ng-container *ngIf="roomTypeConfig?.maxBeds! > 0">
+                  Maximum capacity for {{ roomTypeConfig?.label || currentRoom.type }} is {{ roomTypeConfig?.maxBeds }} beds.
+                </ng-container>
+              </small>
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label class="input-label">Department</label>
+            <div class="input-wrapper custom-drop-wrapper" [class.input-invalid-wrapper]="isRoomFieldInvalid('departmentId', roomDepartmentModel)">
+              <i class="fas fa-sitemap input-icon"></i>
+              <app-custom-dropdown
+                name="roomDepartment"
+                #roomDepartmentModel="ngModel"
+                required
+                [options]="departmentOptions"
+                [(ngModel)]="currentRoom.departmentId"
+                placeholder="Select Department"
+              >
+              </app-custom-dropdown>
+            </div>
+            <small class="field-error" *ngIf="isRoomFieldInvalid('departmentId', roomDepartmentModel)">
+              {{ getRoomFieldError('departmentId', roomDepartmentModel) }}
+            </small>
+          </div>
+
+          <div class="form-group">
+            <label class="input-label">Status</label>
+            <div class="input-wrapper custom-drop-wrapper" [class.input-invalid-wrapper]="isRoomFieldInvalid('status', roomStatusModel)">
+              <i class="fas fa-info-circle input-icon"></i>
+              <app-custom-dropdown
+                name="roomStatus"
+                #roomStatusModel="ngModel"
+                required
+                [options]="statusOptions"
+                [(ngModel)]="currentRoom.status"
+                placeholder="Select Status"
+              >
+              </app-custom-dropdown>
+            </div>
+            <small class="field-error" *ngIf="isRoomFieldInvalid('status', roomStatusModel)">
+              {{ getRoomFieldError('status', roomStatusModel) }}
+            </small>
+          </div>
+        </div>
+      </div>
+
+      <div class="modal-footer">
+        <button class="btn-cancel" (click)="closeRoomModal()">Cancel</button>
+        <button class="btn-confirm" (click)="confirmRoomAction()" [disabled]="isRoomSubmitDisabled">
+          <i class="fas fa-check"></i>
+          <span>{{ isRoomEditMode ? "Save Changes" : "Create Room" }}</span>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Delete Room Confirmation Modal -->
+  <div
+    class="modal-overlay"
+    *ngIf="showDeleteRoomModal"
+    (click)="closeDeleteModal()"
+  >
+    <div class="modal-card" (click)="$event.stopPropagation()">
+      <div class="modal-header">
+        <div class="modal-icon warning">
+          <i class="fas fa-exclamation-triangle"></i>
+        </div>
+        <div class="modal-title-group">
+          <h2 class="modal-title">Delete Room?</h2>
+          <p class="modal-subtitle">Confirm room removal</p>
+        </div>
+        <button class="modal-close" (click)="closeDeleteModal()">
+          <i class="fas fa-times"></i>
+        </button>
+      </div>
+
+      <div class="modal-body">
+        <p class="delete-message">
+          Are you sure you want to delete
+          <strong>{{ roomToDelete?.roomNumber }}</strong
+          >? All beds and assignments within this room will be permanently
+          removed. This action cannot be undone.
+        </p>
+      </div>
+
+      <div class="modal-footer">
+        <button class="btn-cancel" (click)="closeDeleteModal()">Cancel</button>
+        <button class="btn-confirm delete" (click)="confirmDeleteRoom()">
+          <i class="fas fa-trash-alt"></i>
+          <span>Delete Room</span>
+        </button>
+      </div>
+    </div>
+  </div>
+</div>

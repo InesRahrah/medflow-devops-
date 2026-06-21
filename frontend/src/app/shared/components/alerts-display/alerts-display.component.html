@@ -1,0 +1,75 @@
+<div class="alerts-container">
+  <!-- Alert Bell Icon with Badge -->
+  <div class="alerts-header" (click)="toggleDropdown()">
+    <div class="bell-icon-wrapper">
+      <svg class="bell-icon" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path>
+        <path d="M13.73 21a2 2 0 0 1-3.46 0"></path>
+      </svg>
+      <span class="badge" *ngIf="unreadCount > 0">{{ unreadCount }}</span>
+    </div>
+  </div>
+
+  <!-- Alerts Dropdown -->
+  <div class="alerts-dropdown" *ngIf="showDropdown">
+    <div class="dropdown-header">
+      <div class="header-content">
+        <h3>Notifications</h3>
+        <span class="alert-count" *ngIf="unreadCount > 0">{{ unreadCount }} new</span>
+      </div>
+      <button class="close-btn" (click)="closeDropdown()">✕</button>
+    </div>
+
+    <div class="alerts-list" *ngIf="hasAlerts">
+      <div 
+        *ngFor="let alert of alerts; let last = last" 
+        class="alert-item"
+        [ngClass]="[getAlertClass(alert.type), alert.read ? 'read' : 'unread']"
+        [style.animation]="'slideIn 0.3s ease-out'"
+      >
+        <div class="alert-icon-wrapper">
+          <div class="alert-icon">{{ getAlertIcon(alert.type) }}</div>
+        </div>
+        
+        <div class="alert-content">
+          <div class="alert-title">{{ alert.title }}</div>
+          <div class="alert-message">{{ alert.message }}</div>
+          <div class="alert-time">{{ formatTime(alert.createdAt) }}</div>
+        </div>
+
+        <div class="alert-actions">
+          <button 
+            class="action-btn mark-read"
+            *ngIf="!alert.read"
+            (click)="markAsRead(alert, $event)"
+            title="Mark as read"
+          >
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3">
+              <polyline points="20 6 9 17 4 12"></polyline>
+            </svg>
+          </button>
+          <button 
+            class="action-btn delete"
+            (click)="deleteAlert(alert, $event)"
+            title="Delete"
+          >
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <line x1="18" y1="6" x2="6" y2="18"></line>
+              <line x1="6" y1="6" x2="18" y2="18"></line>
+            </svg>
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <div class="alerts-empty" *ngIf="!hasAlerts">
+      <div class="empty-icon">🔔</div>
+      <p>No alerts at this time</p>
+      <span class="empty-hint">You're all caught up!</span>
+    </div>
+
+    <div class="dropdown-footer" *ngIf="hasAlerts">
+      <a href="#" class="view-all">View all alerts →</a>
+    </div>
+  </div>
+</div>

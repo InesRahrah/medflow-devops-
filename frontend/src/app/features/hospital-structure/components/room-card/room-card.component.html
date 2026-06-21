@@ -1,0 +1,43 @@
+<div class="room-card" (click)="onClick()">
+  <div class="card-header">
+    <div class="header-main">
+      <h3 class="card-title">Room {{ room.roomNumber }}</h3>
+      <span
+        class="type-badge"
+        [style.color]="typeColor"
+        [style.background]="typeBgColor"
+      >
+        {{ room.type }}
+      </span>
+    </div>
+    <div class="card-actions">
+      <button class="btn-action edit" (click)="onEdit($event)" title="Edit Room">
+        <i class="fas fa-edit"></i>
+      </button>
+      <button class="btn-action delete" (click)="onDelete($event)" title="Delete Room">
+        <i class="fas fa-trash-alt"></i>
+      </button>
+    </div>
+  </div>
+
+  <div class="card-meta">
+    <i class="fas fa-info-circle"></i>
+    <span>{{ room.status | titlecase }}</span>
+  </div>
+
+  <div class="card-footer">
+    <div class="bed-summary">
+      <div class="bed-count highlight">
+        <i class="fas fa-bed"></i>
+        <span>{{ room.capacity }} Units</span>
+      </div>
+      <div class="bed-status-dots" *ngIf="beds.length > 0">
+        <span class="status-dot" *ngFor="let bed of displayBeds" [ngClass]="bed.status | lowercase"></span>
+        <span class="status-more" *ngIf="extraBedsCount > 0">+{{ extraBedsCount }}</span>
+      </div>
+    </div>
+    <div class="card-arrow">
+      <i class="fas fa-chevron-right"></i>
+    </div>
+  </div>
+</div>

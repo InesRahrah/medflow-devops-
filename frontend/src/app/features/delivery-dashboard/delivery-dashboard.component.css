@@ -1,0 +1,249 @@
+/* ==========================================
+   DELIVERY DASHBOARD COMPONENT
+   Font: Segoe UI (Pharmacist Consistency)
+   ========================================== */
+
+.delivery-dashboard-container {
+  padding: 2rem;
+  background: linear-gradient(135deg, #E8F1F7 0%, #F0F8FF 100%);
+  min-height: 100vh;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+/* Dashboard Header */
+.dashboard-header {
+  background: white;
+  padding: 2rem;
+  border-radius: 16px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  margin-bottom: 2rem;
+}
+
+.header-content h1 {
+  margin: 0 0 0.5rem 0;
+  font-size: 2rem;
+  font-weight: 700;
+  color: #00A8E8;
+}
+
+.header-subtitle {
+  margin: 0;
+  font-size: 0.95rem;
+  color: #5f6c7b;
+  font-weight: 500;
+}
+
+/* Stats Grid */
+.stats-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 1.5rem;
+  margin-bottom: 2rem;
+}
+
+.stat-card {
+  background: white;
+  padding: 1.5rem;
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  border-left: 4px solid #00A8E8;
+  display: flex;
+  align-items: center;
+  gap: 1.25rem;
+  transition: all 0.3s ease;
+}
+
+.stat-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.12);
+}
+
+.stat-card.total {
+  border-left-color: #1565C0;
+}
+
+.stat-card.pending {
+  border-left-color: #FFB74D;
+}
+
+.stat-card.completed {
+  border-left-color: #66BB6A;
+}
+
+.stat-card.cancelled {
+  border-left-color: #EF5350;
+}
+
+.stat-icon {
+  font-size: 2.5rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 60px;
+  height: 60px;
+  flex-shrink: 0;
+  background-color: #F0F8FF;
+  border-radius: 8px;
+}
+
+.stat-info {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+.stat-label {
+  font-size: 0.8rem;
+  color: #5f6c7b;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-bottom: 0.5rem;
+  font-weight: 600;
+}
+
+.stat-number {
+  font-size: 2rem;
+  font-weight: 700;
+  color: #1565C0;
+}
+
+/* Chart Section */
+.chart-section {
+  margin-bottom: 2rem;
+}
+
+.chart-card {
+  background: white;
+  padding: 2rem;
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+}
+
+.chart-card h2 {
+  margin: 0 0 1.5rem 0;
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: #00A8E8;
+}
+
+.chart-placeholder {
+  background: linear-gradient(135deg, #F0F8FF 0%, #E8F1F7 100%);
+  border: 2px dashed #00A8E8;
+  border-radius: 8px;
+  padding: 3rem;
+  text-align: center;
+  color: #5f6c7b;
+}
+
+.chart-placeholder p {
+  margin: 0 0 1.5rem 0;
+  font-size: 1rem;
+  font-weight: 500;
+}
+
+.metric-row {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 1rem;
+}
+
+.metric-label {
+  font-size: 0.9rem;
+  color: #696f7d;
+  font-weight: 600;
+}
+
+.metric-value {
+  font-size: 1.5rem;
+  color: #1565C0;
+  font-weight: 700;
+}
+
+/* Actions Section */
+.actions-section {
+  background: white;
+  padding: 2rem;
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+}
+
+.action-item h3 {
+  margin: 0 0 1.25rem 0;
+  font-size: 1.125rem;
+  color: #1565C0;
+  font-weight: 700;
+}
+
+.btn-action {
+  display: inline-block;
+  background: linear-gradient(135deg, #00A8E8 0%, #0099FF 100%);
+  color: white;
+  padding: 0.75rem 1.5rem;
+  border-radius: 8px;
+  text-decoration: none;
+  font-weight: 600;
+  font-size: 0.9rem;
+  transition: all 0.3s ease;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.btn-action:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 168, 232, 0.3);
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .delivery-dashboard-container {
+    padding: 1rem;
+  }
+
+  .dashboard-header {
+    padding: 1.25rem;
+    margin-bottom: 1.5rem;
+  }
+
+  .header-content h1 {
+    font-size: 1.5rem;
+  }
+
+  .stats-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 1rem;
+  }
+
+  .stat-card {
+    padding: 1rem;
+  }
+
+  .stat-icon {
+    width: 50px;
+    height: 50px;
+    font-size: 2rem;
+  }
+
+  .stat-number {
+    font-size: 1.5rem;
+  }
+
+  .chart-card {
+    padding: 1.5rem;
+  }
+
+  .chart-placeholder {
+    padding: 2rem 1rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .stats-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .header-content h1 {
+    font-size: 1.25rem;
+  }
+}
+

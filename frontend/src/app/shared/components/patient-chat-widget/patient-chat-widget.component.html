@@ -1,0 +1,169 @@
+<!-- Floating Chat Button -->
+<button *ngIf="!sidebarOpen" class="chat-fab" (click)="toggleSidebar()" aria-label="Open chat">
+  <svg width="28" height="28" viewBox="0 0 24 24" fill="none">
+    <circle cx="12" cy="12" r="12" fill="url(#fabGrad)"/>
+    <path d="M7 10.5C7 9.12 8.12 8 9.5 8H14.5C15.88 8 17 9.12 17 10.5V13.5C17 14.88 15.88 16 14.5 16H10.5L8 18V13.5C7 13.5 7 12.88 7 10.5Z" fill="#fff"/>
+    <defs><linearGradient id="fabGrad" x1="0" y1="0" x2="24" y2="24"><stop stop-color="#1a6fd4"/><stop offset="1" stop-color="#4f46e5"/></linearGradient></defs>
+  </svg>
+</button>
+
+<!-- Chat Widget -->
+<div *ngIf="sidebarOpen" class="chat-widget">
+  <!-- Header -->
+  <div class="chat-header">
+    <div class="header-decor header-decor-1"></div>
+    <div class="header-decor header-decor-2"></div>
+    <div class="chat-header-content">
+      <div class="chat-header-left">
+        <div class="bot-avatar">
+          <img src="assets/images/655e7823-c29a-4491-954c-b25471044215.jpeg" alt="MedAssist AI" />
+        </div>
+        <div class="header-info">
+          <div class="chat-title">MedAssist AI</div>
+          <div class="chat-status">
+            <span class="status-dot"></span>
+            <span>Online · Avg reply &lt;1 min</span>
+          </div>
+        </div>
+      </div>
+      <div class="chat-header-right">
+        <button class="header-icon-btn" [class.tts-active]="ttsEnabled" (click)="toggleTts()" [attr.aria-label]="ttsEnabled ? 'Disable voice replies' : 'Enable voice replies'" title="Text-to-Speech">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
+            <path *ngIf="ttsEnabled" d="M11 5L6 9H2v6h4l5 4V5zm8.07.93a10 10 0 010 12.14M15.54 8.46a5 5 0 010 7.08" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+            <path *ngIf="!ttsEnabled" d="M11 5L6 9H2v6h4l5 4V5zm9 4l-6 6m0-6l6 6" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+        </button>
+        <button class="header-icon-btn" (click)="toggleSidebar()" aria-label="Close chat">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M18 6L6 18M6 6l12 12" stroke="#fff" stroke-width="2.2" stroke-linecap="round"/></svg>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Chat Body -->
+  <div class="chat-body" #chatBody>
+    <!-- Empty state -->
+    <div *ngIf="messages.length === 0" class="chat-empty-state">
+      <div class="date-pill">Today</div>
+      <div class="bot-message-row">
+        <div class="bot-avatar-small">
+          <img src="assets/doctor-avatar.jpg" alt="" />
+        </div>
+        <div>
+          <div class="bot-bubble">👋 Hi there! I'm MedAssist.<br/>How can I help you today?</div>
+          <div class="msg-time">{{ getTime() }}</div>
+        </div>
+      </div>
+      <div class="quick-chips">
+        <button class="chip" (click)="sendQuick('Book an appointment')">
+          <span class="chip-icon">📅</span> Book an appointment
+        </button>
+        <button class="chip" (click)="sendQuick('Cancel an appointment')">
+          <span class="chip-icon">❌</span> Cancel an appointment
+        </button>
+        <button class="chip" (click)="sendQuick('Find a doctor')">
+          <span class="chip-icon">👨‍⚕️</span> Find a doctor
+        </button>
+        <button class="chip" (click)="sendQuick('Reschedule an appointment')">
+          <span class="chip-icon">🔄</span> Reschedule an appointment
+        </button>
+      </div>
+    </div>
+
+    <!-- Messages -->
+    <ng-container *ngIf="messages.length > 0">
+      <div class="date-pill">Today</div>
+      <div *ngFor="let msg of messages" [@fadeIn]>
+        <div *ngIf="msg.from === 'user'" class="msg-row user">
+          <div class="user-bubble">
+            <span>{{ msg.text }}</span>
+            <button *ngIf="msg.audioUrl" class="voice-play-btn" (click)="togglePlayAudio(msg.audioUrl!)">
+              <svg *ngIf="playingAudioUrl !== msg.audioUrl" width="14" height="14" viewBox="0 0 24 24" fill="none">
+                <path d="M6 4l15 8-15 8V4z" fill="#fff"/>
+              </svg>
+              <svg *ngIf="playingAudioUrl === msg.audioUrl" width="14" height="14" viewBox="0 0 24 24" fill="none">
+                <rect x="5" y="4" width="4" height="16" rx="1" fill="#fff"/>
+                <rect x="15" y="4" width="4" height="16" rx="1" fill="#fff"/>
+              </svg>
+              <span>🎤 Voice</span>
+            </button>
+            <div class="msg-time user-time">{{ msg.time }}</div>
+          </div>
+        </div>
+        <div *ngIf="msg.from === 'assistant'" class="bot-message-row">
+          <div class="bot-avatar-small">
+            <img src="assets/doctor-avatar.jpg" alt="" />
+          </div>
+          <div>
+            <!-- Structured list response (appointments etc.) -->
+            <div *ngIf="hasListItems(msg.text)" class="bot-bubble bot-bubble-list">
+              <p *ngIf="formatBotMessage(msg.text).intro" class="bot-intro">{{ formatBotMessage(msg.text).intro }}</p>
+              <div class="bot-list">
+                <div class="bot-list-item" *ngFor="let item of formatBotMessage(msg.text).items">
+                  <span class="bot-item-num">{{ item.num }}</span>
+                  <div class="bot-item-info">
+                    <span class="bot-item-type">{{ item.type }}</span>
+                    <span class="bot-item-date">📅 {{ item.date }}</span>
+                  </div>
+                </div>
+              </div>
+              <p *ngIf="formatBotMessage(msg.text).outro" class="bot-outro">{{ formatBotMessage(msg.text).outro }}</p>
+            </div>
+            <!-- Plain text response -->
+            <div *ngIf="!hasListItems(msg.text)" class="bot-bubble bot-bubble-plain">{{ msg.text }}</div>
+            <div class="msg-actions">
+              <button class="listen-btn" (click)="speakText(msg.text)" title="Listen to reply">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
+                  <path d="M11 5L6 9H2v6h4l5 4V5z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                  <path d="M15.54 8.46a5 5 0 010 7.08" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+                <span>Listen</span>
+              </button>
+              <span class="msg-time">{{ msg.time }}</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </ng-container>
+
+    <!-- Typing indicator -->
+    <div *ngIf="isTyping" class="bot-message-row" [@fadeIn]>
+      <div class="bot-avatar-small">
+        <img src="assets/doctor-avatar.jpg" alt="" />
+      </div>
+      <div class="typing-bubble">
+        <span class="typing-dot"></span>
+        <span class="typing-dot"></span>
+        <span class="typing-dot"></span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Input Area -->
+  <div class="chat-input-wrapper">
+    <!-- Recording indicator -->
+    <div *ngIf="isRecording" class="recording-indicator">
+      <span class="rec-dot"></span>
+      <span>Recording... tap mic to stop</span>
+    </div>
+    <form class="chat-input-bar" (submit)="sendMessage()">
+      <input [(ngModel)]="inputValue" name="chatInput" autocomplete="off" placeholder="Type your message..." [disabled]="isRecording" />
+      <button type="submit" class="send-btn" [disabled]="!inputValue.trim() || isRecording" aria-label="Send">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
+          <path d="M5 12h14M13 5l7 7-7 7" stroke="#fff" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+      </button>
+      <button type="button" class="mic-btn" [class.mic-recording]="isRecording" (click)="toggleRecording()" [attr.aria-label]="isRecording ? 'Stop recording' : 'Start recording'">
+        <svg *ngIf="!isRecording" width="18" height="18" viewBox="0 0 24 24" fill="none">
+          <rect x="9" y="2" width="6" height="12" rx="3" stroke="#1a6fd4" stroke-width="1.8"/>
+          <path d="M5 11v1a7 7 0 0014 0v-1" stroke="#1a6fd4" stroke-width="1.8" stroke-linecap="round"/>
+          <path d="M12 19v3m-3 0h6" stroke="#1a6fd4" stroke-width="1.8" stroke-linecap="round"/>
+        </svg>
+        <svg *ngIf="isRecording" width="18" height="18" viewBox="0 0 24 24" fill="none">
+          <rect x="6" y="6" width="12" height="12" rx="2" fill="#fff"/>
+        </svg>
+      </button>
+    </form>
+    <div class="powered-by">Powered by MedAssist · HIPAA Compliant 🔒</div>
+  </div>
+</div>

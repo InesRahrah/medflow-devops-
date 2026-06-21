@@ -1,0 +1,137 @@
+<section class="scan-selector" [class.scan-selector--readonly]="readonly">
+  <button
+    *ngIf="isCycleMode && showCycleControl"
+    type="button"
+    class="scan-selector__cycle-btn"
+    (click)="cycleView()"
+  >
+    <span class="scan-selector__cycle-label">{{ cycleButtonLabel }}</span>
+  </button>
+
+  <div
+    class="scan-selector__layout"
+    [class.scan-selector__layout--cycle]="isCycleMode"
+  >
+    <div
+      *ngIf="showMapGrid"
+      class="scan-map-grid"
+      [class.scan-map-grid--single]="isCycleMode"
+    >
+      <figure *ngIf="showFrontPanel" class="scan-map-panel">
+        <figcaption *ngIf="!isCycleMode">Front Body</figcaption>
+        <div class="scan-map-body scan-map-body--front">
+          <svg
+            class="scan-map-svg"
+            viewBox="0 0 724 1448"
+            aria-label="Front body map"
+          >
+            <g [class.scan-map-regions--readonly]="readonly">
+              <path
+                *ngFor="let region of frontRegions"
+                class="scan-region-path"
+                [class.scan-region-path--front]="true"
+                [class.selected]="isPartSelected(region.id)"
+                [class.preview]="isPartHoverPreview(region.id)"
+                [attr.d]="region.path"
+                role="button"
+                [attr.aria-pressed]="isPartSelected(region.id)"
+                [attr.aria-label]="getPartLabel(region.id)"
+                (click)="togglePart(region.id)"
+                (mouseenter)="onRegionMouseEnter(region.id, $event)"
+                (mousemove)="onRegionMouseMove(region.id, $event)"
+                (mouseleave)="onRegionMouseLeave()"
+              ></path>
+            </g>
+          </svg>
+        </div>
+      </figure>
+
+      <figure *ngIf="showBackPanel" class="scan-map-panel">
+        <figcaption *ngIf="!isCycleMode">Back Body</figcaption>
+        <div class="scan-map-body scan-map-body--back">
+          <svg
+            class="scan-map-svg"
+            viewBox="724 0 724 1448"
+            aria-label="Back body map"
+          >
+            <g [class.scan-map-regions--readonly]="readonly">
+              <path
+                *ngFor="let region of backRegions"
+                class="scan-region-path"
+                [class.scan-region-path--back]="true"
+                [class.selected]="isPartSelected(region.id)"
+                [class.preview]="isPartHoverPreview(region.id)"
+                [attr.d]="region.path"
+                role="button"
+                [attr.aria-pressed]="isPartSelected(region.id)"
+                [attr.aria-label]="getPartLabel(region.id)"
+                (click)="togglePart(region.id)"
+                (mouseenter)="onRegionMouseEnter(region.id, $event)"
+                (mousemove)="onRegionMouseMove(region.id, $event)"
+                (mouseleave)="onRegionMouseLeave()"
+              ></path>
+            </g>
+          </svg>
+        </div>
+      </figure>
+    </div>
+
+    <div
+      *ngIf="showSelectedColumn"
+      class="scan-selector__selected-column"
+      [class.scan-selector__selected-column--cycle]="isCycleMode"
+    >
+      <button
+        *ngIf="!readonly"
+        type="button"
+        class="scan-selector__clear-btn scan-selector__clear-btn--top"
+        [disabled]="selectedPartItems.length === 0"
+        (click)="clearSelectedParts()"
+      >
+        Clear
+      </button>
+
+      <aside class="scan-selector__selected">
+        <p *ngIf="selectedPartItems.length === 0" class="scan-selector__empty">
+          No body areas selected yet.
+        </p>
+
+        <div
+          *ngIf="selectedPartItems.length > 0"
+          class="scan-selector__list-wrap"
+        >
+          <ul class="scan-selector__list">
+            <li *ngFor="let part of selectedPartItems">
+              <button
+                type="button"
+                class="scan-selector__chip"
+                [disabled]="readonly"
+                (click)="removeSelectedPart(part.id)"
+              >
+                <span>{{ part.label }}</span>
+              </button>
+            </li>
+          </ul>
+        </div>
+      </aside>
+
+      <button
+        *ngIf="showDoneButton && !readonly"
+        type="button"
+        class="scan-selector__done-btn"
+        (click)="emitDone()"
+      >
+        Done
+      </button>
+    </div>
+  </div>
+
+  <div
+    *ngIf="showTooltip"
+    class="scan-selector__tooltip"
+    [style.left.px]="tooltipX"
+    [style.top.px]="tooltipY"
+  >
+    {{ tooltipLabel }}
+  </div>
+</section>

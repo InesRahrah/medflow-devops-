@@ -1,0 +1,84 @@
+<div class="lab-tab">
+  <div class="status-message error" *ngIf="errorMessage">
+    {{ errorMessage }}
+  </div>
+
+  <div class="form-section app-card">
+    <h3>Add Lab Request</h3>
+    <div class="form-group" (click)="markTestTypeTouched()">
+      <label>Service Type</label>
+      <app-custom-dropdown
+        [options]="testTypeOptions"
+        [searchable]="true"
+        placeholder="Search service type..."
+        [(ngModel)]="testType"
+        (ngModelChange)="onTestTypeChange($any($event))"
+      ></app-custom-dropdown>
+      <p class="input-error" *ngIf="testTypeTouched && testTypeError">
+        {{ testTypeError }}
+      </p>
+
+      <div class="scan-picker-row" *ngIf="shouldShowBodyScanSelector">
+        <button
+          type="button"
+          class="scan-picker-btn"
+          [disabled]="submitting"
+          (click)="openScanSelectorModal()"
+        >
+          Select Body Parts
+        </button>
+        <span class="scan-picker-summary">{{ scanSelectionSummary }}</span>
+      </div>
+
+      <p class="input-error" *ngIf="scanSelectionTouched && scanSelectionError">
+        {{ scanSelectionError }}
+      </p>
+    </div>
+
+    <div class="form-group">
+      <label>Notes</label>
+      <textarea
+        class="form-textarea"
+        [(ngModel)]="labNotes"
+        maxlength="1000"
+        (blur)="markLabNotesTouched()"
+        rows="4"
+        placeholder="Clinical context and expected findings"
+      ></textarea>
+      <p class="input-hint">{{ labNotes.length }}/1000 characters</p>
+      <p class="input-error" *ngIf="labNotesTouched && labNotesError">
+        {{ labNotesError }}
+      </p>
+    </div>
+
+    <button
+      class="primary-btn"
+      [disabled]="!canSubmitLab"
+      (click)="addLabRequest()"
+    >
+      {{ submitting ? "Saving..." : "Request Lab" }}
+    </button>
+  </div>
+
+  <div *ngIf="loading" class="empty-state">
+    <p>Loading lab requests...</p>
+  </div>
+
+  <div
+    *ngIf="showScanSelectorModal"
+    class="scan-selector-modal"
+    (click)="onScanSelectorModalBackdropClick($event)"
+  >
+    <div class="scan-selector-modal__dialog" role="dialog" aria-modal="true">
+      <app-body-scan-selector
+        [selectedPartIds]="scanSelectedPartIds"
+        (selectedPartIdsChange)="onScanSelectedPartIdsChange($any($event))"
+        [activeLayers]="scanActiveLayers"
+        (activeLayersChange)="onScanActiveLayersChange($any($event))"
+        [readonly]="submitting"
+        [showDoneButton]="true"
+        (doneClick)="closeScanSelectorModal()"
+      ></app-body-scan-selector>
+    </div>
+  </div>
+</div>

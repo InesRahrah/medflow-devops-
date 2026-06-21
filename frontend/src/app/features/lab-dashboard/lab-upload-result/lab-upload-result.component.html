@@ -1,0 +1,176 @@
+<main class="page-content">
+  <section class="upload-hero">
+    <div class="container">
+      <div class="section-header upload-hero__header">
+        <span class="section-label">LAB WORKSPACE</span>
+        <h1 class="section-title">Upload Test Results</h1>
+        <p class="section-subtitle">
+          Capture findings with clean structure, attach diagnostics, and close
+          requests confidently.
+        </p>
+      </div>
+    </div>
+  </section>
+
+  <section class="upload-shell">
+    <div class="container container-xl">
+      <article class="upload-card">
+        <div class="upload-card__glow"></div>
+
+        <header class="upload-head">
+          <button class="btn-back-text" type="button" (click)="goBack()">
+            <i class="fas fa-arrow-left"></i>
+            <span>Back to Reports</span>
+          </button>
+          <p class="upload-head__hint">
+            Complete all required fields before submitting.
+          </p>
+        </header>
+
+        <section class="request-summary" *ngIf="requestSummary">
+          <article class="summary-card summary-card--patient">
+            <span class="summary-label">Patient</span>
+            <div class="summary-patient">
+              <div class="summary-patient__avatar">
+                {{ (requestSummary.patientName || "P").charAt(0) }}
+              </div>
+              <div>
+                <strong>{{ requestSummary.patientName || "Unknown" }}</strong>
+                <small>Lab Request</small>
+              </div>
+            </div>
+          </article>
+
+          <article class="summary-card">
+            <span class="summary-label">Test Type</span>
+            <strong>{{ requestSummary.testType || "Unknown" }}</strong>
+          </article>
+
+          <article class="summary-card">
+            <span class="summary-label">Status</span>
+            <span
+              class="summary-status"
+              [class.complete]="isCompletedStatus(requestSummary.status)"
+            >
+              {{ getStatusLabel(requestSummary.status) }}
+            </span>
+          </article>
+        </section>
+
+        <p *ngIf="loading" class="status-banner">Loading request details...</p>
+        <p *ngIf="errorMessage" class="status-banner status-banner--error">
+          {{ errorMessage }}
+        </p>
+
+        <form
+          (ngSubmit)="submitResult()"
+          #resultForm="ngForm"
+          class="result-form"
+        >
+          <section class="form-panel form-panel--notes">
+            <h3>Clinical Report</h3>
+
+            <div class="form-group">
+              <label for="findings">Key Findings</label>
+              <textarea
+                id="findings"
+                name="findings"
+                [(ngModel)]="resultData.findings"
+                required
+                placeholder="Describe the observations..."
+              ></textarea>
+            </div>
+
+            <div class="form-group">
+              <label for="conclusions">Conclusions / Impressions</label>
+              <textarea
+                id="conclusions"
+                name="conclusions"
+                [(ngModel)]="resultData.conclusions"
+                required
+                placeholder="Final medical impression..."
+              ></textarea>
+            </div>
+          </section>
+
+          <section class="form-panel form-panel--upload">
+            <h3>Diagnostic Attachment</h3>
+            <p class="form-panel__hint">
+              Drag and drop or browse your diagnostic result file.
+            </p>
+
+            <div
+              class="file-upload-area"
+              [class.has-file]="resultData.file"
+              [class.drag-over]="isDragOver"
+              (dragover)="onFileDragOver($event)"
+              (dragleave)="onFileDragLeave($event)"
+              (drop)="onFileDrop($event)"
+            >
+              <input
+                type="file"
+                id="file"
+                (change)="onFileChange($event)"
+                hidden
+                #fileInput
+              />
+
+              <div class="upload-placeholder" (click)="fileInput.click()">
+                <svg
+                  viewBox="0 0 24 24"
+                  width="46"
+                  height="46"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="2"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  class="upload-svg"
+                >
+                  <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                  <polyline points="17 8 12 3 7 8"></polyline>
+                  <line x1="12" y1="3" x2="12" y2="15"></line>
+                </svg>
+
+                <p *ngIf="!resultData.file">
+                  Click or drag a diagnostic file here
+                </p>
+
+                <div class="file-meta" *ngIf="resultData.file">
+                  <p class="file-name">{{ resultData.file.name }}</p>
+                  <small>{{ formatFileSize(resultData.file.size) }}</small>
+                  <button
+                    type="button"
+                    class="file-clear"
+                    (click)="clearSelectedFile(); $event.stopPropagation()"
+                  >
+                    Remove file
+                  </button>
+                </div>
+              </div>
+            </div>
+          </section>
+
+          <div class="form-actions">
+            <button type="button" class="btn btn-outline" (click)="goBack()">
+              Cancel
+            </button>
+            <button
+              type="submit"
+              class="btn btn-primary"
+              [disabled]="
+                !resultForm.form.valid ||
+                isUploading ||
+                loading ||
+                !requestSummary
+              "
+            >
+              <span *ngIf="!isUploading">Submit Result</span>
+              <span *ngIf="isUploading">Uploading...</span>
+            </button>
+          </div>
+        </form>
+      </article>
+    </div>
+  </section>
+</main>

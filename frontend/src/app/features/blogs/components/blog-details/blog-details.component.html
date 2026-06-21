@@ -1,0 +1,33 @@
+<div class="dashboard-content">
+  <div *ngIf="loading" style="text-align:center; padding:3rem; color:var(--text-muted);">
+    Loading article...
+  </div>
+
+  <div *ngIf="!loading && blog" class="dashboard-card">
+    <span class="section-label">{{ blog.status }}</span>
+    <h2 class="section-title" style="margin:10px 0 1rem;">{{ blog.title }}</h2>
+    <div style="display:flex; gap:1.5rem; flex-wrap:wrap;
+                color:var(--text-muted); font-size:0.85rem; margin-bottom:1.5rem;">
+      <span>✍️ <strong>Author #{{ blog.authorId }}</strong></span>
+      <span>🏷️ {{ blog.category }}</span>
+      <span>📅 {{ blog.createdAt | date:'longDate' }}</span>
+    </div>
+    <div style="background:var(--primary-light); border-left:4px solid var(--primary);
+                padding:1rem 1.25rem; border-radius:var(--border-radius-sm);
+                margin-bottom:1.5rem; color:var(--primary-dark); font-style:italic;">
+      {{ blog.content | slice:0:200 }}...
+    </div>
+    <hr style="border:none; border-top:1px solid var(--border-color); margin-bottom:1.5rem;" />
+    <div style="color:var(--text-secondary); line-height:2; font-size:1rem; white-space:pre-line;">
+      {{ blog.content }}
+    </div>
+    <div style="margin-top:2.5rem;">
+      <button class="btn-outline" (click)="goBack()">← Back to Blogs</button>
+    </div>
+  </div>
+
+  <div *ngIf="!loading && !blog" class="dashboard-card" style="text-align:center;">
+    <p style="color:var(--text-muted);">Article not found.</p>
+    <button class="btn-primary" (click)="goBack()" style="margin-top:1rem;">Go Back</button>
+  </div>
+</div>

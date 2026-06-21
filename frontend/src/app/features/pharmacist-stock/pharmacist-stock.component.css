@@ -1,0 +1,752 @@
+.pharmacist-stock-container {
+  padding: 2rem;
+  background: linear-gradient(135deg, #E8F1F7 0%, #F0F8FF 100%);
+  min-height: 100vh;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+.page-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 2rem;
+  background: white;
+  padding: 2rem;
+  border-radius: 16px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+  gap: 2rem;
+  flex-wrap: wrap;
+}
+
+.header-content h1.page-title {
+  font-size: 2rem;
+  color: #00A8E8;
+  font-weight: 700;
+  margin: 0;
+}
+
+.page-subtitle {
+  color: #7f8c8d;
+  margin-top: 0.5rem;
+  font-size: 0.95rem;
+}
+
+.header-actions {
+  display: flex;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
+.btn-filter {
+  padding: 0.75rem 1.5rem;
+  border: 2px solid #ecf0f1;
+  background: white;
+  color: #1565C0;
+  border-radius: 8px;
+  cursor: pointer;
+  font-weight: 600;
+  transition: all 0.3s ease;
+  text-transform: uppercase;
+  font-size: 0.9rem;
+}
+
+.btn-filter:hover {
+  border-color: #0099FF;
+  color: #0099FF;
+}
+
+.btn-filter.active {
+  background: linear-gradient(135deg, #00A8E8 0%, #0099FF 100%);
+  color: white;
+  border-color: #0099FF;
+}
+
+.stocks-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
+  gap: 1.5rem;
+  margin-bottom: 2rem;
+}
+
+.stock-card {
+  background: white;
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+  transition: all 0.3s ease;
+  border-left: 5px solid #0099FF;
+  display: flex;
+  flex-direction: column;
+}
+
+.stock-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 8px 16px rgba(0, 0, 0, 0.12);
+}
+
+.stock-card.stock-low {
+  border-left-color: #00A8E8;
+}
+
+.card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1.25rem;
+  background: linear-gradient(135deg, #f8f9fa 0%, #ecf0f1 100%);
+  border-bottom: 1px solid #ecf0f1;
+}
+
+.product-name {
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: #00A8E8;
+  margin: 0;
+}
+
+.stock-badge {
+  padding: 0.5rem 1rem;
+  border-radius: 20px;
+  font-size: 0.75rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.badge-low {
+  background: #ffe5e5;
+  color: #8b3a3a;
+}
+
+.badge-ok {
+  background: #e8f5e9;
+  color: #155724;
+}
+
+.card-body {
+  padding: 1.5rem;
+  flex-grow: 1;
+}
+
+.stock-info-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 1rem;
+}
+
+.stock-info-item {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.info-label {
+  font-size: 0.75rem;
+  color: #95a5a6;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.info-value {
+  font-size: 1.3rem;
+  font-weight: 700;
+  color: #00A8E8;
+  margin: 0;
+}
+
+.card-footer {
+  display: flex;
+  gap: 0.75rem;
+  padding: 1rem 1.5rem;
+  background: #f8f9fa;
+  border-top: 1px solid #ecf0f1;
+}
+
+.btn-action {
+  padding: 0.6rem 1rem;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  font-weight: 600;
+  transition: all 0.3s ease;
+  flex: 1;
+  text-transform: uppercase;
+  font-size: 0.85rem;
+}
+
+.btn-reorder {
+  background: linear-gradient(135deg, #adbbcb 0%, #0099FF 100%);
+  color: white;
+}
+
+.btn-reorder:hover {
+  box-shadow: 0 4px 8px rgba(255, 214, 153, 0.4);
+}
+
+.btn-details {
+  background: linear-gradient(135deg, #00A8E8 0%, #0099FF 100%);
+  color: white;
+}
+
+.btn-details:hover {
+  box-shadow: 0 4px 8px rgba(0, 168, 232, 0.3);
+}
+
+.empty-state {
+  text-align: center;
+  padding: 3rem 2rem;
+  background: white;
+  border-radius: 12px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+}
+
+.empty-icon {
+  font-size: 3.5rem;
+  margin-bottom: 1rem;
+}
+
+.empty-state h3 {
+  color: #1565C0;
+  margin: 0 0 0.5rem 0;
+}
+
+.empty-state p {
+  color: #95a5a6;
+  margin: 0;
+}
+
+@media (max-width: 768px) {
+  .pharmacist-stock-container {
+    padding: 1rem;
+  }
+
+  .page-header {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .stocks-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .stock-info-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .header-actions {
+    width: 100%;
+  }
+
+  .btn-filter {
+    flex: 1;
+  }
+}
+
+/* DETAILS MODAL */
+.details-modal {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+}
+
+@keyframes slideUp {
+  from {
+    opacity: 0;
+    transform: translateY(30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.details-modal-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.5);
+  cursor: pointer;
+}
+
+.details-modal-content {
+  position: relative;
+  background: white;
+  border-radius: 16px;
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.2);
+  width: 90%;
+  max-width: 900px;
+  max-height: 90vh;
+  overflow-y: auto;
+}
+
+.details-modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 2rem;
+  border-bottom: 2px solid #ecf0f1;
+  background: linear-gradient(135deg, #f8f9fa 0%, #ecf0f1 100%);
+  border-radius: 16px 16px 0 0;
+  position: sticky;
+  top: 0;
+  z-index: 10;
+}
+
+.details-modal-header h2 {
+  margin: 0;
+  font-size: 1.5rem;
+  color: #1565C0;
+  font-weight: 700;
+}
+
+.btn-close-modal {
+  background: none;
+  border: none;
+  font-size: 1.5rem;
+  color: #95a5a6;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  padding: 0.5rem;
+}
+
+.btn-close-modal:hover {
+  color: #AED6F1;
+  transform: scale(1.2);
+}
+
+.details-modal-body {
+  padding: 2rem;
+  display: flex;
+  flex-direction: column;
+  gap: 2rem;
+}
+
+.details-section {
+  border: 1px solid #ecf0f1;
+  border-radius: 12px;
+  padding: 1.5rem;
+  background: linear-gradient(135deg, #f8f9fa 0%, #ffffff 100%);
+}
+
+.section-title {
+  margin: 0 0 1.5rem 0;
+  font-size: 1.2rem;
+  color: #1565C0;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.details-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 1.5rem;
+}
+
+.details-item {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.details-item.span-2 {
+  grid-column: span 2;
+}
+
+.details-label {
+  font-size: 0.75rem;
+  color: #95a5a6;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.details-value {
+  font-size: 1rem;
+  color: #1565C0;
+  font-weight: 600;
+  margin: 0;
+}
+
+.details-value.highlight {
+  font-size: 1.3rem;
+  color: #0099FF;
+  font-weight: 700;
+}
+
+.status-badge {
+  display: inline-block;
+  padding: 0.5rem 1rem;
+  border-radius: 20px;
+  font-size: 0.85rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  width: fit-content;
+}
+
+.badge-ok {
+  background: #e8f5e9;
+  color: #155724;
+}
+
+.badge-critical {
+  background: #ffe5e5;
+  color: #AED6F1;
+}
+
+.text-danger {
+  color: #AED6F1;
+  font-weight: 700;
+}
+
+.text-warning {
+  color: #0099FF;
+  font-weight: 700;
+}
+
+.text-info {
+  color: #00A8E8;
+  font-weight: 700;
+}
+
+.text-success {
+  color: #0099FF;
+  font-weight: 700;
+}
+
+.details-modal-footer {
+  display: flex;
+  gap: 1rem;
+  padding: 2rem;
+  border-top: 2px solid #ecf0f1;
+  background: linear-gradient(135deg, #f8f9fa 0%, #ecf0f1 100%);
+  border-radius: 0 0 16px 16px;
+  justify-content: flex-end;
+  position: sticky;
+  bottom: 0;
+  z-index: 10;
+}
+
+.btn-secondary {
+  padding: 0.75rem 1.5rem;
+  border: 2px solid #ecf0f1;
+  background: white;
+  color: #1565C0;
+  border-radius: 8px;
+  cursor: pointer;
+  font-weight: 600;
+  transition: all 0.3s ease;
+  text-transform: uppercase;
+  font-size: 0.9rem;
+  letter-spacing: 0.5px;
+  min-width: 120px;
+}
+
+.btn-secondary:hover {
+  border-color: #95a5a6;
+  background: #f8f9fa;
+}
+
+.btn-primary {
+  padding: 0.75rem 1.5rem;
+  border: none;
+  background: linear-gradient(135deg, #0099FF 0%, #0099FF 100%);
+  color: white;
+  border-radius: 8px;
+  cursor: pointer;
+  font-weight: 600;
+  transition: all 0.3s ease;
+  text-transform: uppercase;
+  font-size: 0.9rem;
+  letter-spacing: 0.5px;
+  min-width: 180px;
+}
+
+.btn-primary:hover {
+  box-shadow: 0 6px 15px rgba(0, 168, 232, 0.4);
+  transform: translateY(-3px);
+}
+
+.btn-primary:active {
+  transform: translateY(-1px);
+}
+
+/* RESPONSIVE */
+@media (max-width: 768px) {
+  .details-modal-content {
+    width: 95%;
+    max-height: 85vh;
+  }
+
+  .details-modal-header, .details-modal-body, .details-modal-footer {
+    padding: 1.5rem;
+  }
+
+  .details-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .details-item.span-2 {
+    grid-column: span 1;
+  }
+
+  .details-modal-footer {
+    flex-direction: column-reverse;
+    gap: 0.75rem;
+  }
+
+  .btn-secondary, .btn-primary {
+    width: 100%;
+  }
+
+  .stock-info-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* QR CODE SECTION */
+.qr-code-section {
+  background: linear-gradient(135deg, #f0f7ff 0%, #e3f2fd 100%) !important;
+  border: 2px solid #00A8E8 !important;
+  padding: 2rem !important;
+}
+
+.qr-code-section .section-title {
+  color: #00A8E8 !important;
+  margin-bottom: 0.5rem !important;
+}
+
+.qr-code-description {
+  color: #666;
+  font-size: 0.95rem;
+  margin: 0 0 1.5rem 0;
+  font-weight: 500;
+}
+
+.qr-code-container {
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  gap: 2rem;
+  flex-wrap: wrap;
+}
+
+.qr-code-box {
+  background: white;
+  padding: 1.5rem;
+  border-radius: 12px;
+  box-shadow: 0 4px 12px rgba(0, 168, 232, 0.2);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 2px solid #00A8E8;
+  transition: all 0.3s ease;
+  min-width: 220px;
+  min-height: 220px;
+}
+
+.qr-code-box:hover {
+  transform: scale(1.05);
+  box-shadow: 0 6px 16px rgba(0, 168, 232, 0.3);
+}
+
+.qr-code-image {
+  width: 200px;
+  height: 200px;
+  display: block;
+  border-radius: 8px;
+}
+
+.qr-loading {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 1rem;
+  padding: 2rem;
+}
+
+.spinner {
+  width: 40px;
+  height: 40px;
+  border: 4px solid rgba(0, 168, 232, 0.2);
+  border-top: 4px solid #00A8E8;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+.qr-loading p {
+  color: #666;
+  font-weight: 500;
+  margin: 0;
+}
+
+/* QR CODE INFO SECTION */
+.qr-code-info {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+  flex: 1;
+  min-width: 250px;
+}
+
+.qr-url-label {
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: #666;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-bottom: 0.5rem;
+  display: block;
+}
+
+.qr-url-display {
+  background: white;
+  padding: 1rem;
+  border-radius: 8px;
+  border: 1px solid #e0e0e0;
+  word-break: break-all;
+  font-family: 'Courier New', monospace;
+  font-size: 0.9rem;
+  color: #00A8E8;
+  font-weight: 600;
+  line-height: 1.6;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+}
+
+.qr-url-display code {
+  background: transparent;
+  color: inherit;
+  padding: 0;
+  border-radius: 0;
+}
+
+/* QR CODE ACTIONS */
+.qr-code-actions {
+  display: flex;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
+.btn-download-qr,
+.btn-copy-url {
+  flex: 1;
+  min-width: 140px;
+  padding: 0.75rem 1.25rem;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  font-weight: 600;
+  font-size: 0.9rem;
+  transition: all 0.3s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+}
+
+.btn-download-qr {
+  background: linear-gradient(135deg, #00A8E8 0%, #0099FF 100%);
+  color: white;
+  box-shadow: 0 4px 12px rgba(0, 168, 232, 0.3);
+}
+
+.btn-download-qr:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 16px rgba(0, 168, 232, 0.4);
+}
+
+.btn-copy-url {
+  background: white;
+  color: #00A8E8;
+  border: 2px solid #00A8E8;
+  box-shadow: 0 2px 8px rgba(0, 168, 232, 0.1);
+}
+
+.btn-copy-url:hover {
+  background: #f0f7ff;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 168, 232, 0.2);
+}
+
+.btn-download-qr:active,
+.btn-copy-url:active {
+  transform: translateY(0);
+}
+
+/* QR CODE INFO BOX */
+.qr-code-info-box {
+  background: white;
+  padding: 1rem;
+  border-radius: 8px;
+  border-left: 4px solid #00A8E8;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+}
+
+.info-text {
+  margin: 0;
+  color: #666;
+  font-weight: 500;
+  font-size: 0.95rem;
+}
+
+/* QR CODE RESPONSIVE */
+@media (max-width: 768px) {
+  .qr-code-section {
+    padding: 1.5rem !important;
+  }
+
+  .qr-code-container {
+    flex-direction: column;
+    gap: 1.5rem;
+    align-items: stretch;
+  }
+
+  .qr-code-box {
+    width: 100%;
+    min-width: auto;
+    min-height: auto;
+    margin: 0 auto;
+  }
+
+  .qr-code-image {
+    width: 180px;
+    height: 180px;
+  }
+
+  .qr-code-info {
+    width: 100%;
+    text-align: center;
+  }
+
+  .qr-code-actions {
+    justify-content: center;
+  }
+
+  .btn-download-qr,
+  .btn-copy-url {
+    min-width: auto;
+    flex: 0 1 45%;
+  }
+
+  .qr-url-display {
+    text-align: left;
+    font-size: 0.85rem;
+  }
+}
+

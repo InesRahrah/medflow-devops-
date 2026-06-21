@@ -1,0 +1,81 @@
+
+<main class="page-content">
+  <section class="page-header">
+    <div class="container flex-header">
+      <div>
+        <h1 class="gradient-text">Lab Appointments</h1>
+        <p class="subtitle">View and manage scheduled diagnostic tests and sample collections</p>
+      </div>
+      <div class="header-actions">
+        <button class="btn btn-primary"><i class="fas fa-calendar-plus"></i> Schedule New</button>
+      </div>
+    </div>
+  </section>
+
+  <section class="appointments-section">
+    <div class="container">
+      <div class="appointments-grid">
+        <!-- Daily Agenda Sidebar -->
+        <div class="agenda-sidebar glass shadow">
+          <h3>Today's Overview</h3>
+          <div class="agenda-stats">
+            <div class="agenda-stat">
+              <span class="label">Total</span>
+              <span class="value">12</span>
+            </div>
+            <div class="agenda-stat">
+              <span class="label">Completed</span>
+              <span class="value">04</span>
+            </div>
+            <div class="agenda-stat">
+              <span class="label">Remaining</span>
+              <span class="value">08</span>
+            </div>
+          </div>
+          <div class="calendar-mini">
+            <!-- Mock Mini Calendar -->
+            <div class="cal-header">March 2026</div>
+            <div class="cal-days">
+              <span>M</span><span>T</span><span>W</span><span>T</span><span>F</span><span>S</span><span>S</span>
+              <span class="inactive">16</span><span class="inactive">17</span><span class="active">18</span><span>19</span><span>20</span><span>21</span><span>22</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Appointments List -->
+        <div class="appointments-content glass shadow">
+          <div class="content-header">
+            <h3>Schedule for March 19, 2026</h3>
+            <div class="view-toggles">
+              <button class="btn-toggle active">List</button>
+              <button class="btn-toggle">Timeline</button>
+            </div>
+          </div>
+
+          <div class="appointment-list">
+            <div class="appointment-card" *ngFor="let appt of appointments" [ngClass]="getStatusClass(appt.status)">
+              <div class="appt-time">
+                <i class="far fa-clock"></i>
+                <span>{{appt.time}}</span>
+              </div>
+              <div class="appt-details">
+                <div class="patient-name">
+                  <div class="avatar-xs">{{appt.patientName.charAt(0)}}</div>
+                  <strong>{{appt.patientName}}</strong>
+                </div>
+                <div class="test-type">{{appt.testType}}</div>
+              </div>
+              <div class="appt-status">
+                <span class="status-badge">{{appt.status}}</span>
+              </div>
+              <div class="appt-actions">
+                <button class="btn-icon"><i class="fas fa-ellipsis-v"></i></button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+</main>
+

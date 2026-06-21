@@ -1,0 +1,110 @@
+<div class="dashboard-container animate-up">
+  <header class="dashboard-header">
+    <div class="welcome-text">
+      <span class="role-chip">Insurance Portal</span>
+      <h1>Insurance Dashboard</h1>
+    </div>
+    <div class="header-stats">
+      <div class="mini-stat">
+        <span class="label">Total Processing</span>
+        <span class="value">{{ totalAmount | currency:'USD':'symbol':'1.0-0' }}</span>
+      </div>
+    </div>
+  </header>
+
+  <div class="stats-grid">
+    <div class="gradient-card primary">
+      <div class="card-icon"><i class="fas fa-file-invoice-dollar"></i></div>
+      <div class="card-details">
+        <h3>{{ claims.length }}</h3>
+        <p>Active Claims</p>
+      </div>
+      <div class="card-trend positive">Total in system</div>
+    </div>
+
+    <div class="gradient-card warning">
+      <div class="card-icon"><i class="fas fa-exclamation-circle"></i></div>
+      <div class="card-details">
+        <h3>{{ stats['PENDING'] || 0 }}</h3>
+        <p>Pending Review</p>
+      </div>
+      <div class="card-trend">Action Required</div>
+    </div>
+
+    <div class="gradient-card success">
+      <div class="card-icon"><i class="fas fa-check-double"></i></div>
+      <div class="card-details">
+        <h3>{{ stats['APPROVED'] || 0 }}</h3>
+        <p>Approved</p>
+      </div>
+      <div class="card-trend positive">{{ approvalRate }} Approval Rate</div>
+    </div>
+
+    <div class="gradient-card info">
+      <div class="card-icon"><i class="fas fa-users"></i></div>
+      <div class="card-details">
+        <h3>{{ stats['PAID'] || 0 }}</h3>
+        <p>Paid Claims</p>
+      </div>
+      <div class="card-trend">Completed</div>
+    </div>
+  </div>
+
+  <div class="content-grid">
+    <section class="recent-claims">
+      <div class="section-header">
+        <h2>Recent Claims Activity</h2>
+        <button class="btn-text" routerLink="/insurance/claims-queue">
+          See all <i class="fas fa-arrow-right"></i>
+        </button>
+      </div>
+
+      <!-- Loading -->
+      <div *ngIf="isLoading" style="text-align:center; padding:1.5rem;">
+        <i class="fas fa-spinner fa-spin"></i> Loading...
+      </div>
+
+      <!-- Claims dynamiques -->
+      <div class="claims-list" *ngIf="!isLoading">
+        <div class="claim-item" *ngFor="let claim of recentClaims">
+          <div class="claim-info">
+            <span class="id">#{{ claim.id }}</span>
+            <span class="name">{{ claim.patientName }}</span>
+            <span class="service">{{ claim.insuranceCompany }}</span>
+          </div>
+          <div [class]="'claim-status ' + getStatusClass(claim.status || '')">
+            {{ claim.status }}
+          </div>
+        </div>
+
+        <!-- Empty state -->
+        <div *ngIf="recentClaims.length === 0"
+          style="color:var(--text-secondary); text-align:center; padding:1rem;">
+          No recent claims.
+        </div>
+      </div>
+    </section>
+
+    <aside class="quick-links">
+      <h2>Quick Actions</h2>
+      <div class="action-buttons">
+        <button class="action-btn" routerLink="/insurance/claims-queue">
+          <i class="fas fa-search-plus"></i>
+          <span>Verify Coverage</span>
+        </button>
+        <button class="action-btn" routerLink="/insurance/claims-queue">
+          <i class="fas fa-plus-circle"></i>
+          <span>New Settlement</span>
+        </button>
+        <button class="action-btn">
+          <i class="fas fa-file-export"></i>
+          <span>Monthly Audit</span>
+        </button>
+        <button class="action-btn" routerLink="/insurance/profile">
+          <i class="fas fa-user-cog"></i>
+          <span>Portal Settings</span>
+        </button>
+      </div>
+    </aside>
+  </div>
+</div>

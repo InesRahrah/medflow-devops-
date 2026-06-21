@@ -1,0 +1,117 @@
+<div class="chat-container">
+
+  <!-- Header with gradient -->
+  <div class="chat-header">
+    <div class="header-content">
+      <h2>🤖 AI Pharmacy Assistant</h2>
+      <p class="header-subtitle">Intelligent medical assistance 24/7</p>
+    </div>
+  </div>
+
+  <!-- Chat Messages Area -->
+  <div class="chat-box">
+    <!-- Welcome Message -->
+    <div *ngIf="messages.length === 0" class="welcome-section">
+      <div class="welcome-icon">💊</div>
+      <h3>Welcome!</h3>
+      <p>Ask your questions about medications, dosages, side effects and interactions.</p>
+      <div class="quick-suggestions">
+        <button class="suggestion-btn" (click)="sendQuickMessage('What are the side effects of aspirin?')">
+          <span class="suggestion-icon">⚠️</span>
+          <span>Side Effects</span>
+        </button>
+        <button class="suggestion-btn" (click)="sendQuickMessage('How to dose ibuprofen?')">
+          <span class="suggestion-icon">📋</span>
+          <span>Dosage</span>
+        </button>
+        <button class="suggestion-btn" (click)="sendQuickMessage('What are drug interactions?')">
+          <span class="suggestion-icon">🔗</span>
+          <span>Interactions</span>
+        </button>
+        <button class="suggestion-btn" (click)="sendQuickMessage('What should I know before taking a medication?')">
+          <span class="suggestion-icon">❓</span>
+          <span>Precautions</span>
+        </button>
+      </div>
+    </div>
+
+    <!-- Messages -->
+    <div *ngFor="let msg of messages; let i = index; let last = last"
+         [ngClass]="msg.sender === 'user' ? 'user-msg-wrapper' : 'bot-msg-wrapper'"
+         [class.last-message]="last"
+         [@messageAnimation]>
+      
+      <div *ngIf="msg.sender === 'bot'" class="message-avatar">🤖</div>
+      <div *ngIf="msg.sender === 'user'" class="message-avatar user-avatar">👤</div>
+
+      <div [ngClass]="msg.sender === 'user' ? 'user-msg' : 'bot-msg'">
+        <!-- Sender Badge -->
+        <span class="sender-badge" [ngClass]="msg.sender === 'bot' ? 'bot-badge' : 'user-badge'">
+          {{ msg.sender === 'bot' ? 'AI Assistant' : 'You' }}
+        </span>
+        
+        <!-- Message Content -->
+        <div class="message-bubble">
+          <!-- User messages: plain text -->
+          <p *ngIf="msg.sender === 'user'" class="message-text">{{ msg.text }}</p>
+          
+          <!-- AI messages: formatted HTML -->
+          <div *ngIf="msg.sender === 'bot' && msg.formattedText" 
+               class="message-text formatted-content"
+               [innerHTML]="msg.formattedText"></div>
+          <p *ngIf="msg.sender === 'bot' && !msg.formattedText" class="message-text">{{ msg.text }}</p>
+        </div>
+
+        <!-- Message Actions -->
+        <div class="message-actions" *ngIf="msg.sender === 'bot'">
+          <button class="action-btn" title="Copy" (click)="copyMessage(msg.text)">📋</button>
+          <button class="action-btn" title="Reuse" (click)="reuseMessage(msg.text)">↻</button>
+        </div>
+      </div>
+
+      <!-- Time Stamp -->
+      <span class="message-time">{{ msg.timestamp }}</span>
+    </div>
+
+    <!-- AI Thinking Indicator -->
+    <div *ngIf="isLoading" class="bot-msg-wrapper thinking-indicator" [@messageAnimation]>
+      <div class="message-avatar">🤖</div>
+      <div class="bot-msg">
+        <span class="sender-badge bot-badge">AI Assistant</span>
+        <div class="message-bubble thinking-bubble">
+          <div class="thinking-animation">
+            <span class="thinking-dot"></span>
+            <span class="thinking-dot"></span>
+            <span class="thinking-dot"></span>
+          </div>
+          <span class="thinking-text">Thinking...</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Input Area -->
+  <div class="input-section">
+    <div class="input-box">
+      <button class="attach-btn" title="Attachment" [disabled]="isLoading">📎</button>
+      
+      <input 
+        [(ngModel)]="userMessage"
+        placeholder="Ask your question about medications..."
+        [disabled]="isLoading"
+        class="message-input"
+        (keyup.enter)="sendMessage()"
+        (input)="onInputChange($event)" />
+
+      <button class="send-btn" (click)="sendMessage()" [disabled]="!userMessage.trim() || isLoading" 
+              [class.active]="userMessage.trim()">
+        <span *ngIf="!isLoading">✈️ Send</span>
+        <span *ngIf="isLoading" class="loading-spinner">
+          <span class="spinner"></span>
+        </span>
+      </button>
+    </div>
+    <p class="input-hint">Press Enter to send</p>
+  </div>
+
+</div>

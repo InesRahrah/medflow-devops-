@@ -1,0 +1,76 @@
+<article
+  class="timeline-item"
+  [class.is-timeline]="timeline"
+  [class.is-important]="important"
+  [class.is-active]="active"
+  tabindex="0"
+  (click)="select.emit()"
+  (keydown.enter)="select.emit()"
+  (keydown.space)="select.emit(); $event.preventDefault()"
+>
+  <div class="timeline-time">
+    <i class="fas fa-clock"></i>
+    <span>{{ timeLabel }}</span>
+  </div>
+
+  <div class="timeline-card">
+    <div class="card-header-row">
+      <div class="primary-info">
+        <h4>
+          <i class="fas fa-user-md"></i>
+          {{ doctorName }}
+        </h4>
+        <p class="type-row">
+          <i class="fas fa-stethoscope"></i>
+          {{ typeLabel }}
+        </p>
+        <span class="telemedicine-badge" *ngIf="isTelemedicine">Telemedicine</span>
+      </div>
+
+      <span class="status-badge" [ngClass]="statusClass">
+        {{ statusLabel }}
+      </span>
+    </div>
+
+    <p class="notes" *ngIf="notes">{{ notes }}</p>
+
+    <div class="actions">
+      <button type="button" title="View" aria-label="View" (click)="$event.stopPropagation(); view.emit()">
+        <i class="fas fa-eye"></i>
+      </button>
+      <button
+        *ngIf="isTelemedicine"
+        type="button"
+        class="join-btn"
+        title="Join telemedicine"
+        aria-label="Join telemedicine"
+        [disabled]="!canJoin"
+        (click)="$event.stopPropagation(); join.emit()"
+      >
+        <i class="fas fa-video"></i>
+        <span>Join</span>
+      </button>
+      <button
+        *ngIf="isTelemedicine && hasDirectJoinLink"
+        type="button"
+        class="direct-link-btn"
+        title="Open generated meeting URL"
+        aria-label="Open generated meeting URL"
+        (click)="$event.stopPropagation(); openDirectLink.emit()"
+      >
+        <i class="fas fa-up-right-from-square"></i>
+        <span>Open link</span>
+      </button>
+      <button *ngIf="allowManageActions" type="button" title="Edit" aria-label="Edit" (click)="$event.stopPropagation(); edit.emit()">
+        <i class="fas fa-pen"></i>
+      </button>
+      <button *ngIf="allowManageActions" type="button" class="danger" title="Delete" aria-label="Delete" (click)="$event.stopPropagation(); delete.emit()">
+        <i class="fas fa-trash"></i>
+      </button>
+    </div>
+
+    <p class="join-hint" *ngIf="isTelemedicine && !canJoin && joinAvailableAtLabel">
+      Available at {{ joinAvailableAtLabel }}
+    </p>
+  </div>
+</article>

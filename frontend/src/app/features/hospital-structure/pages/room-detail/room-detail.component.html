@@ -1,0 +1,617 @@
+<div class="page-container">
+  <div class="page-nav">
+    <div class="breadcrumb">
+      <button class="breadcrumb-link" (click)="goToBuilding()">
+        <i class="fas fa-building"></i> <span>Hospital Structure</span>
+      </button>
+      <i class="fas fa-chevron-right breadcrumb-separator"></i>
+
+      <div class="floor-selector-dropdown">
+        <button class="breadcrumb-link" (click)="toggleFloorDropdown()">
+          <i class="fas fa-layer-group"></i>
+          <span>{{ floor?.name || "Floor" }}</span>
+          <i class="fas fa-chevron-down dropdown-icon"></i>
+        </button>
+
+        <div class="dropdown-menu" *ngIf="showFloorDropdown">
+          <button
+            class="dropdown-item"
+            *ngFor="let f of allFloors"
+            [class.active]="f.id === floorId"
+            (click)="switchFloor(f.id)"
+          >
+            <i class="fas fa-layer-group"></i> {{ f.name }}
+          </button>
+        </div>
+      </div>
+      <i class="fas fa-chevron-right breadcrumb-separator"></i>
+
+      <div class="floor-selector-dropdown">
+        <button class="breadcrumb-current" (click)="toggleRoomDropdown()">
+          <i class="fas fa-door-open"></i> {{ room?.roomNumber || "Room" }}
+          <i class="fas fa-chevron-down dropdown-icon"></i>
+        </button>
+
+        <div class="dropdown-menu" *ngIf="showRoomDropdown">
+          <button
+            class="dropdown-item"
+            *ngFor="let r of floorRooms"
+            [class.active]="r.id === roomId"
+            (click)="switchRoom(r.id)"
+          >
+            <i class="fas fa-door-open"></i> {{ r.roomNumber }}
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="page-header">
+    <div class="header-left">
+      <div class="title-with-icon">
+        <div class="header-icon-main">
+          <i class="fas fa-door-open"></i>
+        </div>
+        <div class="header-text-group">
+          <div class="title-with-edit">
+            <h1 class="page-title">Room {{ room?.roomNumber || "..." }}</h1>
+            <button
+              class="edit-icon-btn"
+              (click)="openEditRoomModal()"
+              aria-label="Edit Room"
+              title="Edit Room"
+            >
+              <svg class="edit-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
+                <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
+              </svg>
+            </button>
+          </div>
+          <div class="room-meta">
+            <span class="meta-badge type" *ngIf="room" [title]="roomTypeConfig?.description || ''">
+              <i class="fas fa-tag"></i> {{ room.type }}
+              <span class="type-limit">
+                ({{beds.length}}/{{roomHardCapacityDisplay}})
+              </span>
+            </span>
+            <span class="meta-badge dept" *ngIf="room?.departmentName">
+              <i class="fas fa-hospital"></i> {{ room?.departmentName }}
+            </span>
+            <span
+              class="meta-badge status"
+              [ngClass]="room?.status | lowercase"
+            >
+              <i class="fas fa-circle"></i> {{ room?.status | titlecase }}
+            </span>
+          </div>
+          
+          <div class="assigned-staff-team" *ngIf="room?.assignedStaff?.length">
+            <span class="team-label">Clinical Team:</span>
+            <div class="staff-badges">
+              <span *ngFor="let staff of room?.assignedStaff" class="staff-badge" [ngClass]="staff.role | lowercase">
+                <i class="fas" [ngClass]="staff.role === 'DOCTOR' ? 'fa-user-md' : 'fa-user-nurse'"></i>
+                {{ staff.firstName }} {{ staff.lastName }}
+              </span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="header-actions">
+      <div class="view-toggle">
+        <button
+          class="btn-toggle"
+          [class.active]="!editMode"
+          (click)="toggleEditMode()"
+        >
+          <i class="fas fa-eye"></i> View
+        </button>
+        <button
+          class="btn-toggle"
+          [class.active]="editMode"
+          (click)="toggleEditMode()"
+        >
+          <i class="fas fa-pen-ruler"></i> Manage Layout
+        </button>
+      </div>
+
+      <div style="display: flex; flex-direction: column; align-items: flex-end;">
+        <button
+          class="btn-add"
+          (click)="addBed()"
+          [disabled]="isAtLimit"
+          [title]="addBedDisabledTooltip"
+        >
+          <i class="fas fa-plus"></i>
+          <span>{{ isAtLimit ? "Limit Reached" : "Add Bed" }}</span>
+        </button>
+
+      </div>
+    </div>
+  </div>
+
+  <div class="capacity-progress-card" *ngIf="room">
+    <div class="capacity-progress-header">
+      <span class="capacity-progress-title">Bed Capacity</span>
+      <span class="capacity-progress-count">{{ capacityHelperText }}</span>
+    </div>
+    <div class="capacity-progress-track" [ngClass]="capacityTrackState">
+      <div
+        class="capacity-progress-fill"
+        [ngClass]="capacityTrackState"
+        [style.width.%]="capacityUsagePercent"
+      ></div>
+    </div>
+    <div class="capacity-progress-meta" *ngIf="isAtLimit">
+      {{ capacityLimitHint }}
+    </div>
+  </div>
+
+  <!-- Bed Summary Stats -->
+  <div class="stats-bar" *ngIf="beds.length > 0">
+    <div class="stat-chip stat-free">
+      <span class="stat-dot" style="background: #22c55e"></span>
+      <span class="stat-count">{{ freeBeds }}</span>
+      <span class="stat-label">Available</span>
+    </div>
+    <div class="stat-chip stat-occupied">
+      <span class="stat-dot" style="background: #ef4444"></span>
+      <span class="stat-count">{{ occupiedBeds }}</span>
+      <span class="stat-label">Occupied</span>
+    </div>
+    <div class="stat-chip stat-reserved">
+      <span class="stat-dot" style="background: #f59e0b"></span>
+      <span class="stat-count">{{ reservedBeds }}</span>
+      <span class="stat-label">Reserved</span>
+    </div>
+    <div class="stat-chip stat-out-of-service">
+      <span class="stat-dot" style="background: #94a3b8"></span>
+      <span class="stat-count">{{ outOfServiceBeds }}</span>
+      <span class="stat-label">Out of Service</span>
+    </div>
+  </div>
+
+  <!-- Bed Modal (Add / Edit) -->
+  <div class="modal-overlay" *ngIf="showBedModal" (click)="closeBedModal()">
+    <div class="modal-card bed-modal" (click)="$event.stopPropagation()">
+      <div class="modal-header">
+        <div class="modal-header-left">
+          <div class="modal-icon-hex">
+            <i
+              class="fas"
+              [ngClass]="isBedEditMode ? 'fa-id-card' : 'fa-plus-circle'"
+            ></i>
+          </div>
+          <div class="modal-title-group">
+            <p>
+              {{
+                isBedEditMode
+                  ? "Modify unit properties and notes"
+                  : "Register a new medical unit in this room"
+              }}
+            </p>
+          </div>
+        </div>
+        <button class="modal-close-btn" (click)="closeBedModal()">
+          <i class="fas fa-times"></i>
+        </button>
+      </div>
+
+      <div class="modal-body custom-scrollbar">
+        <div class="form-sections">
+          <!-- Primary Identification -->
+          <div class="form-section">
+            <div class="section-label">General Information</div>
+            <div class="form-grid-dual">
+              <div class="form-group">
+                <label class="input-label">Bed Label / Number</label>
+                <div class="input-container">
+                  <i class="fas fa-tag field-icon"></i>
+                  <input
+                    type="text"
+                    class="modern-input"
+                    name="bedLabel"
+                    #bedLabelModel="ngModel"
+                    required
+                    minlength="2"
+                    maxlength="30"
+                    [(ngModel)]="currentBed.label"
+                    placeholder="e.g., Bed 101"
+                    [class.input-invalid]="isBedFieldInvalid('label', bedLabelModel)"
+                  />
+                </div>
+                <small class="field-error" *ngIf="isBedFieldInvalid('label', bedLabelModel)">
+                  {{ getBedFieldError('label', bedLabelModel) }}
+                </small>
+              </div>
+
+              <div class="form-group">
+                <label class="input-label">Current Status</label>
+                <div class="input-container custom-dropdown-container" [class.input-invalid-wrapper]="isBedFieldInvalid('status', bedStatusModel)">
+                  <i class="fas fa-circle-notch field-icon status-icon"></i>
+                  <app-custom-dropdown
+                    name="bedStatus"
+                    #bedStatusModel="ngModel"
+                    required
+                    [options]="statusOptions"
+                    [(ngModel)]="currentBed.status"
+                    placeholder="Select Status"
+                  >
+                  </app-custom-dropdown>
+                </div>
+                <small class="field-error" *ngIf="isBedFieldInvalid('status', bedStatusModel)">
+                  {{ getBedFieldError('status', bedStatusModel) }}
+                </small>
+              </div>
+            </div>
+          </div>
+
+          <!-- Technical Classification -->
+          <div class="form-section">
+            <div class="section-label">Unit Configuration</div>
+            <div class="form-group full-width">
+              <label class="input-label">Bed Type / Category</label>
+              <div class="input-container custom-dropdown-container">
+                <i class="fas fa-layers-group field-icon"></i>
+                <app-custom-dropdown
+                  [options]="typeOptions"
+                  [(ngModel)]="currentBed.type"
+                  placeholder="e.g., ICU, Standard"
+                >
+                </app-custom-dropdown>
+              </div>
+            </div>
+          </div>
+
+          <!-- Documentation -->
+          <div class="form-section">
+            <div class="section-label">Additional Observations</div>
+            <div class="form-group full-width">
+              <label class="input-label">Notes & Comments</label>
+              <div class="textarea-container">
+                <i class="fas fa-sticky-note field-icon top"></i>
+                <textarea
+                  class="modern-textarea"
+                  name="bedNotes"
+                  #bedNotesModel="ngModel"
+                  maxlength="500"
+                  [(ngModel)]="currentBed.notes"
+                  placeholder="Enter maintenance history, special equipment needs, or general observations..."
+                  rows="3"
+                  [class.input-invalid]="isBedFieldInvalid('notes', bedNotesModel)"
+                ></textarea>
+              </div>
+              <small class="field-error" *ngIf="isBedFieldInvalid('notes', bedNotesModel)">
+                {{ getBedFieldError('notes', bedNotesModel) }}
+              </small>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="modal-footer-modern">
+        <button class="btn-secondary-modern" (click)="closeBedModal()">
+          <span>Cancel</span>
+        </button>
+        <button
+          class="btn-primary-modern"
+          (click)="confirmBedAction()"
+          [disabled]="isCreateBedDisabled"
+          [title]="!isBedEditMode && isAtLimit ? addBedDisabledTooltip : ''"
+        >
+          <i class="fas fa-check-circle"></i>
+          <span>{{ isBedEditMode ? "Update Unit" : "Create Unit" }}</span>
+        </button>
+      </div>
+      <small
+        class="limit-message"
+        *ngIf="bedFormWarningMessage || (!isBedEditMode && isAtLimit)"
+        style="color: #64748b; font-size: 0.75rem; margin: 0 1.5rem 1rem; display: block; font-weight: 500;"
+      >
+        {{ bedFormWarningMessage || limitReachedMessage }}
+      </small>
+    </div>
+  </div>
+
+  <!-- Real Beds Workspace -->
+  <div class="room-blueprint-container" *ngIf="beds.length > 0">
+    <div
+      class="blueprint-surface"
+      [class.edit-enabled]="editMode"
+      (dragover)="onDragOver($event)"
+      (drop)="onDropOnSurface($event)"
+    >
+      <div class="beds-layout-grid">
+        <!-- Icon-First SVG Bed (Minimal & Intuitive) -->
+        <div
+          class="bed-unit-wrapper"
+          *ngFor="let bed of beds; let i = index"
+          [draggable]="editMode"
+          (dragstart)="onDragStart($event, i)"
+          [style.left.px]="getBedX(bed)"
+          [style.top.px]="getBedY(bed)"
+          [class.selected]="selectedBedId === bed.id"
+          [attr.data-bed-id]="bed.id"
+          (click)="selectBed(bed.id, $event)"
+        >
+          <div
+            class="bed-icon-container"
+            [class]="getBedStatusClass(bed.status)"
+          >
+            <!-- Status-specific bed artwork -->
+            <div
+              class="bed-custom-icon"
+              [ngClass]="getBedIconClass(bed.status)"
+            ></div>
+
+            <div class="bed-icon-footer">
+              <span class="bed-icon-label">{{ bed.label }}</span>
+              <div class="bed-icon-status-badge">
+                <span class="status-dot"></span>
+                <span class="status-label">{{ bed.status | titlecase }}</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Enhanced Status Menu (Only if selected and in Edit Mode) - Always on Top -->
+          <div
+            class="enhanced-status-menu"
+            *ngIf="selectedBedId === bed.id && editMode"
+            [ngStyle]="popupMenuStyles"
+            (click)="$event.stopPropagation()"
+          >
+            <div class="menu-header">Update Status</div>
+            <div class="menu-options">
+              <button
+                class="m-option free"
+                (click)="
+                  changeBedStatus(bed.id, 'FREE'); $event.stopPropagation()
+                "
+              >
+                <i class="fas fa-check"></i> Free
+              </button>
+              <button
+                class="m-option occupied"
+                (click)="
+                  changeBedStatus(bed.id, 'OCCUPIED'); $event.stopPropagation()
+                "
+              >
+                <i class="fas fa-user-injured"></i> Occupy
+              </button>
+              <button
+                class="m-option reserved"
+                (click)="
+                  changeBedStatus(bed.id, 'RESERVED'); $event.stopPropagation()
+                "
+              >
+                <i class="fas fa-clock"></i> Reserve
+              </button>
+              <button
+                class="m-option out-of-service"
+                (click)="
+                  changeBedStatus(bed.id, 'OUT_OF_SERVICE');
+                  $event.stopPropagation()
+                "
+              >
+                <i class="fas fa-tools"></i> Out of Service
+              </button>
+            </div>
+            <div class="menu-divider"></div>
+            <div class="menu-actions">
+              <button
+                class="menu-action-btn edit"
+                (click)="openEditBedModal(bed, $event)"
+              >
+                <i class="fas fa-pencil"></i>
+                <span>Edit</span>
+              </button>
+              <button
+                class="menu-action-btn delete"
+                (click)="deleteBed(bed.id, $event)"
+              >
+                <i class="fas fa-trash"></i>
+                <span>Delete</span>
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Inline Add Unit Card (Visible in both modes for consistency) -->
+        <div
+          class="bed-unit-wrapper add-item-wrapper"
+          *ngIf="!isAtLimit"
+          (click)="addBed()"
+        >
+          <div class="add-unit-card">
+            <div class="add-icon-circle">
+              <i class="fas fa-plus"></i>
+            </div>
+            <span>Add Unit</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="empty-state" *ngIf="beds.length === 0">
+    <div class="empty-state-visual">
+      <i class="fas fa-bed"></i>
+    </div>
+    <div class="empty-state-content">
+      <h3 class="empty-title">This room is empty</h3>
+      <p class="empty-subtitle">
+        Start by adding beds to manage patient occupancy.
+      </p>
+      <button class="btn-primary-add" (click)="addBed()" [disabled]="isAtLimit">
+        <i class="fas fa-plus"></i>
+        <span>Add First Bed</span>
+      </button>
+      <div *ngIf="isAtLimit" style="color: #dc2626; font-size: 0.85rem; margin-top: 12px; font-weight: 500;">
+        {{ limitReachedMessage }}
+      </div>
+    </div>
+  </div>
+
+  <div class="modal-overlay" *ngIf="showRoomModal" (click)="closeRoomModal()">
+    <div class="modal-card room-edit-modal" (click)="$event.stopPropagation()">
+      <div class="modal-header">
+        <div class="modal-header-left">
+          <div class="modal-icon-hex">
+            <i class="fas fa-pen"></i>
+          </div>
+          <div class="modal-title-group">
+            <h2 class="modal-title">Edit Room</h2>
+            <p class="modal-subtitle">Update room details and assignment.</p>
+          </div>
+        </div>
+        <button class="modal-close-btn" (click)="closeRoomModal()">
+          <i class="fas fa-times"></i>
+        </button>
+      </div>
+
+      <div class="modal-body custom-scrollbar">
+        <div class="form-sections">
+          <div class="form-section">
+            <div class="section-label">General Information</div>
+            <div class="form-grid-dual">
+              <div class="form-group">
+                <label class="input-label">Room Number</label>
+                <div class="input-container">
+                  <i class="fas fa-door-open field-icon"></i>
+                  <input
+                    type="text"
+                    class="modern-input"
+                    name="roomNumber"
+                    #roomNumberModel="ngModel"
+                    required
+                    minlength="2"
+                    maxlength="30"
+                    [(ngModel)]="currentRoom.roomNumber"
+                    placeholder="e.g., 201"
+                    [class.input-invalid]="isRoomFieldInvalid('roomNumber', roomNumberModel)"
+                  />
+                </div>
+                <small class="field-error" *ngIf="isRoomFieldInvalid('roomNumber', roomNumberModel)">
+                  {{ getRoomFieldError('roomNumber', roomNumberModel) }}
+                </small>
+              </div>
+
+              <div class="form-group">
+                <label class="input-label">Department</label>
+                <div class="input-container custom-dropdown-container" [class.input-invalid-wrapper]="isRoomFieldInvalid('departmentId', roomDepartmentModel)">
+                  <i class="fas fa-hospital field-icon"></i>
+                  <app-custom-dropdown
+                    name="roomDepartment"
+                    #roomDepartmentModel="ngModel"
+                    required
+                    [options]="departmentOptions"
+                    [(ngModel)]="currentRoom.departmentId"
+                    placeholder="Select Department"
+                  >
+                  </app-custom-dropdown>
+                </div>
+                <small class="field-error" *ngIf="isRoomFieldInvalid('departmentId', roomDepartmentModel)">
+                  {{ getRoomFieldError('departmentId', roomDepartmentModel) }}
+                </small>
+              </div>
+            </div>
+          </div>
+
+          <div class="form-section">
+            <div class="section-label">Configuration</div>
+            <div class="form-grid-dual">
+              <div class="form-group">
+                <label class="input-label">Room Type</label>
+                <div class="input-container custom-dropdown-container" [class.input-invalid-wrapper]="isRoomFieldInvalid('type', roomTypeModel)">
+                  <i class="fas fa-tag field-icon"></i>
+                  <app-custom-dropdown
+                    name="roomType"
+                    #roomTypeModel="ngModel"
+                    required
+                    [options]="roomTypeOptions"
+                    [(ngModel)]="currentRoom.type"
+                    (ngModelChange)="onRoomTypeChange()"
+                    placeholder="Select Room Type"
+                  >
+                  </app-custom-dropdown>
+                </div>
+                <small class="field-error" *ngIf="isRoomFieldInvalid('type', roomTypeModel)">
+                  {{ getRoomFieldError('type', roomTypeModel) }}
+                </small>
+              </div>
+
+              <div class="form-group">
+                <label class="input-label">Room Status</label>
+                <div class="input-container custom-dropdown-container" [class.input-invalid-wrapper]="isRoomFieldInvalid('status', roomStatusModel)">
+                  <i class="fas fa-circle-notch field-icon"></i>
+                  <app-custom-dropdown
+                    name="roomStatus"
+                    #roomStatusModel="ngModel"
+                    required
+                    [options]="roomStatusOptions"
+                    [(ngModel)]="currentRoom.status"
+                    placeholder="Select Status"
+                  >
+                  </app-custom-dropdown>
+                </div>
+                <small class="field-error" *ngIf="isRoomFieldInvalid('status', roomStatusModel)">
+                  {{ getRoomFieldError('status', roomStatusModel) }}
+                </small>
+              </div>
+            </div>
+          </div>
+
+          <div class="form-section">
+            <div class="section-label">Capacity</div>
+            <div class="form-group full-width">
+              <label class="input-label">Bed Capacity</label>
+              <div class="input-container" [class.input-invalid-wrapper]="isRoomFieldInvalid('capacity', roomCapacityModel)">
+                <i class="fas fa-bed field-icon"></i>
+                <input
+                  type="number"
+                  class="modern-input"
+                  name="roomCapacity"
+                  #roomCapacityModel="ngModel"
+                  required
+                  [attr.min]="currentRoom.type === 'OR' ? 0 : 1"
+                  [max]="maxAllowedRoomCapacity"
+                  [disabled]="currentRoom.type === 'OR'"
+                  [(ngModel)]="currentRoom.capacity"
+                  [class.input-invalid]="isRoomFieldInvalid('capacity', roomCapacityModel)"
+                />
+              </div>
+              <small class="field-error" *ngIf="isRoomFieldInvalid('capacity', roomCapacityModel)">
+                {{ getRoomFieldError('capacity', roomCapacityModel) }}
+              </small>
+              <small class="capacity-inline-hint" *ngIf="showRoomCapacityLimitHint">
+                <ng-container *ngIf="currentRoom.type === 'OR'">
+                  Operating rooms cannot contain beds.
+                </ng-container>
+                <ng-container *ngIf="currentRoom.type !== 'OR' && selectedRoomTypeMaxBeds > 0">
+                  Max beds for this room type: {{ selectedRoomTypeMaxBeds }}.
+                </ng-container>
+              </small>
+              <small
+                class="limit-message"
+                *ngIf="roomModalErrorMessage"
+                style="color: #b91c1c; font-size: 0.78rem; margin: 0.35rem 0 0; display: block; font-weight: 600;"
+              >
+                {{ roomModalErrorMessage }}
+              </small>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="modal-footer-modern">
+        <button class="btn-secondary-modern" (click)="closeRoomModal()">
+          <span>Cancel</span>
+        </button>
+        <button class="btn-primary-modern" (click)="confirmRoomUpdate()" [disabled]="isRoomSubmitDisabled">
+          <i class="fas fa-check-circle"></i>
+          <span>Save Changes</span>
+        </button>
+      </div>
+    </div>
+  </div>
+</div>

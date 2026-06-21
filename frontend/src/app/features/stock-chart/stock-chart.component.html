@@ -1,0 +1,44 @@
+<div class="stock-chart-wrapper">
+  <!-- PAGE HEADER -->
+  <div class="page-header">
+    <div class="header-content">
+      <h1 class="page-title">📊 Inventory Dashboard</h1>
+      <p class="page-description">Real-time stock monitoring and critical product alerts</p>
+    </div>
+  </div>
+
+  <!-- CHARTS CONTAINER -->
+  <div class="charts-container">
+    <!-- Stock Overview Chart -->
+    <div class="chart-card stock-management-card">
+      <div class="chart-header">
+        <div class="header-info">
+          <h2 class="chart-title">📦 Stock Distribution</h2>
+          <p class="chart-subtitle">Inventory breakdown by product with percentage allocation</p>
+        </div>
+      </div>
+      <div class="chart-content">
+        <canvas id="stockChart"></canvas>
+      </div>
+      <div class="chart-footer">
+        <p class="footer-text">💡 Circular view showing each product's portion of total inventory</p>
+      </div>
+    </div>
+
+    <!-- Critical Products Chart -->
+    <div class="chart-card critical-products-card">
+      <div class="chart-header critical-header">
+        <div class="header-info">
+          <h2 class="chart-title">⚠️ Critical Products</h2>
+          <p class="chart-subtitle">Histogram of items requiring immediate restock</p>
+        </div>
+      </div>
+      <div class="chart-content critical-content">
+        <canvas id="criticalChart"></canvas>
+      </div>
+      <div class="chart-footer critical-footer">
+        <p class="footer-text critical-text">🚨 Immediate action needed for all flagged items</p>
+      </div>
+    </div>
+  </div>
+</div>

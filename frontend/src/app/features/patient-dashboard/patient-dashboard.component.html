@@ -1,0 +1,39 @@
+<app-hero></app-hero>
+<app-quick-stats></app-quick-stats>
+<app-services></app-services>
+<app-departments></app-departments>
+<app-appointment></app-appointment>
+<app-doctors></app-doctors>
+<!-- Chat Sidebar Toggle Button (only show when sidebar is closed) -->
+<button *ngIf="!sidebarOpen" class="chat-toggle-btn" (click)="toggleSidebar()" aria-label="Open chat">
+	<svg width="28" height="28" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+		<circle cx="12" cy="12" r="12" fill="url(#chatGradient)"/>
+		<path d="M7 10.5C7 9.11929 8.11929 8 9.5 8H14.5C15.8807 8 17 9.11929 17 10.5V13.5C17 14.8807 15.8807 16 14.5 16H10.5L8 18V13.5C7 13.5 7 12.8807 7 10.5Z" fill="#fff"/>
+		<defs>
+			<linearGradient id="chatGradient" x1="0" y1="0" x2="24" y2="24" gradientUnits="userSpaceOnUse">
+				<stop stop-color="#42a5f5"/>
+				<stop offset="1" stop-color="#1976d2"/>
+			</linearGradient>
+		</defs>
+	</svg>
+</button>
+
+<!-- Resizable Slide-in Sidebar (only show when sidebar is open) -->
+<div *ngIf="sidebarOpen" class="chat-sidebar open" [style.width.px]="sidebarWidth">
+	<div class="resize-handle" (mousedown)="startResizing($event)"></div>
+	<div class="chat-header">
+		<span class="chat-title">Assistant Chat</span>
+		<button class="close-btn" (click)="toggleSidebar()" aria-label="Close chat">&times;</button>
+	</div>
+	<div class="chat-body">
+		<p>Conversation with the assistant will appear here.</p>
+	</div>
+	<form class="chat-input" (submit)="$event.preventDefault()">
+		<input type="text" placeholder="Type your message..." autocomplete="off">
+		<button type="submit" aria-label="Send message">
+			<svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+				<path d="M3 20L21 12L3 4V10L17 12L3 14V20Z" fill="#fff"/>
+			</svg>
+		</button>
+	</form>
+</div>

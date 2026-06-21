@@ -1,0 +1,369 @@
+<section class="appointments-shell">
+  <div class="appointments-container">
+    <div class="appointments-main-card">
+      <header class="appointments-header">
+        <div>
+          <p class="eyebrow">Appointments Timeline</p>
+          <h1>Healthcare Schedule</h1>
+          <p class="subtitle">A focused timeline with a dedicated detail panel for actions and follow-up.</p>
+        </div>
+        <button class="refresh-btn" type="button" (click)="loadAppointments()">
+          <i class="fas fa-rotate-right"></i>
+          Refresh
+        </button>
+      </header>
+
+      <section class="today-highlight" *ngIf="todayAppointments.length > 0 && !isLoading">
+        <div class="today-header">
+          <h2>
+            <i class="fas fa-calendar-day"></i>
+            Today
+          </h2>
+          <span>{{ todayAppointments.length }}</span>
+        </div>
+
+        <div class="today-list">
+          <ng-container *ngFor="let appointment of todayAppointments">
+            <app-timeline-item
+              [timeline]="false"
+              [active]="detailAppointment?.id === appointment.id && showDetailsPanel"
+              [important]="isAppointmentImportant(appointment)"
+              [allowManageActions]="true"
+              [doctorName]="appointment.doctorName"
+              [timeLabel]="formatTime(appointment.time)"
+              [typeLabel]="appointment.appointmentType"
+              [isTelemedicine]="showTelemedicineJoinControls(appointment)"
+              [canJoin]="canJoinTelemedicineAppointment(appointment)"
+              [joinAvailableAtLabel]="getJoinAvailableAtLabel(appointment)"
+              [hasDirectJoinLink]="hasDirectMeetingUrl(appointment)"
+              [notes]="appointment.notes"
+              [status]="appointment.status"
+              [statusLabel]="getStatusLabel(appointment.status)"
+              (select)="openDetailsPanel(appointment)"
+              (view)="openPreconsultationForm(appointment)"
+              (join)="onJoinTelemedicine(appointment)"
+              (openDirectLink)="onOpenDirectMeetingUrl(appointment)"
+              (edit)="openEditModal(appointment)"
+              (delete)="openDeleteModal(appointment)"
+            ></app-timeline-item>
+          </ng-container>
+        </div>
+      </section>
+
+      <section class="controls-panel">
+        <div class="tabs-row">
+          <div class="tabs">
+            <button
+              type="button"
+              class="tab-btn"
+              [class.active]="activeTab === 'upcoming'"
+              (click)="setActiveTab('upcoming')"
+            >
+              Upcoming
+              <span>{{ upcomingAppointments.length }}</span>
+            </button>
+
+            <button
+              type="button"
+              class="tab-btn"
+              [class.active]="activeTab === 'past'"
+              (click)="setActiveTab('past')"
+            >
+              Past
+              <span>{{ pastAppointments.length }}</span>
+            </button>
+          </div>
+
+          <div class="view-toggle" role="group" aria-label="View mode">
+            <button type="button" [class.active]="viewMode === 'list'" (click)="setViewMode('list')">Timeline List</button>
+          </div>
+        </div>
+
+        <div class="filters-grid">
+          <label class="filter-field search-field">
+            <span>Search</span>
+            <input
+              type="search"
+              [(ngModel)]="searchTerm"
+              placeholder="Doctor, type, status"
+            />
+          </label>
+
+          <label class="filter-field">
+            <span>Status</span>
+            <select [(ngModel)]="selectedStatus">
+              <option *ngFor="let statusOption of statusFilterOptions" [ngValue]="statusOption.value">
+                {{ statusOption.label }}
+              </option>
+            </select>
+          </label>
+
+          <label class="filter-field">
+            <span>Date</span>
+            <div class="date-input-wrap">
+              <input
+                type="date"
+                class="date-input"
+                [class.is-empty]="!selectedDate"
+                [(ngModel)]="selectedDate"
+              />
+              <span class="date-placeholder" *ngIf="!selectedDate">Select date</span>
+            </div>
+          </label>
+
+          <label class="filter-field">
+            <span>Sort</span>
+            <select [(ngModel)]="sortBy">
+              <option value="nearest">Nearest date first</option>
+              <option value="latest">Latest date first</option>
+            </select>
+          </label>
+
+          <button class="clear-btn" type="button" (click)="clearFilters()">Clear filters</button>
+        </div>
+      </section>
+
+      <section class="results-panel" [class.timeline-view]="viewMode === 'timeline'" [class.list-view]="viewMode === 'list'">
+        <div class="join-error-banner" *ngIf="joinErrorMessage">
+          {{ joinErrorMessage }}
+        </div>
+
+        <div class="loading-state" *ngIf="isLoading">
+          <div class="skeleton-card" *ngFor="let _ of [1,2,3,4]"></div>
+        </div>
+
+        <div class="error-state" *ngIf="!isLoading && errorMessage">
+          <h3>Unable to load appointments</h3>
+          <p>{{ errorMessage }}</p>
+        </div>
+
+        <div class="empty-state" *ngIf="!isLoading && !errorMessage && dateGroupedAppointments.length === 0">
+          <i class="fas fa-calendar-xmark empty-icon"></i>
+          <h3>No appointments found</h3>
+          <p>Try changing your filters or search terms.</p>
+        </div>
+
+        <div class="date-groups" *ngIf="!isLoading && !errorMessage && dateGroupedAppointments.length > 0">
+          <section class="date-group" *ngFor="let group of dateGroupedAppointments">
+            <header class="date-header" [class.today]="group.isToday">
+              <div class="date-title">
+                <i class="fas fa-calendar"></i>
+                <h3>{{ group.dateLabel }}</h3>
+              </div>
+              <span class="today-chip" *ngIf="group.isToday">Today</span>
+            </header>
+
+            <div class="timeline-track">
+              <ng-container *ngFor="let appointment of group.appointments">
+                <app-timeline-item
+                  [timeline]="true"
+                  [active]="detailAppointment?.id === appointment.id && showDetailsPanel"
+                  [important]="isAppointmentImportant(appointment)"
+                  [allowManageActions]="activeTab !== 'past'"
+                  [doctorName]="appointment.doctorName"
+                  [timeLabel]="formatTime(appointment.time)"
+                  [typeLabel]="appointment.appointmentType"
+                  [isTelemedicine]="showTelemedicineJoinControls(appointment)"
+                  [canJoin]="canJoinTelemedicineAppointment(appointment)"
+                  [joinAvailableAtLabel]="getJoinAvailableAtLabel(appointment)"
+                  [hasDirectJoinLink]="hasDirectMeetingUrl(appointment)"
+                  [notes]="appointment.notes"
+                  [status]="appointment.status"
+                  [statusLabel]="getStatusLabel(appointment.status)"
+                  (select)="openDetailsPanel(appointment)"
+                  (view)="openPreconsultationForm(appointment)"
+                  (join)="onJoinTelemedicine(appointment)"
+                  (openDirectLink)="onOpenDirectMeetingUrl(appointment)"
+                  (edit)="openEditModal(appointment)"
+                  (delete)="openDeleteModal(appointment)"
+                ></app-timeline-item>
+              </ng-container>
+            </div>
+          </section>
+        </div>
+      </section>
+    </div>
+  </div>
+</section>
+
+<div class="details-overlay" *ngIf="showDetailsPanel" (click)="closeDetailsPanel()"></div>
+
+<aside class="details-panel" [class.open]="showDetailsPanel" [attr.aria-hidden]="!showDetailsPanel">
+  <div class="details-card" *ngIf="detailAppointment" (click)="$event.stopPropagation()">
+    <div class="details-topbar">
+      <div>
+        <p class="details-eyebrow">Appointment Details</p>
+        <h2>{{ detailAppointment.doctorName }}</h2>
+      </div>
+      <button class="details-close" type="button" aria-label="Close details panel" (click)="closeDetailsPanel()">×</button>
+    </div>
+
+    <div class="details-hero">
+      <div class="details-avatar">
+        <span *ngIf="detailDoctor?.initials; else defaultDrawerAvatar">{{ detailDoctor?.initials }}</span>
+        <ng-template #defaultDrawerAvatar>
+          <i class="fas fa-user"></i>
+        </ng-template>
+      </div>
+      <div>
+        <p class="details-label">Patient</p>
+        <h3>{{ currentPatientName }}</h3>
+        <p class="details-subtitle">with {{ detailDoctor?.specialty || 'General Practitioner' }}</p>
+        <span class="details-status" [style.background]="getStatusColor(detailAppointment.status)">
+          {{ getStatusLabel(detailAppointment.status) }}
+        </span>
+      </div>
+    </div>
+
+    <div class="details-grid">
+      <section class="details-section">
+        <p class="details-label">Date</p>
+        <strong>{{ formatDate(detailAppointment.date) }}</strong>
+      </section>
+
+      <section class="details-section">
+        <p class="details-label">Time</p>
+        <strong>{{ formatTime(detailAppointment.time) }}</strong>
+      </section>
+
+      <section class="details-section">
+        <p class="details-label">Type</p>
+        <strong>{{ detailAppointment.appointmentType }}</strong>
+      </section>
+
+      <section class="details-section">
+        <p class="details-label">Doctor</p>
+        <strong>{{ detailAppointment.doctorName }}</strong>
+      </section>
+    </div>
+
+    <section class="details-notes-card">
+      <p class="details-label">Notes</p>
+      <p>{{ detailAppointment.notes || 'No notes were added for this appointment.' }}</p>
+    </section>
+
+    <section class="details-profile-card" *ngIf="detailDoctorStats.length > 0">
+      <div class="details-card-header">
+        <div>
+          <p class="details-label">Doctor Profile</p>
+          <h4>Specialty and availability context</h4>
+        </div>
+        <span class="details-meta-pill">{{ detailDoctor?.specialty || 'General Practitioner' }}</span>
+      </div>
+
+      <div class="details-mini-grid">
+        <div class="details-mini-card" *ngFor="let stat of detailDoctorStats">
+          <span>{{ stat.label }}</span>
+          <strong>{{ stat.value }}</strong>
+        </div>
+      </div>
+    </section>
+
+    <section class="details-history-card">
+      <div class="details-card-header">
+        <div>
+          <p class="details-label">Appointment History</p>
+          <h4>Recent visits with this doctor</h4>
+        </div>
+        <span class="details-meta-pill muted">{{ detailAppointmentHistory.length }} records</span>
+      </div>
+
+      <div class="history-list" *ngIf="detailAppointmentHistory.length > 0; else noHistoryState">
+        <button
+          class="history-item"
+          type="button"
+          *ngFor="let item of detailAppointmentHistory"
+          (click)="selectHistoricalAppointment(item.id)"
+        >
+          <div class="history-main">
+            <strong>{{ item.dateLabel }}</strong>
+            <span>{{ item.timeLabel }} · {{ item.typeLabel }}</span>
+          </div>
+          <span class="history-status" [style.background]="getStatusColor(item.status)">
+            {{ item.statusLabel }}
+          </span>
+        </button>
+      </div>
+
+      <ng-template #noHistoryState>
+        <p class="details-empty-copy">No previous appointments with this doctor yet.</p>
+      </ng-template>
+    </section>
+
+    <div class="details-actions">
+      <button class="details-btn primary" type="button" (click)="openPreconsultationForm(detailAppointment)">
+        <i class="fas fa-eye"></i>
+        Open
+      </button>
+      <button *ngIf="canManageDetailAppointment" class="details-btn" type="button" (click)="openEditModal(detailAppointment)">
+        <i class="fas fa-pen"></i>
+        Edit
+      </button>
+      <button *ngIf="canManageDetailAppointment" class="details-btn" type="button" (click)="openPostponeModal(detailAppointment)">
+        <i class="fas fa-calendar-plus"></i>
+        Postpone
+      </button>
+      <button *ngIf="canManageDetailAppointment" class="details-btn danger" type="button" (click)="openDeleteModal(detailAppointment)">
+        <i class="fas fa-trash"></i>
+        Cancel
+      </button>
+    </div>
+  </div>
+</aside>
+
+<div class="modal-backdrop" *ngIf="showActionModal" (click)="closeActionModal()"></div>
+
+<div class="action-modal" *ngIf="showActionModal" role="dialog" aria-modal="true">
+  <div class="modal-header">
+    <h3 *ngIf="actionMode === 'edit'">Edit Appointment</h3>
+    <h3 *ngIf="actionMode === 'postpone'">Postpone Appointment</h3>
+    <h3 *ngIf="actionMode === 'delete'">Request Cancellation</h3>
+    <button class="modal-close" type="button" aria-label="Close" (click)="closeActionModal()">×</button>
+  </div>
+
+  <form *ngIf="actionMode !== 'delete'" [formGroup]="appointmentForm" (ngSubmit)="submitAction()" class="modal-form">
+    <p class="modal-hint" *ngIf="actionMode === 'edit'">You can edit details, but appointment date and time are locked.</p>
+    <p class="modal-hint" *ngIf="actionMode === 'postpone'">You can only change date and time. Other fields are read-only.</p>
+
+    <label>
+      Date
+      <input
+        type="date"
+        lang="en-GB"
+        formControlName="date"
+        [attr.readonly]="isEditMode() ? '' : null"
+        (change)="onActionDateChange()"
+      />
+    </label>
+
+    <label>
+      Time
+      <input type="time" formControlName="time" [attr.readonly]="isEditMode() ? '' : null" />
+    </label>
+
+    <label>
+      Notes
+      <textarea rows="3" formControlName="notes" [attr.readonly]="isPostponeMode() ? '' : null"></textarea>
+    </label>
+
+    <p class="modal-error" *ngIf="actionErrorMessage">{{ actionErrorMessage }}</p>
+
+    <div class="modal-actions">
+      <button type="button" class="btn-cancel" (click)="closeActionModal()">Cancel</button>
+      <button type="submit" class="btn-confirm" [disabled]="isSubmittingAction">
+        {{ isSubmittingAction ? 'Saving...' : 'Save' }}
+      </button>
+    </div>
+  </form>
+
+  <div *ngIf="actionMode === 'delete'" class="delete-confirmation">
+    <p>Send a cancellation request for this appointment?</p>
+    <p class="modal-error" *ngIf="actionErrorMessage">{{ actionErrorMessage }}</p>
+    <div class="modal-actions">
+      <button type="button" class="btn-cancel" (click)="closeActionModal()">Cancel</button>
+      <button type="button" class="btn-danger" [disabled]="isSubmittingAction" (click)="submitAction()">
+        {{ isSubmittingAction ? 'Sending...' : 'Send Request' }}
+      </button>
+    </div>
+  </div>
+</div>

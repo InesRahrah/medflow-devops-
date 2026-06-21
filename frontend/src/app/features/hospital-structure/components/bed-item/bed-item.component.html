@@ -1,0 +1,16 @@
+<div class="bed-item">
+  <div class="bed-icon">
+    <i class="fas fa-bed"></i>
+  </div>
+  <div class="bed-info">
+    <span class="bed-label">{{ bed.label }}</span>
+    <div
+      class="bed-status"
+      [style.color]="statusColor"
+      [style.background]="statusBgColor"
+    >
+      <span class="status-dot" [style.background]="statusColor"></span>
+      {{ statusLabel }}
+    </div>
+  </div>
+</div>

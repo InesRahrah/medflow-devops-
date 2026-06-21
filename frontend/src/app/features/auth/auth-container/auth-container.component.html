@@ -1,0 +1,63 @@
+<div class="auth-page">
+  <div class="auth-container">
+    <div class="auth-card" [class.flipped]="isRegister">
+      <div class="auth-card-inner">
+        <!-- FRONT SIDE: LOGIN -->
+        <div class="auth-side auth-front">
+          <div class="auth-layout">
+            <div class="auth-form-column">
+              <div class="form-header">
+                <div class="logo-box">
+                  <img src="assets/images/logo-medflow.png" alt="MedFlow" class="auth-logo">
+                </div>
+                <h1>Welcome Back</h1>
+                <p>Enter your credentials to access your account</p>
+              </div>
+
+              <app-login></app-login>
+
+              <div class="toggle-footer">
+                <p>Don't have an account? <a href="#" (click)="onToggle($event)">Sign up</a></p>
+              </div>
+            </div>
+
+            <div class="auth-image-column">
+              <div class="illustration-wrapper">
+                <div class="soft-shape"></div>
+                <img src="assets/images/doctors.png" alt="Doctors" class="floating-img">
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- BACK SIDE: REGISTER -->
+        <div class="auth-side auth-back">
+          <div class="auth-layout">
+            <div class="auth-form-column">
+              <div class="form-header">
+                <div class="logo-box">
+                  <img src="assets/images/icon-medflow.png" alt="MedFlow" class="auth-logo">
+                </div>
+                <h1>Create Account</h1>
+                <p>Join our healthcare network today</p>
+              </div>
+
+              <app-register></app-register>
+
+              <div class="toggle-footer">
+                <p>Already have an account? <a href="#" (click)="onToggle($event)">Login here</a></p>
+              </div>
+            </div>
+
+            <div class="auth-image-column">
+              <div class="illustration-wrapper">
+                <div class="soft-shape shape-2"></div>
+                <img src="assets/images/doctors.png" alt="Doctors" class="floating-img">
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

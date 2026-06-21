@@ -1,0 +1,322 @@
+
+<section class="services-section doctor-schedule-section animate-up">
+  <div class="container">
+    <div class="calendar-layout">
+      <article class="calendar-card">
+        <header class="calendar-head">
+          <div>
+            <span class="calendar-kicker">Monthly View</span>
+            <h3>{{ monthTitle }}</h3>
+          </div>
+          <div class="calendar-nav-group">
+            <button
+              class="calendar-nav"
+              type="button"
+              (click)="previousMonth()"
+              aria-label="Previous month"
+            >
+              ‹
+            </button>
+            <button
+              class="calendar-nav"
+              type="button"
+              (click)="nextMonth()"
+              aria-label="Next month"
+            >
+              ›
+            </button>
+          </div>
+        </header>
+
+        <div class="calendar-legend" aria-label="Calendar legend">
+          <span><i class="legend-dot legend-dot--emergency"></i>Emergency</span>
+          <span><i class="legend-dot legend-dot--regular"></i>Regular</span>
+          <span><i class="legend-dot legend-dot--followup"></i>Follow-up</span>
+        </div>
+
+        <div class="calendar-weekdays">
+          <span *ngFor="let d of weekDays">{{ d }}</span>
+        </div>
+
+        <div class="calendar-grid">
+          <button
+            type="button"
+            class="calendar-day"
+            *ngFor="let day of calendarDays"
+            [class.muted]="!day.inCurrentMonth"
+            [class.today]="day.isToday"
+            [class.selected]="day.isSelected"
+            [class.has-appointments]="day.appointmentCount > 0"
+            [class.density-light]="day.densityLevel === 'light'"
+            [class.density-medium]="day.densityLevel === 'medium'"
+            [class.density-heavy]="day.densityLevel === 'heavy'"
+            (click)="selectDate(day)"
+          >
+            <div class="calendar-day-top">
+              <span class="day-number">{{ day.date.getDate() }}</span>
+              <span class="day-badge" *ngIf="day.appointmentCount > 0">{{ day.appointmentCount }}</span>
+            </div>
+            <div class="calendar-day-markers" *ngIf="day.appointmentCount > 0">
+              <span class="calendar-marker calendar-marker--emergency" *ngIf="day.emergencyCount > 0"></span>
+              <span class="calendar-marker calendar-marker--regular" *ngIf="day.consultationCount > 0"></span>
+              <span class="calendar-marker calendar-marker--followup" *ngIf="day.followUpCount > 0"></span>
+            </div>
+          </button>
+        </div>
+      </article>
+
+      <article class="appointments-card">
+        <header class="appointments-overview">
+          <div class="appointments-header-row">
+            <div>
+              <span class="overview-kicker">Selected Day</span>
+              <h3>{{ selectedDateTitle }}</h3>
+              <p>{{ selectedDateSummary }}</p>
+            </div>
+            <button
+              type="button"
+              class="add-appointment-btn"
+              (click)="openAppointmentModal()"
+            >
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M12 5v14M5 12h14"></path>
+              </svg>
+              Add Appointment
+            </button>
+          </div>
+
+          <div class="summary-strip">
+            <div class="summary-pill">
+              <span class="summary-label">Patients</span>
+              <strong>{{ uniqueSelectedPatientsCount }}</strong>
+            </div>
+            <div class="summary-pill summary-pill--urgent">
+              <span class="summary-label">Urgent</span>
+              <strong>{{ urgentSelectedAppointmentsCount }}</strong>
+            </div>
+            <div class="summary-pill">
+              <span class="summary-label">View</span>
+              <strong>{{ activeFilterLabel }}</strong>
+            </div>
+          </div>
+
+          <div class="appointment-filters" aria-label="Appointment filters">
+            <button
+              type="button"
+              class="filter-chip"
+              *ngFor="let filter of appointmentFilters"
+              [class.active]="selectedFilter === filter"
+              (click)="setAppointmentFilter(filter)"
+            >
+              {{ getAppointmentFilterLabel(filter) }}
+            </button>
+          </div>
+
+          <div
+            class="action-feedback"
+            *ngIf="actionFeedback"
+            [class.action-feedback--error]="actionFeedback.variant === 'error'"
+          >
+            {{ actionFeedback.message }}
+          </div>
+        </header>
+
+        <div
+          class="appointments-list"
+          *ngIf="filteredSelectedAppointments.length > 0; else emptyState"
+        >
+          <article
+            class="appointment-item"
+            *ngFor="let item of filteredSelectedAppointments"
+            [ngClass]="getAppointmentTypeCardClass(item.reason)"
+            [class.status-attended]="item.status === 'attended'"
+            [class.status-completed]="item.status === 'completed'"
+          >
+            <div class="appointment-time-block">
+              <span class="appointment-time">{{ item.time }}</span>
+              <span class="appointment-status">{{ getAppointmentPriorityLabel(item) }}</span>
+            </div>
+
+            <div class="appointment-patient">
+              <div class="avatar-sm">{{ item.patient.charAt(0) }}</div>
+              <div class="appointment-main">
+                <div class="appointment-title-row">
+                  <h4>{{ item.patient }}</h4>
+                  <span class="appointment-type" [ngClass]="getAppointmentTypeClass(item.reason)">
+                    {{ getAppointmentTypeLabel(item.reason) }}
+                  </span>
+                  <span class="appointment-visit-mode" *ngIf="isTelemedicineVisit(item)">Online</span>
+                </div>
+                <p class="appointment-demographics">{{ getPatientDemographics(item) }}</p>
+                <p class="appointment-condition">{{ getAppointmentCondition(item.reason) }}</p>
+                <p class="appointment-pending" *ngIf="hasPendingPatientResponse(item)">
+                  <span class="appointment-pending-dot" aria-hidden="true"></span>
+                  {{ getPendingPatientResponseLabel(item) }}
+                </p>
+              </div>
+            </div>
+
+            <div class="appointment-actions">
+              <button
+                type="button"
+                class="consult-btn"
+                (click)="startConsultation(item)"
+                title="Start consultation"
+                aria-label="Start consultation"
+              >
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M14 4h6v6"></path>
+                  <path d="M10 14 20 4"></path>
+                  <path d="M20 14v6h-6"></path>
+                  <path d="M4 10 14 20"></path>
+                </svg>
+                <span>Start Consultation</span>
+              </button>
+              <button
+                *ngIf="item.status === 'scheduled'"
+                type="button"
+                class="consult-btn"
+                (click)="confirmAttendance(item)"
+                title="Mark attended"
+                aria-label="Mark attended"
+              >
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M20 6 9 17l-5-5"></path>
+                </svg>
+                <span>Mark Attended</span>
+              </button>
+
+              <div *ngIf="item.status === 'attended' || item.status === 'completed'" class="attendance-confirmed-badge">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                  <path d="M20 6 9 17l-5-5"></path>
+                </svg>
+                <span>{{ item.status === 'attended' ? 'Attended' : 'Completed' }}</span>
+              </div>
+              <div class="appointment-actions-secondary">
+                <button
+                  type="button"
+                  class="action-icon-btn"
+                  (click)="viewIntake(item.id)"
+                  title="View intake"
+                  aria-label="View intake"
+                >
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M9 5H7a2 2 0 0 0-2 2v10a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-2"></path>
+                    <path d="M9 9h6"></path>
+                    <path d="M9 13h6"></path>
+                    <path d="M15 5h4v4"></path>
+                  </svg>
+                </button>
+                <button
+                  type="button"
+                  class="action-icon-btn"
+                  [disabled]="hasPendingPatientResponse(item) || item.status !== 'scheduled'"
+                  (click)="postponeAppointment(item)"
+                  title="Postpone appointment"
+                  aria-label="Postpone appointment"
+                >
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <circle cx="12" cy="12" r="9"></circle>
+                    <path d="M12 7v5l3 2"></path>
+                  </svg>
+                </button>
+                <button
+                  type="button"
+                  class="action-icon-btn action-icon-btn--danger"
+                  [disabled]="hasPendingPatientResponse(item) || item.status !== 'scheduled'"
+                  (click)="cancelAppointment(item)"
+                  title="Cancel appointment"
+                  aria-label="Cancel appointment"
+                >
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M18 6 6 18"></path>
+                    <path d="m6 6 12 12"></path>
+                  </svg>
+                </button>
+              </div>
+            </div>
+          </article>
+        </div>
+
+        <ng-template #emptyState>
+          <div class="empty-state">
+            <div class="empty-state-icon" aria-hidden="true">
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+                <rect x="3" y="4" width="18" height="18" rx="2"></rect>
+                <line x1="16" y1="2" x2="16" y2="6"></line>
+                <line x1="8" y1="2" x2="8" y2="6"></line>
+                <line x1="3" y1="10" x2="21" y2="10"></line>
+              </svg>
+            </div>
+            <h4>{{ emptyStateTitle }}</h4>
+            <p>{{ emptyStateDescription }}</p>
+            <button type="button" class="add-appointment-btn add-appointment-btn--inline" (click)="openAppointmentModal()">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M12 5v14M5 12h14"></path>
+              </svg>
+              Add Appointment
+            </button>
+          </div>
+        </ng-template>
+      </article>
+    </div>
+  </div>
+</section>
+
+<app-appointment-modal
+  [isOpen]="showAppointmentModal"
+  [selectedDate]="selectedDate"
+  (closeModal)="closeAppointmentModal()"
+  (appointmentCreated)="onAppointmentCreated($event)">
+</app-appointment-modal>
+
+<div class="dashboard-action-modal-backdrop" *ngIf="actionModal.isOpen" (click)="closeActionModal()">
+  <div class="dashboard-action-modal" (click)="$event.stopPropagation()">
+    <div class="dashboard-action-modal__header">
+      <div>
+        <span class="dashboard-action-modal__kicker">
+          {{ actionModal.mode === 'cancel' ? 'Cancel Appointment' : 'Postpone Appointment' }}
+        </span>
+        <h3>{{ actionModal.appointment.patient }}</h3>
+        <p>{{ selectedDateTitle }} at {{ actionModal.appointment.time }}</p>
+      </div>
+      <button type="button" class="dashboard-action-modal__close" (click)="closeActionModal()" aria-label="Close action modal">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M18 6 6 18"></path>
+          <path d="m6 6 12 12"></path>
+        </svg>
+      </button>
+    </div>
+
+    <div class="dashboard-action-modal__body" *ngIf="actionModal.mode === 'postpone'">
+      <label class="dashboard-action-field">
+        <span>New date</span>
+        <input type="date" [(ngModel)]="actionModal.date" [disabled]="actionModal.isSubmitting" />
+      </label>
+      <label class="dashboard-action-field">
+        <span>New time</span>
+        <input type="time" [(ngModel)]="actionModal.time" [disabled]="actionModal.isSubmitting" />
+      </label>
+      <p class="dashboard-action-modal__hint">This will notify the patient with the proposed new schedule.</p>
+    </div>
+
+    <div class="dashboard-action-modal__body" *ngIf="actionModal.mode === 'cancel'">
+      <p class="dashboard-action-modal__message">
+        Cancel this appointment for {{ actionModal.appointment.patient }} scheduled at {{ actionModal.appointment.time }}.
+      </p>
+      <p class="dashboard-action-modal__hint">This will notify the patient about the cancellation decision.</p>
+    </div>
+
+    <p class="dashboard-action-modal__error" *ngIf="actionModal.error">{{ actionModal.error }}</p>
+
+    <div class="dashboard-action-modal__footer">
+      <button type="button" class="dashboard-action-modal__secondary" (click)="closeActionModal()" [disabled]="actionModal.isSubmitting">
+        Close
+      </button>
+      <button type="button" class="dashboard-action-modal__primary" (click)="submitActionModal()" [disabled]="actionModal.isSubmitting">
+        {{ actionModal.isSubmitting ? 'Saving...' : (actionModal.mode === 'cancel' ? 'Confirm Cancel' : 'Confirm Postpone') }}
+      </button>
+    </div>
+  </div>
+</div>
+

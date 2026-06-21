@@ -1,0 +1,414 @@
+<div class="profile-container">
+  <div class="container">
+    <div class="profile-layout">
+
+      <!-- LEFT SIDEBAR -->
+      <aside class="profile-sidebar">
+        <div class="profile-card">
+          <div class="profile-avatar-wrapper">
+            <div class="profile-avatar">
+              <img
+                *ngIf="patientData.profilePictureUrl"
+                [src]="patientData.profilePictureUrl"
+                alt="Profile"
+                class="avatar-img"
+              />
+              <span
+                *ngIf="!patientData.profilePictureUrl"
+                class="avatar-initials"
+                >{{ patientData.firstName[0] }}</span
+              >
+            </div>
+            <div class="avatar-actions">
+              <button class="edit-avatar-btn" (click)="fileInput.click()">
+                <svg
+                  width="16"
+                  height="16"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                 
+                   stroke="currentColor"
+                  stroke-width="2"
+                >
+                  <path
+                    d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"
+                  ></path>
+                  <circle cx="12" cy="13" r="4"></circle>
+                </svg>
+              </button>
+            </div>
+            <input
+              type="file"
+              #fileInput
+              hidden
+              accept="image/*"
+              (change)="onFileSelected($event)"
+            />
+          </div>
+
+          <div class="profile-identity-header">
+            <h2>{{ patientData.firstName }} {{ patientData.lastName }}</h2>
+            <p class="specialty-badge">Patient Profile</p>
+          </div>
+
+          <nav class="profile-tabs">
+            <button class="tab-link" [class.active]="activeTab === 'info'"
+                    (click)="setTab('info')">
+              <i class="fas fa-user"></i> General Info
+            </button>
+            <button class="tab-link" [class.active]="activeTab === 'settings'"
+                    (click)="setTab('settings')">
+              <i class="fas fa-cog"></i> Account Settings
+            </button>
+            <button class="tab-link" [class.active]="activeTab === 'reposts'"
+                    (click)="setTab('reposts')">
+              <i class="fas fa-retweet"></i> My Reposts
+              <span class="tab-badge" *ngIf="reposts.length > 0">{{ reposts.length }}</span>
+            </button>
+          </nav>
+        </div>
+      </aside>
+
+      <!-- MAIN CONTENT -->
+      <main class="profile-main">
+
+        <!-- GENERAL INFO TAB -->
+        <div class="content-card" *ngIf="activeTab === 'info'">
+          <div class="code-card">
+            <div class="code-card-header">
+              <h3>Patient Access Code</h3>
+              <div class="code-actions">
+                <button
+                  type="button"
+                  class="copy-btn"
+                  (click)="copyAccessCode()"
+                  [disabled]="!patientAccessCode || isCodeLoading"
+                >
+                  Copy
+                </button>
+                <button
+                  type="button"
+                  class="save-btn"
+                  (click)="regenerateAccessCode()"
+                  [disabled]="isCodeRegenerating || isCodeLoading"
+                >
+                  {{ isCodeRegenerating ? "Regenerating..." : "Regenerate" }}
+                </button>
+              </div>
+            </div>
+            <p class="code-help-text">
+              Share this code only with your doctor to let them create a new
+              medical case.
+            </p>
+            <div class="code-value" *ngIf="!isCodeLoading">
+              {{ patientAccessCode || "Not available" }}
+            </div>
+            <div class="code-loading" *ngIf="isCodeLoading">
+              Loading code...
+            </div>
+          </div>
+
+          <div class="card-header">
+            <h3>Personal Information</h3>
+            <div class="header-actions">
+              <button *ngIf="!isEditing" class="edit-btn" (click)="toggleEdit()">
+                Edit Profile
+              </button>
+              <ng-container *ngIf="isEditing">
+                <button class="cancel-btn" (click)="toggleEdit()" [disabled]="isLoading">
+                  Cancel
+                </button>
+                <button class="save-btn" (click)="saveProfile(profileForm)" [disabled]="isLoading">
+                  {{ isLoading ? "Saving..." : "Save Changes" }}
+                </button>
+              </ng-container>
+            </div>
+          </div>
+
+          <form class="profile-form" #profileForm="ngForm" novalidate>
+            <div class="form-grid">
+              <div class="form-group">
+                <label>First Name</label>
+                <input type="text" [(ngModel)]="patientData.firstName" name="firstName"
+                       [readonly]="!isEditing" required
+                       [class.invalid]="isFieldInvalid(profileForm, 'firstName')" />
+                <small
+                  class="field-error"
+                  *ngIf="isFieldInvalid(profileForm, 'firstName')"
+                >
+                  {{ getFieldError(profileForm, "firstName", "First Name") }}
+                </small>
+              </div>
+              <div class="form-group">
+                <label>Last Name</label>
+                <input type="text" [(ngModel)]="patientData.lastName" name="lastName"
+                       [readonly]="!isEditing" required
+                       [class.invalid]="isFieldInvalid(profileForm, 'lastName')" />
+                <small
+                  class="field-error"
+                  *ngIf="isFieldInvalid(profileForm, 'lastName')"
+                >
+                  {{ getFieldError(profileForm, "lastName", "Last Name") }}
+                </small>
+              </div>
+              <div class="form-group">
+                <label>Email Address</label>
+                <input type="email" [(ngModel)]="patientData.email" name="email" readonly />
+              </div>
+              <div class="form-group">
+                <label>Phone Number</label>
+                <input type="text" [(ngModel)]="patientData.phone" name="phone"
+                       [readonly]="!isEditing" required pattern="^[0-9]{8}$" maxlength="8"
+                       [class.invalid]="isFieldInvalid(profileForm, 'phone')" />
+                <small
+                  class="field-error"
+                  *ngIf="isFieldInvalid(profileForm, 'phone')"
+                >
+                  {{ getFieldError(profileForm, "phone", "Phone Number") }}
+                </small>
+              </div>
+              <div class="form-group">
+                <label>Date of Birth</label>
+                <input *ngIf="isEditing" type="date" [(ngModel)]="patientData.dateOfBirth"
+                       name="dateOfBirth" required
+                       [class.invalid]="isFieldInvalid(profileForm, 'dateOfBirth')" />
+                <small
+                  class="field-error"
+                  *ngIf="isFieldInvalid(profileForm, 'dateOfBirth')"
+                >
+                  {{
+                    getFieldError(profileForm, "dateOfBirth", "Date of Birth")
+                  }}
+                </small>
+                <input *ngIf="!isEditing" type="text"
+                       [value]="patientData.dateOfBirth | date:'dd/MM/yyyy'" readonly />
+              </div>
+              <div class="form-group">
+                <label>Gender</label>
+                <app-custom-dropdown [(ngModel)]="patientData.gender" name="gender"
+                                     [options]="genderOptions" [disabled]="!isEditing" required>
+                </app-custom-dropdown>
+                <small
+                  class="field-error"
+                  *ngIf="isFieldInvalid(profileForm, 'gender')"
+                >
+                  {{ getFieldError(profileForm, "gender", "Gender") }}
+                </small>
+              </div>
+              <div class="form-group">
+                <label>Blood Type</label>
+                <app-custom-dropdown [(ngModel)]="patientData.bloodType" name="bloodType"
+                                     [options]="bloodTypeOptions" placeholder="Select Blood Type"
+                                     [disabled]="!isEditing" required>
+                </app-custom-dropdown>
+                <small
+                  class="field-error"
+                  *ngIf="isFieldInvalid(profileForm, 'bloodType')"
+                >
+                  {{ getFieldError(profileForm, "bloodType", "Blood Type") }}
+                </small>
+              </div>
+              <div class="form-group">
+                <label>Height (cm)</label>
+                <input type="number" [(ngModel)]="patientData.height" name="height"
+                       [readonly]="!isEditing" min="50"
+                       [class.invalid]="isFieldInvalid(profileForm, 'height')" />
+                <small class="field-error" *ngIf="isFieldInvalid(profileForm, 'height')">
+                  {{ getFieldError(profileForm, "height", "Height") }}
+                </small>
+              </div>
+              <div class="form-group">
+                <label>Weight (kg)</label>
+                <input type="number" [(ngModel)]="patientData.weight" name="weight"
+                       [readonly]="!isEditing" min="2.5" step="0.1"
+                       [class.invalid]="isFieldInvalid(profileForm, 'weight')" />
+                <small class="field-error" *ngIf="isFieldInvalid(profileForm, 'weight')">
+                  {{ getFieldError(profileForm, "weight", "Weight") }}
+                </small>
+              </div>
+              <div class="form-group">
+                <label>Emergency Contact Name</label>
+                <input type="text" [(ngModel)]="patientData.emergencyContactName"
+                       name="emergencyContactName" [readonly]="!isEditing" />
+              </div>
+              <div class="form-group">
+                <label>Emergency Contact Phone</label>
+                <input type="text" [(ngModel)]="patientData.emergencyContactPhone"
+                       name="emergencyContactPhone" [readonly]="!isEditing" />
+              </div>
+              <div class="form-group full-width">
+                <label>Allergies</label>
+                <textarea rows="2" [(ngModel)]="patientData.allergies"
+                          name="allergies" [readonly]="!isEditing"></textarea>
+              </div>
+              <div class="form-group full-width">
+                <label>Chronic Diseases</label>
+                <textarea rows="2" [(ngModel)]="patientData.chronicDiseases"
+                          name="chronicDiseases" [readonly]="!isEditing"></textarea>
+              </div>
+            </div>
+          </form>
+        </div>
+        <!-- Penalty Events Section (Card Style) -->
+        <div class="content-card penalty-card">
+          <div class="card-header">
+            <h3><span class="penalty-icon">⚠️</span> My Penalty Events</h3>
+          </div>
+          <div *ngIf="penaltyLoading">Loading penalty events...</div>
+          <div *ngIf="penaltyError" class="penalty-error">{{ penaltyError }}</div>
+          <div *ngIf="penaltyProfile && penaltyProfile.recentEvents.length === 0">No penalty events found.</div>
+          <div *ngIf="penaltyProfile && penaltyProfile.recentEvents.length > 0" class="penalty-table-wrapper">
+            <table class="penalty-table">
+              <thead>
+                <tr>
+                  <th>Date</th>
+                  <th>Type</th>
+                  <th>Notes</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr *ngFor="let event of penaltyProfile.recentEvents">
+                  <td>{{ event.occurredAt | date: 'shortDate' }}</td>
+                  <td>
+                    <span class="penalty-type-badge" [ngClass]="{
+                      'late-cancel': event.eventType === 'LATE_CANCEL',
+                      'warning': event.eventType === 'WARNING_NO_PENALTY',
+                      'other': event.eventType !== 'LATE_CANCEL' && event.eventType !== 'WARNING_NO_PENALTY'
+                    }">
+                      {{ formatEventType(event.eventType) }}
+                    </span>
+                  </td>
+                  <td>{{ event.notes || '-' }}</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- ACCOUNT SETTINGS TAB -->
+        <div class="content-card" *ngIf="activeTab === 'settings'">
+          <div class="card-header"><h3>Account Settings</h3></div>
+          <p style="color:#6b7280; padding:1rem 0;">
+            Account settings coming soon.
+          </p>
+        </div>
+
+        <!-- MY REPOSTS TAB -->
+        <div class="content-card" *ngIf="activeTab === 'reposts'">
+          <div class="card-header">
+            <h3><i class="fas fa-retweet"></i> My Reposted Articles</h3>
+          </div>
+
+          <!-- Loading -->
+          <div *ngIf="repostsLoading" class="loading-state">
+            <i class="fas fa-spinner fa-spin"></i> Loading your reposts...
+          </div>
+
+          <!-- Empty state -->
+          <div *ngIf="!repostsLoading && reposts.length === 0" class="empty-reposts">
+            <i class="fas fa-retweet"></i>
+            <p>You haven't reposted any articles yet.</p>
+            <button class="btn-browse" (click)="goToBlogs()">
+              <i class="fas fa-newspaper"></i> Browse All Articles
+            </button>
+          </div>
+
+          <!-- Repost list -->
+          <div class="repost-list" *ngIf="!repostsLoading && reposts.length > 0">
+            <div class="repost-card" *ngFor="let r of visibleReposts">
+
+  <!-- X button — top-right corner -->
+  <button class="remove-repost-btn" (click)="removeRepost(r)" title="Remove repost">
+    <i class="fas fa-times"></i>
+  </button>
+
+  <div class="repost-info">
+    <h4>{{ r.blogTitle }}</h4>
+    <p>{{ r.blogSummary }}</p>
+    <div class="repost-meta">
+      <span class="repost-author" *ngIf="r.blogTitle">
+        <i class="fas fa-user-md"></i>{{ r.blogAuthorName }}
+      </span>
+      <span class="repost-date">
+        <i class="fas fa-clock"></i>
+        Reposted {{ r.repostedAt | date:'mediumDate' }}
+      </span>
+    </div>
+  </div>
+
+  <div class="repost-actions">
+    <div class="visibility-toggle">
+      <button class="vis-btn" [class.active]="r.visibility === 'PUBLIC'"
+              (click)="updateRepostVisibility(r, 'PUBLIC')">
+        <i class="fas fa-globe"></i> Public
+      </button>
+      <button class="vis-btn" [class.active]="r.visibility === 'PRIVATE'"
+              (click)="updateRepostVisibility(r, 'PRIVATE')">
+        <i class="fas fa-lock"></i> Private
+      </button>
+    </div>
+    <a [routerLink]="['/blogs', r.blogId]" class="read-repost-btn">
+      <i class="fas fa-eye"></i> Read
+    </a>
+  </div>
+
+</div>
+          </div>
+        </div>
+
+      </main>
+
+      <!-- RIGHT SIDEBAR — Suggested Articles -->
+      <aside class="articles-sidebar" *ngIf="activeTab !== 'reposts'">
+        <div class="articles-widget">
+          <h4 class="widget-title">
+            <i class="fas fa-newspaper"></i> Suggested Articles
+          </h4>
+
+          <div *ngIf="articlesLoading" class="widget-loading">
+            Loading articles...
+          </div>
+
+          <div class="suggested-list" *ngIf="!articlesLoading">
+            <div class="suggested-card" *ngFor="let a of suggestedArticles"
+                 [routerLink]="['/blogs', a.id]" style="cursor:pointer">
+              <div class="suggested-category">{{ a.category || 'Health' }}</div>
+              <h5>{{ a.title }}</h5>
+              <p>{{ a.summary || (a.content | slice:0:80) }}...</p>
+              <div class="suggested-meta">
+                <span>Dr. {{ a.authorName || 'MedFlow' }}</span>
+                <span>{{ a.viewCount || 0 }} views</span>
+              </div>
+            </div>
+
+            <div *ngIf="suggestedArticles.length === 0" class="no-articles">
+              No articles available yet.
+            </div>
+          </div>
+
+          <button class="browse-all-btn" (click)="goToBlogs()">
+            <i class="fas fa-th-list"></i> Browse All Articles
+          </button>
+        </div>
+      </aside>
+
+    </div>
+  </div>
+</div>
+
+<!-- Success Popup -->
+<div class="success-popup" [class.show]="showSuccessPopup">
+  <div class="popup-content">
+    <div class="success-icon">
+      <svg width="24" height="24" viewBox="0 0 24 24" fill="none"
+           stroke="currentColor" stroke-width="3">
+        <polyline points="20 6 9 17 4 12"></polyline>
+      </svg>
+    </div>
+    <div class="popup-text">
+      <h4>Success!</h4>
+      <p>{{ popupMessage || "Your profile has been updated." }}</p>
+    </div>
+    <button class="close-popup" (click)="showSuccessPopup = false">&times;</button>
+  </div>
+</div>

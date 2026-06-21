@@ -1,0 +1,1247 @@
+<div class="register-layout">
+  <div class="login-card register-form-card register-wizard-card">
+    <div class="wizard-progress-track">
+      <div class="wizard-progress-fill" [style.width.%]="progressPercent"></div>
+    </div>
+
+    <div class="form-header">
+      <div class="logo-area compact">
+        <a routerLink="/">
+          <img
+            src="assets/images/logo-medflow.png"
+            alt="MedFlow Logo"
+            class="brand-logo compact"
+          />
+        </a>
+      </div>
+      <h2>Create your account</h2>
+      <p class="wizard-step-label" *ngIf="currentStep === 1">
+        Step 1 of 3: Choose your account type
+      </p>
+      <p class="wizard-step-label" *ngIf="currentStep === 2">
+        Step 2 of 3: Basic information
+      </p>
+      <p class="wizard-step-label" *ngIf="currentStep === 3">
+        Step 3 of 3: Role details
+      </p>
+    </div>
+
+    <div
+      class="form-top-actions form-top-actions-right"
+      *ngIf="currentStep > 1"
+    >
+      <span class="selected-role-pill"
+        >Role: {{ pendingRole | titlecase }}</span
+      >
+    </div>
+
+    <div *ngIf="errorMessage" class="error-msg">
+      {{ errorMessage }}
+    </div>
+
+    <form
+      (ngSubmit)="onRegister(registerForm)"
+      #registerForm="ngForm"
+      class="auth-form"
+      novalidate
+    >
+      <div
+        class="role-selector-new"
+        role="tablist"
+        aria-label="Select account role"
+        *ngIf="currentStep === 1"
+      >
+        <button
+          *ngFor="let role of roles"
+          type="button"
+          class="role-card"
+          [class.active]="pendingRole === role.value"
+          (click)="selectRole(role.value)"
+        >
+          <div class="role-icon">
+            <svg
+              *ngIf="role.value === 'PATIENT'"
+              xmlns="http://www.w3.org/2000/svg"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            >
+              <path
+                d="M16 7C16 9.20914 14.2091 11 12 11C9.79086 11 8 9.20914 8 7C8 4.79086 9.79086 3 12 3C14.2091 3 16 4.79086 16 7Z"
+              />
+              <path
+                d="M12 14C8.13401 14 5 17.134 5 21H19C19 17.134 15.866 14 12 14Z"
+              />
+            </svg>
+            <svg
+              *ngIf="role.value === 'DOCTOR'"
+              xmlns="http://www.w3.org/2000/svg"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            >
+              <path
+                d="M4.8 2.3A.3.3 0 1 0 5 2H4a2 2 0 0 0-2 2v5a6 6 0 0 0 6 6v0a6 6 0 0 0 6-6V4a2 2 0 0 0-2-2h-1a.2.2 0 1 0 .3.3"
+              />
+              <path d="M8 15v1a6 6 0 0 0 6 6v0a6 6 0 0 0 6-6v-4" />
+              <circle cx="20" cy="10" r="2" />
+            </svg>
+            <svg
+              *ngIf="role.value === 'LABO'"
+              xmlns="http://www.w3.org/2000/svg"
+              viewBox="0 0 24 24"
+              fill="currentColor"
+              stroke="none"
+            >
+              <path
+                d="M3 20C2.44772 20 2 20.4477 2 21C2 21.5523 2.44772 22 3 22V20ZM21 22C21.5523 22 22 21.5523 22 21C22 20.4477 21.5523 20 21 20V22ZM7 17C6.44772 17 6 17.4477 6 18C6 18.5523 6.44772 19 7 19V17ZM14 19C14.5523 19 15 18.5523 15 18C15 17.4477 14.5523 17 14 17V19ZM9 14C8.44772 14 8 14.4477 8 15C8 15.5523 8.44772 16 9 16V14ZM12 16C12.5523 16 13 15.5523 13 15C13 14.4477 12.5523 14 12 14V16ZM8 5V4C7.44772 4 7 4.44772 7 5H8ZM13 5H14C14 4.44772 13.5523 4 13 4V5ZM13 12V13C13.5523 13 14 12.5523 14 12H13ZM8 12H7C7 12.5523 7.44772 13 8 13V12ZM9 5V6C9.45887 6 9.85885 5.6877 9.97014 5.24254L9 5ZM11.5 3L12.4701 2.75746C12.3589 2.3123 11.9589 2 11.5 2V3ZM9.5 3V2C9.04113 2 8.64115 2.3123 8.52986 2.75746L9.5 3ZM12 5L11.0299 5.24254C11.1411 5.6877 11.5411 6 12 6V5ZM13 7C12.4477 7 12 7.44772 12 8C12 8.55228 12.4477 9 13 9V7ZM16.0915 20.1435C15.6184 20.4285 15.466 21.0431 15.7511 21.5161C16.0361 21.9892 16.6506 22.1416 17.1237 21.8565L16.0915 20.1435ZM3 22H21V20H3V22ZM7 19H14V17H7V19ZM9 16H12V14H9V16ZM12 5V12H14V5H12ZM13 11H8V13H13V11ZM9 12V5H7V12H9ZM8 6H9V4H8V6ZM9.97014 5.24254L10.4701 3.24254L8.52986 2.75746L8.02986 4.75746L9.97014 5.24254ZM9.5 4H11.5V2H9.5V4ZM10.5299 3.24254L11.0299 5.24254L12.9701 4.75746L12.4701 2.75746L10.5299 3.24254ZM12 6H13V4H12V6ZM13 9C16.3137 9 19 11.6863 19 15H21C21 10.5817 17.4183 7 13 7V9ZM19 15C19 17.1814 17.8365 19.092 16.0915 20.1435L17.1237 21.8565C19.4443 20.4582 21 17.9113 21 15H19Z"
+              />
+            </svg>
+            <svg
+              *ngIf="role.value === 'HOSPITAL'"
+              xmlns="http://www.w3.org/2000/svg"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            >
+              <path
+                d="M7 6H5.2C4.0799 6 3.51984 6 3.09202 6.21799C2.71569 6.40973 2.40973 6.71569 2.21799 7.09202C2 7.51984 2 8.0799 2 9.2V17.8C2 18.9201 2 19.4802 2.21799 19.908C2.40973 20.2843 2.71569 20.5903 3.09202 20.782C3.51984 21 4.0799 21 5.2 21H18.8C19.9201 21 20.4802 21 20.908 20.782C21.2843 20.5903 21.5903 20.2843 21.782 19.908C22 19.4802 22 18.9201 22 17.8V9.2C22 8.07989 22 7.51984 21.782 7.09202C21.5903 6.71569 21.2843 6.40973 20.908 6.21799C20.4802 6 19.9201 6 18.8 6H17M2 10H4M20 10H22M2 14H4M20 14H22M12 6V10M10 8H14M17 21V6.2C17 5.0799 17 4.51984 16.782 4.09202C16.5903 3.71569 16.2843 3.40973 15.908 3.21799C15.4802 3 14.9201 3 13.8 3H10.2C9.07989 3 8.51984 3 8.09202 3.21799C7.71569 3.40973 7.40973 3.71569 7.21799 4.09202C7 4.51984 7 5.0799 7 6.2V21H17ZM14 21V17C14 15.8954 13.1046 15 12 15C10.8954 15 10 15.8954 10 17V21H14Z"
+              />
+            </svg>
+            <svg
+              *ngIf="role.value === 'INSURANCE'"
+              xmlns="http://www.w3.org/2000/svg"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            >
+              <path
+                d="M9 12L11 14L15 9.99999M20 12C20 16.4611 14.54 19.6937 12.6414 20.683C12.4361 20.79 12.3334 20.8435 12.191 20.8712C12.08 20.8928 11.92 20.8928 11.809 20.8712C11.6666 20.8435 11.5639 20.79 11.3586 20.683C9.45996 19.6937 4 16.4611 4 12V8.21759C4 7.41808 4 7.01833 4.13076 6.6747C4.24627 6.37113 4.43398 6.10027 4.67766 5.88552C4.9535 5.64243 5.3278 5.50207 6.0764 5.22134L11.4382 3.21067C11.6461 3.13271 11.75 3.09373 11.857 3.07827C11.9518 3.06457 12.0482 3.06457 12.143 3.07827C12.25 3.09373 12.3539 3.13271 12.5618 3.21067L17.9236 5.22134C18.6722 5.50207 19.0465 5.64243 19.3223 5.88552C19.5660 6.10027 19.7537 6.37113 19.8692 6.6747C20 7.01833 20 7.41808 20 8.21759V12Z"
+              />
+            </svg>
+            <svg
+              *ngIf="role.value === 'PHARMACIST'"
+              xmlns="http://www.w3.org/2000/svg"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            >
+              <path
+                d="M10.5 20.5L20.5 10.5C22.5 8.5 22.5 5.5 20.5 3.5C18.5 1.5 15.5 1.5 13.5 3.5L3.5 13.5C1.5 15.5 1.5 18.5 3.5 20.5C5.5 22.5 8.5 22.5 10.5 20.5Z"
+              />
+              <path d="M8.5 8.5L15.5 15.5" />
+            </svg>
+            <svg
+              *ngIf="role.value === 'DELIVERY_AGENT'"
+              xmlns="http://www.w3.org/2000/svg"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            >
+              <path d="M21 8L12 3L3 8V16L12 21L21 16V8Z" />
+              <path d="M3 8L12 13L21 8" />
+              <path d="M12 13V21" />
+            </svg>
+            <svg
+              *ngIf="role.value === 'CENTRAL_PHARMACY'"
+              xmlns="http://www.w3.org/2000/svg"
+              viewBox="0 0 500 500"
+              class="role-icon pharmacy-icon"
+            >
+              <path
+                class="pharmacy-path"
+                d="m346.91 186.25c1.64 5.66 2.53 12.04 2.53 19.25 0 12.74-2.79 25.02-7.79 36.28 7.34-5.23 13.92-10.59 20.28-15.52 22.54-17.47 43.81-23.55 60.27-24.56 8.82-0.55 23.29-7.35 23.29-15.45h-98.58zm-3.21 19.25c0-44.83-41.03-56.98-77.49-62.81-36.76-5.87-79.26-18.99-79.26-58.24 0-19.245 12.02-38.365 32.66-38.365 30.39 0 35.71 23.044 35.84 26.336 0.12 3.292-8.85 5.63-10.01 12.155-1.39 7.85 2.03 15.704 6.97 22.034 4.4 5.65 10.76 17.09 17.09 16.08 6.78-1.09 9.24-12.66 11.14-20.26 1.9-7.597 5.19-14.056 2.03-21.146-3.92-8.782-7.85-4.433-10.89-10.761-1.74-3.625-8.48-40.392-49.13-40.392-28.35 0-54.19 23.425-56.72 50.014-3.63 38.065 11.39 52.415 43.05 67.365 49.32 23.27 100.53 22.28 100.53 54.95 0 31.9-10.89 48.87-29.63 61.28-3.23 2.14-9.38 4.95-15.4 7.02v22.42c1.24-0.17 2.5-0.36 3.75-0.57 42.04-7.09 75.47-44.57 75.47-87.11zm-48.52-19.25h-240.68c0.005 8.1 14.476 14.9 23.303 15.45 16.46 1.01 37.727 7.09 60.267 24.56 23.02 17.85 48.94 41.34 103.19 43.63v69c3.15 0.58 6.67 0.9 10.51 0.9 1.61 0 4.11-0.1 6.97-0.41v-72.84c29.11-6.38 45.03-31.22 45.03-64.08 0-6.77-2.78-11.85-8.59-16.21zm-53.92 205.36c4.9 2.98 10.91 4.29 17.48 5.17v-26.94c-5.85 0.39-11.73 0.31-17.48-0.27v22.04zm57.87 21.79c-9.37-7.09-21.53-8.74-43.18-11.4-25.63-3.15-32.4-19.28-33.15-36.28-6.65-2.2-12.8-5.27-18.12-9.28-1.23 5.79-1.78 11.81-1.78 17.96 0 25.57 27.57 36.44 47.1 39.25 20.26 2.91 39.25 3.67 41.91 4.81 2.69 1.15 4.31 2.41 5.45 3.67 1.14 1.27 4.17 3.04 6.07 1.77 1.9-1.26 0.38-6.96-4.3-10.5zm-69.14-78.52c1.65-1.69 3.52-3.15 5.53-4.44v-15.64c-4.87 2.74-9.08 5.81-12.7 9.21 0 4.21 2.52 8.04 7.17 10.87zm55.72-7.33c0 12.16-15.96 17.98-33.94 17.98s-34.69-7.09-34.69-21.52c0-17.82 7.32-24.16 18.44-27.02v-25.01c-24.38 1.88-44.52 24.31-44.52 43.42 0 13.92 2.46 35.76 41.02 46.84 40.52 11.65 87.11-13.92 87.11-39.5 0-12.41-6.35-18.42-14.69-21.02-6.91-2.16-15.12-5.24-39.96 1.93v15.78c3.92-1.08 7.41-1.76 10.84-1.76 7.09 0 10.39 2.28 10.39 9.88zm-132.44 142.32h193.46c0-3.17-10.25-7.72-19.12-8.49-8.86-0.76-20.75-1.24-23.42-3.54-3.67-3.17-9.52-5.36-17.22-7.22-7.85-1.9-28.23-3.54-28.23-14.68v-15.47c-3.2-0.32-6.39-0.68-9.56-1.14-2.45-0.35-5.13-0.84-7.92-1.5v18.11c0 11.14-20.38 12.78-28.23 14.68-7.7 1.86-13.55 4.05-17.22 7.22-2.67 2.3-14.57 2.78-23.43 3.54s-19.11 5.32-19.11 8.49z"
+              />
+            </svg>
+          </div>
+          <strong>{{ role.label }}</strong>
+        </button>
+      </div>
+
+      <div *ngIf="currentStep === 2">
+        <div class="form-group">
+          <label for="email">Email Address</label>
+          <div
+            class="input-wrapper has-icon"
+            [class.invalid]="isFieldInvalid(registerForm, 'email')"
+          >
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              width="18"
+              height="18"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              class="input-icon"
+            >
+              <path
+                d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"
+              ></path>
+              <polyline points="22,6 12,13 2,6"></polyline>
+            </svg>
+            <input
+              type="email"
+              id="email"
+              name="email"
+              [(ngModel)]="registerData.email"
+              required
+              email
+              placeholder="name@company.com"
+            />
+          </div>
+          <small
+            class="field-error"
+            *ngIf="isFieldInvalid(registerForm, 'email')"
+          >
+            {{ getFieldError(registerForm, "email", "Email") }}
+          </small>
+        </div>
+
+        <div class="form-group">
+          <label for="password">Password</label>
+          <div
+            class="input-wrapper has-icon"
+            [class.invalid]="isFieldInvalid(registerForm, 'password')"
+          >
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              width="18"
+              height="18"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              class="input-icon"
+            >
+              <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
+              <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
+            </svg>
+            <input
+              [type]="showPassword ? 'text' : 'password'"
+              id="password"
+              name="password"
+              [(ngModel)]="registerData.password"
+              required
+              minlength="8"
+              placeholder="••••••••"
+            />
+            <button
+              type="button"
+              class="password-toggle"
+              (click)="showPassword = !showPassword"
+              [attr.aria-label]="
+                showPassword ? 'Hide password' : 'Show password'
+              "
+            >
+              <svg
+                *ngIf="!showPassword"
+                width="18"
+                height="18"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+              >
+                <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
+                <circle cx="12" cy="12" r="3"></circle>
+              </svg>
+              <svg
+                *ngIf="showPassword"
+                width="18"
+                height="18"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+              >
+                <path
+                  d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"
+                ></path>
+                <line x1="1" y1="1" x2="23" y2="23"></line>
+              </svg>
+            </button>
+          </div>
+          <small
+            class="field-error"
+            *ngIf="isFieldInvalid(registerForm, 'password')"
+          >
+            {{ getFieldError(registerForm, "password", "Password") }}
+          </small>
+        </div>
+
+        <div class="form-group">
+          <label for="confirmPassword">Confirm Password</label>
+          <div
+            class="input-wrapper has-icon"
+            [class.invalid]="
+              isFieldInvalid(registerForm, 'confirmPassword') ||
+              (submitted && !passwordsMatch())
+            "
+          >
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              width="18"
+              height="18"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              class="input-icon"
+            >
+              <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path>
+            </svg>
+            <input
+              [type]="showConfirmPassword ? 'text' : 'password'"
+              id="confirmPassword"
+              name="confirmPassword"
+              [(ngModel)]="registerData.confirmPassword"
+              required
+              placeholder="••••••••"
+            />
+            <button
+              type="button"
+              class="password-toggle"
+              (click)="showConfirmPassword = !showConfirmPassword"
+              [attr.aria-label]="
+                showConfirmPassword ? 'Hide password' : 'Show password'
+              "
+            >
+              <svg
+                *ngIf="!showConfirmPassword"
+                width="18"
+                height="18"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+              >
+                <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
+                <circle cx="12" cy="12" r="3"></circle>
+              </svg>
+              <svg
+                *ngIf="showConfirmPassword"
+                width="18"
+                height="18"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+              >
+                <path
+                  d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"
+                ></path>
+                <line x1="1" y1="1" x2="23" y2="23"></line>
+              </svg>
+            </button>
+          </div>
+          <small
+            class="field-error"
+            *ngIf="isFieldInvalid(registerForm, 'confirmPassword')"
+          >
+            {{
+              getFieldError(registerForm, "confirmPassword", "Confirm Password")
+            }}
+          </small>
+        </div>
+
+        <div class="form-group">
+          <label for="phoneNumber">Phone Number</label>
+          <div
+            class="input-wrapper has-icon"
+            [class.invalid]="isFieldInvalid(registerForm, 'phoneNumber')"
+          >
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              width="18"
+              height="18"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              class="input-icon"
+            >
+              <path
+                d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"
+              ></path>
+            </svg>
+            <input
+              type="tel"
+              id="phoneNumber"
+              name="phoneNumber"
+              [(ngModel)]="registerData.phoneNumber"
+              required
+              pattern="^[0-9]{8}$"
+              maxlength="8"
+              placeholder="12345678"
+            />
+          </div>
+          <small
+            class="field-error"
+            *ngIf="isFieldInvalid(registerForm, 'phoneNumber')"
+          >
+            {{ getFieldError(registerForm, "phoneNumber", "Phone number") }}
+          </small>
+        </div>
+      </div>
+
+      <div *ngIf="currentStep === 3">
+        <div class="role-fields">
+          <ng-container [ngSwitch]="pendingRole">
+            <div *ngSwitchCase="'PATIENT'" class="role-panel">
+              <div class="name-row">
+                <div class="form-group flex-1">
+                  <label for="firstname">First Name</label>
+                  <div
+                    class="input-wrapper"
+                    [class.invalid]="isFieldInvalid(registerForm, 'firstname')"
+                  >
+                    <input
+                      type="text"
+                      id="firstname"
+                      name="firstname"
+                      [(ngModel)]="registerData.firstname"
+                      required
+                      placeholder="First name"
+                    />
+                  </div>
+                  <small
+                    class="field-error"
+                    *ngIf="isFieldInvalid(registerForm, 'firstname')"
+                  >
+                    {{ getFieldError(registerForm, "firstname", "First name") }}
+                  </small>
+                </div>
+
+                <div class="form-group flex-1">
+                  <label for="lastname">Last Name</label>
+                  <div
+                    class="input-wrapper"
+                    [class.invalid]="isFieldInvalid(registerForm, 'lastname')"
+                  >
+                    <input
+                      type="text"
+                      id="lastname"
+                      name="lastname"
+                      [(ngModel)]="registerData.lastname"
+                      required
+                      placeholder="Last name"
+                    />
+                  </div>
+                  <small
+                    class="field-error"
+                    *ngIf="isFieldInvalid(registerForm, 'lastname')"
+                  >
+                    {{ getFieldError(registerForm, "lastname", "Last name") }}
+                  </small>
+                </div>
+              </div>
+
+              <div class="name-row">
+                <div class="form-group flex-1">
+                  <label for="dateOfBirth">Date of Birth</label>
+                  <div
+                    class="input-wrapper"
+                    [class.invalid]="
+                      isFieldInvalid(registerForm, 'dateOfBirth')
+                    "
+                  >
+                    <input
+                      type="date"
+                      id="dateOfBirth"
+                      name="dateOfBirth"
+                      [(ngModel)]="registerData.dateOfBirth"
+                      required
+                    />
+                  </div>
+                  <small
+                    class="field-error"
+                    *ngIf="isFieldInvalid(registerForm, 'dateOfBirth')"
+                  >
+                    {{
+                      getFieldError(
+                        registerForm,
+                        "dateOfBirth",
+                        "Date of birth"
+                      )
+                    }}
+                  </small>
+                </div>
+
+                <div class="form-group flex-1">
+                  <label for="gender">Gender</label>
+                  <div class="gender-picker">
+                    <label
+                      class="gender-option"
+                      [class.active]="registerData.gender === 'MALE'"
+                    >
+                      <input
+                        type="radio"
+                        name="gender"
+                        [(ngModel)]="registerData.gender"
+                        value="MALE"
+                        required
+                      />
+                      <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        width="16"
+                        height="16"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        class="gender-icon"
+                        stroke="currentColor"
+                        stroke-width="2"
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                      >
+                        <circle cx="12" cy="5" r="2"></circle>
+                        <path
+                          d="M10 22v-4h-2l2-6a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2l2 6h-2v4"
+                        ></path>
+                      </svg>
+                      <span>Male</span>
+                    </label>
+                    <label
+                      class="gender-option"
+                      [class.active]="registerData.gender === 'FEMALE'"
+                    >
+                      <input
+                        type="radio"
+                        name="gender"
+                        [(ngModel)]="registerData.gender"
+                        value="FEMALE"
+                        required
+                      />
+                      <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        width="16"
+                        height="16"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        class="gender-icon"
+                        stroke="currentColor"
+                        stroke-width="2"
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                      >
+                        <circle cx="12" cy="10" r="3"></circle>
+                        <path d="M12 13v9"></path>
+                        <path d="M9 18h6"></path>
+                        <path d="M15.5 7.5l-7 7"></path>
+                      </svg>
+                      <span>Female</span>
+                    </label>
+                  </div>
+                  <small
+                    class="field-error"
+                    *ngIf="isFieldInvalid(registerForm, 'gender')"
+                  >
+                    {{ getFieldError(registerForm, "gender", "Gender") }}
+                  </small>
+                </div>
+              </div>
+
+              <div class="form-group">
+                <label for="bloodType">Blood Type</label>
+                <div
+                  class="input-wrapper"
+                  [class.invalid]="isFieldInvalid(registerForm, 'bloodType')"
+                >
+                  <app-custom-dropdown
+                    id="bloodType"
+                    name="bloodType"
+                    [(ngModel)]="registerData.bloodType"
+                    [options]="bloodTypeOptions"
+                    placeholder="Select blood type"
+                    required
+                  ></app-custom-dropdown>
+                </div>
+                <small
+                  class="field-error"
+                  *ngIf="isFieldInvalid(registerForm, 'bloodType')"
+                >
+                  {{ getFieldError(registerForm, "bloodType", "Blood type") }}
+                </small>
+              </div>
+            </div>
+
+            <div *ngSwitchCase="'DOCTOR'" class="role-panel">
+              <div class="name-row">
+                <div class="form-group flex-1">
+                  <label for="firstname">First Name</label>
+                  <div
+                    class="input-wrapper"
+                    [class.invalid]="isFieldInvalid(registerForm, 'firstname')"
+                  >
+                    <input
+                      type="text"
+                      id="firstname"
+                      name="firstname"
+                      [(ngModel)]="registerData.firstname"
+                      required
+                      placeholder="First name"
+                    />
+                  </div>
+                  <small
+                    class="field-error"
+                    *ngIf="isFieldInvalid(registerForm, 'firstname')"
+                  >
+                    {{ getFieldError(registerForm, "firstname", "First name") }}
+                  </small>
+                </div>
+
+                <div class="form-group flex-1">
+                  <label for="lastname">Last Name</label>
+                  <div
+                    class="input-wrapper"
+                    [class.invalid]="isFieldInvalid(registerForm, 'lastname')"
+                  >
+                    <input
+                      type="text"
+                      id="lastname"
+                      name="lastname"
+                      [(ngModel)]="registerData.lastname"
+                      required
+                      placeholder="Last name"
+                    />
+                  </div>
+                  <small
+                    class="field-error"
+                    *ngIf="isFieldInvalid(registerForm, 'lastname')"
+                  >
+                    {{ getFieldError(registerForm, "lastname", "Last name") }}
+                  </small>
+                </div>
+              </div>
+
+              <div class="form-group">
+                <label for="specialization">Specialization</label>
+                <div
+                  class="input-wrapper"
+                  [class.invalid]="
+                    isFieldInvalid(registerForm, 'specialization')
+                  "
+                >
+                  <input
+                    type="text"
+                    id="specialization"
+                    name="specialization"
+                    [(ngModel)]="registerData.specialization"
+                    required
+                    placeholder="Cardiology, Neurology..."
+                  />
+                </div>
+                <small
+                  class="field-error"
+                  *ngIf="isFieldInvalid(registerForm, 'specialization')"
+                >
+                  {{
+                    getFieldError(
+                      registerForm,
+                      "specialization",
+                      "Specialization"
+                    )
+                  }}
+                </small>
+              </div>
+
+              <div class="form-group">
+                <label for="licenseNumber">License Number</label>
+                <div
+                  class="input-wrapper"
+                  [class.invalid]="
+                    isFieldInvalid(registerForm, 'licenseNumber')
+                  "
+                >
+                  <input
+                    type="text"
+                    id="licenseNumber"
+                    name="licenseNumber"
+                    [(ngModel)]="registerData.licenseNumber"
+                    required
+                    placeholder="MD-12345"
+                  />
+                </div>
+                <small
+                  class="field-error"
+                  *ngIf="isFieldInvalid(registerForm, 'licenseNumber')"
+                >
+                  {{
+                    getFieldError(
+                      registerForm,
+                      "licenseNumber",
+                      "License number"
+                    )
+                  }}
+                </small>
+              </div>
+            </div>
+
+            <div *ngSwitchCase="'LABO'" class="role-panel">
+              <div class="form-group">
+                <label for="labName">Lab Name</label>
+                <div
+                  class="input-wrapper"
+                  [class.invalid]="isFieldInvalid(registerForm, 'labName')"
+                >
+                  <input
+                    type="text"
+                    id="labName"
+                    name="labName"
+                    [(ngModel)]="registerData.labName"
+                    required
+                    placeholder="Lab name"
+                  />
+                </div>
+                <small
+                  class="field-error"
+                  *ngIf="isFieldInvalid(registerForm, 'labName')"
+                >
+                  {{ getFieldError(registerForm, "labName", "Lab name") }}
+                </small>
+              </div>
+
+              <div class="form-group">
+                <label for="registrationNumber">Registration Number</label>
+                <div
+                  class="input-wrapper"
+                  [class.invalid]="
+                    isFieldInvalid(registerForm, 'registrationNumber')
+                  "
+                >
+                  <input
+                    type="text"
+                    id="registrationNumber"
+                    name="registrationNumber"
+                    [(ngModel)]="registerData.registrationNumber"
+                    required
+                    placeholder="Registration number"
+                  />
+                </div>
+                <small
+                  class="field-error"
+                  *ngIf="isFieldInvalid(registerForm, 'registrationNumber')"
+                >
+                  {{
+                    getFieldError(
+                      registerForm,
+                      "registrationNumber",
+                      "Registration number"
+                    )
+                  }}
+                </small>
+              </div>
+
+              <div class="form-group">
+                <label for="address">Address</label>
+                <div
+                  class="input-wrapper"
+                  [class.invalid]="isFieldInvalid(registerForm, 'address')"
+                >
+                  <input
+                    type="text"
+                    id="address"
+                    name="address"
+                    [(ngModel)]="registerData.address"
+                    required
+                    placeholder="Address"
+                  />
+                </div>
+                <small
+                  class="field-error"
+                  *ngIf="isFieldInvalid(registerForm, 'address')"
+                >
+                  {{ getFieldError(registerForm, "address", "Address") }}
+                </small>
+              </div>
+
+              <div class="form-group">
+                <label for="supportedTests">Supported Tests</label>
+                <div
+                  class="input-wrapper"
+                  [class.invalid]="
+                    isFieldInvalid(registerForm, 'supportedTests')
+                  "
+                >
+                  <app-custom-multi-dropdown
+                    id="supportedTests"
+                    name="supportedTests"
+                    [(ngModel)]="registerData.supportedTests"
+                    [options]="labSupportedTestOptions"
+                    placeholder="Select supported tests"
+                    [emitAs]="'comma'"
+                    [delimiter]="', '"
+                    required
+                  ></app-custom-multi-dropdown>
+                </div>
+                <small
+                  class="field-error"
+                  *ngIf="isFieldInvalid(registerForm, 'supportedTests')"
+                >
+                  {{
+                    getFieldError(
+                      registerForm,
+                      "supportedTests",
+                      "Supported Tests"
+                    )
+                  }}
+                </small>
+              </div>
+            </div>
+
+            <div *ngSwitchCase="'HOSPITAL'" class="role-panel">
+              <div class="form-group">
+                <label for="name">Hospital Name</label>
+                <div
+                  class="input-wrapper"
+                  [class.invalid]="isFieldInvalid(registerForm, 'name')"
+                >
+                  <input
+                    type="text"
+                    id="name"
+                    name="name"
+                    [(ngModel)]="registerData.name"
+                    required
+                    placeholder="Hospital name"
+                  />
+                </div>
+                <small
+                  class="field-error"
+                  *ngIf="isFieldInvalid(registerForm, 'name')"
+                >
+                  {{ getFieldError(registerForm, "name", "Hospital name") }}
+                </small>
+              </div>
+
+              <div class="form-group">
+                <label for="registrationNumber">Registration Number</label>
+                <div
+                  class="input-wrapper"
+                  [class.invalid]="
+                    isFieldInvalid(registerForm, 'registrationNumber')
+                  "
+                >
+                  <input
+                    type="text"
+                    id="registrationNumber"
+                    name="registrationNumber"
+                    [(ngModel)]="registerData.registrationNumber"
+                    required
+                    placeholder="Registration number"
+                  />
+                </div>
+                <small
+                  class="field-error"
+                  *ngIf="isFieldInvalid(registerForm, 'registrationNumber')"
+                >
+                  {{
+                    getFieldError(
+                      registerForm,
+                      "registrationNumber",
+                      "Registration number"
+                    )
+                  }}
+                </small>
+              </div>
+
+              <div class="form-group">
+                <label for="type">Type</label>
+                <div
+                  class="input-wrapper"
+                  [class.invalid]="isFieldInvalid(registerForm, 'type')"
+                >
+                  <app-custom-dropdown
+                    id="type"
+                    name="type"
+                    [(ngModel)]="registerData.type"
+                    [options]="hospitalTypeOptions"
+                    placeholder="Hospital Type"
+                    required
+                  ></app-custom-dropdown>
+                </div>
+                <small
+                  class="field-error"
+                  *ngIf="isFieldInvalid(registerForm, 'type')"
+                >
+                  {{ getFieldError(registerForm, "type", "Type") }}
+                </small>
+              </div>
+            </div>
+
+            <div *ngSwitchCase="'INSURANCE'" class="role-panel">
+              <div class="form-group">
+                <label for="companyName">Company Name</label>
+                <div
+                  class="input-wrapper"
+                  [class.invalid]="isFieldInvalid(registerForm, 'companyName')"
+                >
+                  <input
+                    type="text"
+                    id="companyName"
+                    name="companyName"
+                    [(ngModel)]="registerData.companyName"
+                    required
+                    placeholder="Company name"
+                  />
+                </div>
+                <small
+                  class="field-error"
+                  *ngIf="isFieldInvalid(registerForm, 'companyName')"
+                >
+                  {{
+                    getFieldError(registerForm, "companyName", "Company name")
+                  }}
+                </small>
+              </div>
+
+              <div class="form-group">
+                <label for="registrationNumber">Registration Number</label>
+                <div
+                  class="input-wrapper"
+                  [class.invalid]="
+                    isFieldInvalid(registerForm, 'registrationNumber')
+                  "
+                >
+                  <input
+                    type="text"
+                    id="registrationNumber"
+                    name="registrationNumber"
+                    [(ngModel)]="registerData.registrationNumber"
+                    required
+                    placeholder="Registration number"
+                  />
+                </div>
+                <small
+                  class="field-error"
+                  *ngIf="isFieldInvalid(registerForm, 'registrationNumber')"
+                >
+                  {{
+                    getFieldError(
+                      registerForm,
+                      "registrationNumber",
+                      "Registration number"
+                    )
+                  }}
+                </small>
+              </div>
+
+              <div class="form-group">
+                <label for="coverageTypes">Coverage Types</label>
+                <div
+                  class="input-wrapper"
+                  [class.invalid]="
+                    isFieldInvalid(registerForm, 'coverageTypes')
+                  "
+                >
+                  <input
+                    type="text"
+                    id="coverageTypes"
+                    name="coverageTypes"
+                    [(ngModel)]="registerData.coverageTypes"
+                    required
+                    placeholder="Dental, hospitalization..."
+                  />
+                </div>
+                <small
+                  class="field-error"
+                  *ngIf="isFieldInvalid(registerForm, 'coverageTypes')"
+                >
+                  {{
+                    getFieldError(
+                      registerForm,
+                      "coverageTypes",
+                      "Coverage types"
+                    )
+                  }}
+                </small>
+              </div>
+            </div>
+
+            <!-- ✅ PHARMACIST -->
+            <div *ngSwitchCase="'PHARMACIST'" class="role-panel">
+              <div class="form-group">
+                <label for="pharmacyName">Pharmacy Name</label>
+                <div
+                  class="input-wrapper"
+                  [class.invalid]="isFieldInvalid(registerForm, 'pharmacyName')"
+                >
+                  <input
+                    type="text"
+                    id="pharmacyName"
+                    name="pharmacyName"
+                    [(ngModel)]="registerData.pharmacyName"
+                    required
+                    placeholder="Pharmacy name"
+                  />
+                </div>
+                <small
+                  class="field-error"
+                  *ngIf="isFieldInvalid(registerForm, 'pharmacyName')"
+                >
+                  {{
+                    getFieldError(registerForm, "pharmacyName", "Pharmacy name")
+                  }}
+                </small>
+              </div>
+
+              <div class="form-group">
+                <label for="licenseNumber">License Number</label>
+                <div
+                  class="input-wrapper"
+                  [class.invalid]="
+                    isFieldInvalid(registerForm, 'licenseNumber')
+                  "
+                >
+                  <input
+                    type="text"
+                    id="licenseNumber"
+                    name="pharmacistLicenseNumber"
+                    [(ngModel)]="registerData.licenseNumber"
+                    required
+                    placeholder="License number"
+                  />
+                </div>
+                <small
+                  class="field-error"
+                  *ngIf="isFieldInvalid(registerForm, 'licenseNumber')"
+                >
+                  {{
+                    getFieldError(
+                      registerForm,
+                      "licenseNumber",
+                      "License number"
+                    )
+                  }}
+                </small>
+              </div>
+
+              <div class="form-group">
+                <label for="region">Region</label>
+                <div class="input-wrapper"
+                    [class.invalid]="isFieldInvalid(registerForm, 'region')">
+                  <app-custom-dropdown
+                    id="region"
+                    name="region"
+                    [(ngModel)]="registerData.region"
+                    [options]="regions"
+                    placeholder="Select region"
+                    required
+                  ></app-custom-dropdown>
+                </div>
+                <small class="field-error"
+                       *ngIf="isFieldInvalid(registerForm, 'region')">
+                  {{ getFieldError(registerForm, "region", "Region") }}
+                </small>
+              </div>
+            </div>
+
+            <!-- ✅ DELIVERY AGENT -->
+            <div *ngSwitchCase="'DELIVERY_AGENT'" class="role-panel">
+              <!-- NAME -->
+              <div class="form-group">
+                <label>Full Name</label>
+                <div
+                  class="input-wrapper"
+                  [class.invalid]="isFieldInvalid(registerForm, 'deliveryName')"
+                >
+                  <input
+                    type="text"
+                    name="deliveryName"
+                    [(ngModel)]="registerData.deliveryName"
+                    required
+                    placeholder="Full name"
+                  />
+                </div>
+                <small
+                  class="field-error"
+                  *ngIf="isFieldInvalid(registerForm, 'deliveryName')"
+                >
+                  {{ getFieldError(registerForm, "deliveryName", "Full name") }}
+                </small>
+              </div>
+
+              <!-- VEHICLE -->
+              <div class="form-group">
+                <label>Vehicle Type</label>
+                <div
+                  class="input-wrapper"
+                  [class.invalid]="isFieldInvalid(registerForm, 'vehicleType')"
+                >
+                  <select
+                    name="vehicleType"
+                    [(ngModel)]="registerData.vehicleType"
+                    required
+                  >
+                    <option value="">Select vehicle</option>
+                    <option value="BIKE">Bike</option>
+                    <option value="CAR">Car</option>
+                    <option value="SCOOTER">Scooter</option>
+                  </select>
+                </div>
+                <small
+                  class="field-error"
+                  *ngIf="isFieldInvalid(registerForm, 'vehicleType')"
+                >
+                  Vehicle type is required
+                </small>
+              </div>
+            </div>
+          </ng-container>
+        </div>
+      </div>
+
+      <div
+        class="role-picker-footer form-step-footer step-one-footer"
+        *ngIf="currentStep === 1"
+      >
+        <button
+          type="button"
+          class="btn-nav-next"
+          [disabled]="!pendingRole"
+          (click)="confirmRole()"
+          aria-label="Next step"
+        >
+          Next
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            width="20"
+            height="20"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+          >
+            <path d="M5 12h14"></path>
+            <path d="m12 5 7 7-7 7"></path>
+          </svg>
+        </button>
+      </div>
+
+      <div
+        class="role-picker-footer form-step-footer"
+        *ngIf="currentStep === 2"
+      >
+        <button type="button" class="btn-nav-back" (click)="prevStep()">
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            width="20"
+            height="20"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+          >
+            <path d="M19 12H5"></path>
+            <path d="m12 19-7-7 7-7"></path>
+          </svg>
+          Back
+        </button>
+        <button
+          type="button"
+          class="btn-nav-next"
+          [disabled]="registerForm.invalid"
+          (click)="nextStep(registerForm)"
+        >
+          Next
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            width="20"
+            height="20"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+          >
+            <path d="M5 12h14"></path>
+            <path d="m12 5 7 7-7 7"></path>
+          </svg>
+        </button>
+      </div>
+
+      <div
+        class="role-picker-footer form-step-footer"
+        *ngIf="currentStep === 3"
+      >
+        <button type="button" class="btn-nav-back" (click)="prevStep()">
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            width="20"
+            height="20"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+          >
+            <path d="M19 12H5"></path>
+            <path d="m12 19-7-7 7-7"></path>
+          </svg>
+          Back
+        </button>
+        <button
+          type="submit"
+          class="btn-submit btn-nav-register"
+          [disabled]="isLoading || registerForm.invalid"
+        >
+          <span *ngIf="!isLoading">Register</span>
+          <span *ngIf="isLoading" class="loader"></span>
+        </button>
+      </div>
+
+      <div class="auth-footer">
+        Already have an account?
+        <a href="javascript:void(0)" (click)="toggleMode.emit()">Login here</a>
+      </div>
+    </form>
+  </div>
+</div>
+
+<app-face-login
+  *ngIf="showDoctorFaceEnrollment"
+  [mode]="'register'"
+  [prefilledEmail]="registerData.email"
+  [lockEmail]="true"
+  (registered)="onDoctorFaceRegistered()"
+  (close)="onDoctorFaceEnrollClosed()"
+></app-face-login>

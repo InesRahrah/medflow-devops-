@@ -1,0 +1,247 @@
+<section class="pharmacist-homepage">
+  <!-- Hero Section -->
+  <div class="hero-banner">
+    <div class="hero-content">
+      <div class="greeting-section">
+        <h1 class="hero-title">{{ greeting }}</h1>
+        <p class="hero-subtitle">Welcome to your pharmaceutical management dashboard</p>
+      </div>
+      <div class="user-info">
+        <span class="user-name">{{ firstName }} {{ lastName }}</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Stats Grid -->
+  <div class="stats-container">
+    <div class="stat-card stat-pending">
+      <div class="stat-icon">📋</div>
+      <div class="stat-info">
+        <p class="stat-label">Pending Requests</p>
+        <p class="stat-value">{{ pendingRequests }}</p>
+        <p class="stat-trend">To process</p>
+      </div>
+    </div>
+    <div class="stat-card stat-approved">
+      <div class="stat-icon">✓</div>
+      <div class="stat-info">
+        <p class="stat-label">Approved</p>
+        <p class="stat-value">{{ approvedRequests }}</p>
+        <p class="stat-trend">Completed</p>
+      </div>
+    </div>
+    <div class="stat-card stat-stock">
+      <div class="stat-icon">📦</div>
+      <div class="stat-info">
+        <p class="stat-label">Low Stock</p>
+        <p class="stat-value">{{ lowStockItems }}</p>
+        <p class="stat-trend">To restock</p>
+      </div>
+    </div>
+    <div class="stat-card stat-dispensed">
+      <div class="stat-icon">💊</div>
+      <div class="stat-info">
+        <p class="stat-label">Dispensed Today</p>
+        <p class="stat-value">{{ dispensedToday }}</p>
+        <p class="stat-trend">Transactions</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Camera Scanning Section -->
+  <div class="camera-scan-section">
+    <!-- Header -->
+    <div class="scan-header">
+      <div class="header-badge">🔬 AI Medication Scanner</div>
+      <h2>Scan & Analyze Medications</h2>
+      <p>Use your camera to capture medication images for instant AI analysis</p>
+    </div>
+
+    <!-- Step Indicator -->
+    <div class="step-indicator">
+      <div class="step" [class.active]="!capturedImage" [class.completed]="!!capturedImage">
+        <div class="step-circle">1</div>
+        <span class="step-label">Capture</span>
+      </div>
+      <div class="step-line" [class.active]="!!capturedImage"></div>
+      <div class="step" [class.active]="!!capturedImage && !aiExplanation" [class.completed]="!!aiExplanation">
+        <div class="step-circle">2</div>
+        <span class="step-label">Analyze</span>
+      </div>
+      <div class="step-line" [class.active]="!!aiExplanation"></div>
+      <div class="step" [class.completed]="!!aiExplanation">
+        <div class="step-circle">3</div>
+        <span class="step-label">Results</span>
+      </div>
+    </div>
+
+    <div class="scan-container">
+      <!-- Camera Section -->
+      <div class="camera-box" [class.with-image]="!!capturedImage">
+        
+        <!-- Video Stream -->
+        <video 
+          #videoElement
+          class="video-stream"
+          [class.hidden]="!isCameraActive"
+          autoplay
+          playsinline
+          muted
+          webkit-playsinline
+          style="display: block; width: 100%; background: #000;">
+        </video>
+
+        <!-- Camera Overlay with Frame -->
+        <div class="camera-overlay" *ngIf="isCameraActive">
+          <div class="frame-guide"></div>
+          <div class="frame-label">Align medication with frame</div>
+        </div>
+
+        <!-- Placeholder -->
+        <div class="camera-placeholder" *ngIf="!isCameraActive">
+          <div class="placeholder-animation">
+            <span class="placeholder-icon">📷</span>
+          </div>
+          <p class="placeholder-title">Ready to Scan</p>
+          <p class="hint">Click "Start Camera" to begin scanning</p>
+        </div>
+
+        <!-- Camera Controls -->
+        <div class="camera-controls">
+          <button 
+            class="control-btn start-btn"
+            (click)="startCamera()"
+            [disabled]="isCameraActive"
+            title="Open your camera"
+          >
+            <span class="btn-icon">🎥</span>
+            <span class="btn-text">Start Camera</span>
+          </button>
+          <button 
+            class="control-btn capture-btn"
+            (click)="captureFrame()"
+            [disabled]="!isCameraActive"
+            title="Take a photo"
+          >
+            <span class="btn-icon">📸</span>
+            <span class="btn-text">Capture</span>
+          </button>
+          <button 
+            class="control-btn stop-btn"
+            (click)="stopCamera()"
+            [disabled]="!isCameraActive"
+            title="Close camera"
+          >
+            <span class="btn-icon">⏹️</span>
+            <span class="btn-text">Stop</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- Image Preview Section -->
+      <div class="preview-section" *ngIf="capturedImage" [@slideIn]>
+        <div class="preview-header">
+          <h3>✓ Image Captured</h3>
+          <span class="status-badge">Ready</span>
+        </div>
+        <img [src]="capturedImage" class="preview-image" />
+        
+        <!-- Action Buttons -->
+        <div class="action-section">
+          <button 
+            class="scan-explain-btn"
+            (click)="scanAndExplain()"
+            [disabled]="isScanning"
+          >
+            <span *ngIf="!isScanning">
+              <span class="btn-icon">🔍</span>
+              <span>Analyze with AI</span>
+            </span>
+            <span *ngIf="isScanning" class="scanning-state">
+              <span class="spinner"></span>
+              <span>Analyzing...</span>
+            </span>
+          </button>
+          <button 
+            class="retake-btn"
+            (click)="clearScan()"
+            [disabled]="isScanning"
+            title="Take another photo"
+          >
+            <span class="btn-icon">↻</span>
+            <span>Retake</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- Error Message -->
+      <div *ngIf="scanError" class="error-box" [@slideIn]>
+        <div class="error-content">
+          <span class="error-icon">⚠️</span>
+          <div>
+            <p class="error-title">Oops!</p>
+            <span class="error-text">{{ scanError }}</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- AI Explanation Result -->
+      <div *ngIf="aiExplanation" class="result-box" [@slideIn]>
+        <div class="result-header">
+          <h3>💡 AI Analysis Results</h3>
+          <span class="result-badge">Complete</span>
+        </div>
+        <div class="explanation-text">{{ aiExplanation }}</div>
+        <div class="result-actions">
+          <button class="action-btn-secondary" (click)="clearScan()">
+            🔄 Scan Another
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Hidden Canvas for Capture -->
+    <canvas #canvasElement style="display: none;"></canvas>
+  </div>
+
+  <!-- Quick Actions -->
+  <div class="quick-actions">
+    <h2>Quick Actions</h2>
+    <div class="actions-grid">
+      <button class="action-btn action-request" (click)="onNewRequest()">
+        <span class="icon">📝</span>
+        <span class="text">New Request</span>
+      </button>
+      <button class="action-btn action-stock" (click)="onCheckStock()">
+        <span class="icon">📊</span>
+        <span class="text">Check Stock</span>
+      </button>
+      <button class="action-btn action-dispense" (click)="onValidateDispense()">
+        <span class="icon">✓</span>
+        <span class="text">Validate Dispensing</span>
+      </button>
+    </div>
+  </div>
+
+  <!-- Recent Activity Section -->
+  <div class="activity-section">
+    <h2>Recent Activity</h2>
+    <div class="activity-card">
+      <p class="activity-empty">Recent requests will appear here</p>
+    </div>
+  </div>
+
+  <!-- Chatbot Toggle Button -->
+  <button class="chatbot-floating-btn" (click)="toggleChatbot()" title="Chat with AI Assistant">
+    💬
+  </button>
+
+  <!-- Chatbot Modal -->
+  <div class="chatbot-modal" *ngIf="isChatbotOpen">
+    <div class="chatbot-modal-overlay" (click)="toggleChatbot()"></div>
+    <div class="chatbot-modal-content">
+      <button class="close-btn" (click)="toggleChatbot()">✕</button>
+      <app-chatbot></app-chatbot>
+    </div>
+  </div>
+</section>

@@ -1,0 +1,427 @@
+<div class="dashboard-container">
+  <header class="page-header">
+    <div class="header-left">
+      <h1 class="page-title">
+        <svg class="header-icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <path d="M17 21V19C17 17.9391 16.5786 16.9217 15.8284 16.1716C15.0783 15.4214 14.0609 15 13 15H5C3.93913 15 2.92172 15.4214 2.17157 16.1716C1.42143 16.9217 1 17.9391 1 19V21" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+          <path d="M9 11C11.2091 11 13 9.20914 13 7C13 4.79086 11.2091 3 9 3C6.79086 3 5 4.79086 5 7C5 9.20914 6.79086 11 9 11Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+          <path d="M23 21V19C22.9993 18.1137 22.7044 17.2528 22.1614 16.5523C21.6184 15.8519 20.8581 15.3516 20 15.13" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+          <path d="M16 3.13C16.8604 3.35031 17.623 3.85071 18.1676 4.55231C18.7122 5.25392 19.0078 6.11683 19.0078 7.005C19.0078 7.89317 18.7122 8.75608 18.1676 9.45769C17.623 10.1593 16.8604 10.6597 16 10.88" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+        Hospital Staff
+      </h1>
+      <p class="page-subtitle">Manage staff members, roles, and department assignment.</p>
+    </div>
+    <button class="btn-add" (click)="openAddModal()">
+      <i class="fas fa-plus"></i>
+      <span>Add Staff</span>
+    </button>
+  </header>
+
+  <div class="error-banner" *ngIf="errorMessage">{{ errorMessage }}</div>
+
+  <div class="loading-state" *ngIf="isLoading">
+    <i class="fas fa-spinner fa-spin"></i>
+    <span>Loading staff members...</span>
+  </div>
+
+  <section class="floor-controls" *ngIf="!isLoading && staffMembers.length > 0">
+    <div class="controls-group controls-search-group">
+      <label class="control-label with-icon" for="staffSearch">
+        <i class="fas fa-search"></i>
+        <span>Search</span>
+      </label>
+      <div class="control-search">
+        <i class="fas fa-search"></i>
+        <input
+          id="staffSearch"
+          type="text"
+          [(ngModel)]="searchTerm"
+          placeholder="Search by name, role, department, status"
+          aria-label="Search staff"
+        />
+      </div>
+    </div>
+
+    <div class="controls-group controls-filter-group">
+      <label class="control-label with-icon" for="staffFilter">
+        <i class="fas fa-filter"></i>
+        <span>Filter</span>
+      </label>
+      <div class="custom-drop-wrapper">
+        <app-custom-dropdown
+          [options]="staffFilterOptions"
+          [(ngModel)]="staffFilter"
+          placeholder="Filter Staff"
+        ></app-custom-dropdown>
+      </div>
+    </div>
+
+    <div class="controls-group controls-sort-group">
+      <label class="control-label with-icon" for="staffSortBy">
+        <i class="fas fa-sort-amount-down-alt"></i>
+        <span>Sort</span>
+      </label>
+      <div class="custom-drop-wrapper">
+        <app-custom-dropdown
+          [options]="staffSortOptions"
+          [(ngModel)]="sortBy"
+          placeholder="Sort Staff"
+        ></app-custom-dropdown>
+      </div>
+    </div>
+
+    <div class="controls-group controls-actions-group">
+      <span class="results-badge">
+        <i class="fas fa-users"></i>
+        {{ displayedStaff.length }} staff
+      </span>
+      <button class="btn-clear" type="button" (click)="clearStaffFilters()">
+        <i class="fas fa-rotate-left"></i>
+        <span>Reset</span>
+      </button>
+    </div>
+  </section>
+
+  <div class="staff-sections-container" *ngIf="!isLoading && staffMembers.length > 0 && displayedStaff.length > 0">
+    <!-- Medical Staff Section -->
+    <div class="staff-compact-wrap glass medical-section" *ngIf="medicalStaff.length > 0">
+      <div class="list-section-head">
+        <div>
+          <h2>Medical Staff</h2>
+          <p>Doctors and Nurses currently operational in medical departments.</p>
+        </div>
+      </div>
+
+      <div class="staff-header-row">
+        <div class="h-col">Staff Member</div>
+        <div class="h-col">Role & Dept</div>
+        <div class="h-col">Employment</div>
+        <div class="h-col">Status</div>
+        <div class="h-col">Actions</div>
+      </div>
+
+      <div class="staff-rows">
+        <div class="staff-row" *ngFor="let staff of medicalStaff" (click)="openStaffDetail(staff.id)">
+          <div class="r-col">
+            <div class="p-info">
+              <div class="avatar-compact">{{ getInitials(staff) }}</div>
+              <div class="p-text">
+                <span class="p-name">{{ (staff.firstName || 'John') + ' ' + (staff.lastName || '') }}</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="r-col">
+            <div class="role-group">
+              <span
+                class="tag-sm"
+                [ngClass]="{ doc: staff.role === 'DOCTOR', nurse: staff.role === 'NURSE' }"
+              >{{ getRoleLabel(staff.role) }}</span>
+              <span class="dept-text">{{ getDepartmentName(staff.departmentId) }}</span>
+            </div>
+          </div>
+
+          <div class="r-col">
+            <span class="contact-text">{{ staff.employmentType.replace('_', ' ') }}</span>
+          </div>
+
+          <div class="r-col">
+            <span class="status-pill" [ngClass]="{ active: staff.status === 'ACTIVE', off: staff.status !== 'ACTIVE' }">
+              {{ staff.status }}
+            </span>
+          </div>
+
+          <div class="r-col row-actions">
+            <button class="btn-action delete" type="button" (click)="openDeleteConfirm(staff.id, $event)" title="Delete Staff" [disabled]="isDeletingId === staff.id">
+              <i class="fas" [ngClass]="{ 'fa-spinner fa-spin': isDeletingId === staff.id, 'fa-trash-alt': isDeletingId !== staff.id }"></i>
+            </button>
+            <button class="btn-action edit" type="button" (click)="$event.stopPropagation(); openStaffEdit(staff.id)" title="Edit Staff" [disabled]="isDeletingId === staff.id">
+              <i class="fas fa-edit"></i>
+            </button>
+            <button class="btn-row-action btn-open" type="button" (click)="$event.stopPropagation(); openStaffDetail(staff.id)" title="View Details" [disabled]="isDeletingId === staff.id">
+              <i class="fas fa-arrow-right"></i>
+              <span>Open</span>
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Administrative Staff Section -->
+    <div class="admin-section-wrap" *ngIf="adminStaff.length > 0">
+      <div class="list-section-head">
+        <div>
+          <h2>Administrative Staff</h2>
+          <p class="admin-desc">Administrative users manage system operations and are not assigned to rooms or clinical tasks.</p>
+        </div>
+      </div>
+
+      <div class="staff-compact-wrap glass admin-table">
+        <div class="staff-header-row">
+          <div class="h-col">Staff Member</div>
+          <div class="h-col">Role & Dept</div>
+          <div class="h-col">Employment</div>
+          <div class="h-col">Status</div>
+          <div class="h-col">Actions</div>
+        </div>
+        <div class="staff-rows">
+          <div class="staff-row admin-row" *ngFor="let staff of adminStaff" (click)="openStaffDetail(staff.id)">
+            <div class="r-col">
+              <div class="p-info">
+                <div class="avatar-compact">{{ getInitials(staff) }}</div>
+                <div class="p-text">
+                  <span class="p-name">{{ staff.firstName }} {{ staff.lastName }}</span>
+                </div>
+              </div>
+            </div>
+            <div class="r-col">
+              <div class="role-group">
+                <span class="tag-sm adm">{{ getRoleLabel(staff.role) }}</span>
+                <span class="dept-text">{{ getDepartmentName(staff.departmentId) }}</span>
+              </div>
+            </div>
+            <div class="r-col">
+              <span class="contact-text">{{ staff.employmentType.replace('_', ' ') }}</span>
+            </div>
+            <div class="r-col">
+              <span class="status-pill off">{{ staff.status }}</span>
+            </div>
+            <div class="r-col row-actions">
+              <button class="btn-action edit" type="button" (click)="$event.stopPropagation(); openStaffEdit(staff.id)">
+                <i class="fas fa-edit"></i>
+              </button>
+              <button class="btn-action delete" type="button" (click)="openDeleteConfirm(staff.id, $event)">
+                <i class="fas fa-trash-alt"></i>
+              </button>
+              <button class="btn-row-action btn-open" type="button" (click)="$event.stopPropagation(); openStaffDetail(staff.id)">
+                <i class="fas fa-arrow-right"></i>
+                <span>Open</span>
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Empty States for Each Role Category -->
+    <div class="empty-role-state" *ngIf="medicalStaff.length === 0 && staffFilter === 'ALL'">
+      <p>No medical staff members found.</p>
+    </div>
+    <div class="empty-role-state admin-empty" *ngIf="adminStaff.length === 0 && staffFilter === 'ALL'">
+      <p>No administrative staff found.</p>
+    </div>
+  </div>
+
+  <div class="empty-state" *ngIf="!isLoading && staffMembers.length === 0">
+    <div class="empty-icon"><i class="fas fa-user-nurse"></i></div>
+    <h3>No staff members yet</h3>
+    <p>Create your first staff member to start managing your hospital team.</p>
+    <button class="btn-add" (click)="openAddModal()">
+      <i class="fas fa-user-plus"></i>
+      <span>Add first staff member</span>
+    </button>
+  </div>
+
+  <div class="empty-filter-state" *ngIf="!isLoading && staffMembers.length > 0 && displayedStaff.length === 0">
+    <i class="fas fa-filter-circle-xmark"></i>
+    <h3>No matching staff</h3>
+    <p>Try adjusting search, filter, or sorting criteria.</p>
+    <button class="btn-clear" type="button" (click)="clearStaffFilters()">
+      <i class="fas fa-rotate-left"></i>
+      <span>Reset Filters</span>
+    </button>
+  </div>
+</div>
+
+<div class="modal-overlay" *ngIf="showAddModal" (click)="closeAddModal()">
+  <div class="modal-card" (click)="$event.stopPropagation()">
+    <div class="modal-header">
+      <h2 style="display: flex; align-items: center; gap: 0.5rem;">
+        <i class="fas fa-user-plus" style="color: #0293df; font-size: 1.3em;"></i>
+        Add Staff
+      </h2>
+      <button class="modal-close" (click)="closeAddModal()" [disabled]="isCreating"><i class="fas fa-times"></i></button>
+    </div>
+
+    <div class="modal-body">
+      <div class="error-banner modal-error" *ngIf="modalErrorMessage">{{ modalErrorMessage }}</div>
+
+      <div class="default-password-note" style="margin-bottom: 1rem; color: #4187ac; font-size: 0.98rem; display: flex; align-items: center; gap: 0.5rem;">
+        <i class="fas fa-key"></i>
+        Default password is <strong>changeme123</strong> <span style="font-weight:400;">(please change after first login)</span>.
+      </div>
+
+      <div class="form-section">
+        <h3 class="section-title">Personal Information</h3>
+        <div class="form-grid">
+          <div class="form-group">
+            <label>First Name</label>
+            <div class="input-shell" [class.input-shell-invalid]="isCreateFieldInvalid('firstName', firstNameModel)">
+              <i class="fas fa-user"></i>
+              <input
+                type="text"
+                name="staffFirstName"
+                #firstNameModel="ngModel"
+                required
+                minlength="2"
+                maxlength="50"
+                [(ngModel)]="formData.firstName"
+                placeholder="Enter first name"
+              />
+            </div>
+            <small class="field-error" *ngIf="isCreateFieldInvalid('firstName', firstNameModel)">
+              {{ getCreateFieldError('firstName', firstNameModel) }}
+            </small>
+          </div>
+
+          <div class="form-group">
+            <label>Last Name</label>
+            <div class="input-shell" [class.input-shell-invalid]="isCreateFieldInvalid('lastName', lastNameModel)">
+              <i class="fas fa-user"></i>
+              <input
+                type="text"
+                name="staffLastName"
+                #lastNameModel="ngModel"
+                required
+                minlength="2"
+                maxlength="50"
+                [(ngModel)]="formData.lastName"
+                placeholder="Enter last name"
+              />
+            </div>
+            <small class="field-error" *ngIf="isCreateFieldInvalid('lastName', lastNameModel)">
+              {{ getCreateFieldError('lastName', lastNameModel) }}
+            </small>
+          </div>
+
+          <div class="form-group full-width">
+            <label>Email</label>
+            <div class="input-shell" [class.input-shell-invalid]="isCreateFieldInvalid('email', emailModel)">
+              <i class="fas fa-envelope"></i>
+              <input
+                type="email"
+                name="staffEmail"
+                #emailModel="ngModel"
+                required
+                email
+                pattern="^[^\s@]+@[^\s@]+\.[^\s@]+$"
+                [(ngModel)]="formData.email"
+                placeholder="staff@hospital.com"
+              />
+            </div>
+            <small class="field-error" *ngIf="isCreateFieldInvalid('email', emailModel)">
+              {{ getCreateFieldError('email', emailModel) }}
+            </small>
+          </div>
+        </div>
+      </div>
+
+      <div class="form-section">
+        <h3 class="section-title">Assignment</h3>
+        <div class="form-grid">
+          <div class="form-group">
+            <label>Staff Role</label>
+            <app-custom-dropdown
+              [(ngModel)]="formData.role"
+              [options]="roleOptions"
+              placeholder="Select staff role">
+            </app-custom-dropdown>
+          </div>
+
+          <div class="form-group">
+            <label>Department</label>
+            <app-custom-dropdown
+              name="staffDepartment"
+              #departmentModel="ngModel"
+              required
+              [class.input-invalid-wrapper]="isCreateFieldInvalid('departmentId', departmentModel)"
+              [(ngModel)]="formData.departmentId"
+              [options]="departmentOptions"
+              placeholder="Select department">
+            </app-custom-dropdown>
+            <small class="field-error" *ngIf="isCreateFieldInvalid('departmentId', departmentModel)">
+              {{ getCreateFieldError('departmentId', departmentModel) }}
+            </small>
+          </div>
+
+          <div class="form-group">
+            <label>Employment Type</label>
+            <app-custom-dropdown
+              [(ngModel)]="formData.employmentType"
+              [options]="employmentTypeOptions"
+              placeholder="Select employment type">
+            </app-custom-dropdown>
+          </div>
+
+          <div class="form-group">
+            <label>Status</label>
+            <app-custom-dropdown
+              [(ngModel)]="formData.status"
+              [options]="statusOptions"
+              placeholder="Select status">
+            </app-custom-dropdown>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="modal-footer">
+      <button class="btn-cancel" (click)="closeAddModal()" [disabled]="isCreating">Cancel</button>
+      <button class="btn-save" (click)="createStaff()" [disabled]="isCreating || isCreateStaffDisabled">
+        <i class="fas fa-spinner fa-spin" *ngIf="isCreating"></i>
+        <span>{{ isCreating ? 'Creating...' : 'Create Staff' }}</span>
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- Delete Confirmation Modal -->
+<div class="modal-overlay" *ngIf="showDeleteConfirmModal" (click)="closeDeleteConfirm()">
+  <div class="modal-card delete-confirm-modal" (click)="$event.stopPropagation()">
+    <div class="modal-header">
+      <h2 class="delete-modal-title">
+        <i class="fas fa-exclamation-triangle delete-modal-icon" aria-hidden="true"></i>
+        Delete Staff Member
+      </h2>
+      <button class="modal-close" (click)="closeDeleteConfirm()" [disabled]="isDeletingId !== null"><i class="fas fa-times"></i></button>
+    </div>
+
+    <div class="modal-body">
+      <div class="error-banner modal-error" *ngIf="deleteConfirmMessage">{{ deleteConfirmMessage }}</div>
+
+      <div class="delete-confirm-content">
+        <p class="delete-warning">This action cannot be undone. Please confirm you want to permanently delete this staff member:</p>
+
+        <div class="staff-info-card" *ngIf="pendingDeleteStaff">
+          <div class="staff-info-row">
+            <div class="avatar-large">{{ getInitials(pendingDeleteStaff) }}</div>
+            <div class="staff-info-details">
+              <div class="staff-full-name">{{ pendingDeleteStaff.firstName }} {{ pendingDeleteStaff.lastName }}</div>
+              <div class="staff-meta">
+                <span class="meta-item">{{ getRoleLabel(pendingDeleteStaff.role) }}</span>
+                <span class="meta-divider">•</span>
+                <span class="meta-item">{{ getDepartmentName(pendingDeleteStaff.departmentId) }}</span>
+              </div>
+              <div class="staff-meta" style="margin-top: 4px;">
+                <span class="meta-item">{{ pendingDeleteStaff.employmentType.replace('_', ' ') }}</span>
+                <span class="meta-divider">•</span>
+                <span class="meta-item" [style.color]="pendingDeleteStaff.status === 'ACTIVE' ? '#16a34a' : '#64748b'">{{ pendingDeleteStaff.status }}</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="modal-footer">
+      <button class="btn-cancel" (click)="closeDeleteConfirm()" [disabled]="isDeletingId !== null">Cancel</button>
+      <button class="btn-delete-confirm" (click)="confirmDelete()" [disabled]="isDeletingId !== null">
+        <i class="fas fa-spinner fa-spin" *ngIf="isDeletingId !== null"></i>
+        <span>{{ isDeletingId !== null ? 'Deleting...' : 'Delete Staff' }}</span>
+      </button>
+    </div>
+  </div>
+</div>
+
+<div class="success-toast" *ngIf="showSuccessToast">{{ successMessage }}</div>

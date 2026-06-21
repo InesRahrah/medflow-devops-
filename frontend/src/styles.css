@@ -1,0 +1,507 @@
+/* ============================
+   Global Styles – eHealth App
+   ============================ */
+@import url("https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Poppins:wght@400;500;600;700;800&display=swap");
+@import url("https://unpkg.com/leaflet@1.9.4/dist/leaflet.css");
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+:root {
+  --primary: #009ce8;
+  --primary-rgb: 0, 156, 232;
+  --primary-dark: #007bcc;
+  --primary-light: #e0f4ff;
+  --primary-bg: #f0f8ff;
+  --secondary: #06b6d4;
+  --accent: #38bdf8;
+
+  --white: #ffffff;
+  --gray-50: #f8fafc;
+  --gray-100: #f1f5f9;
+  --gray-200: #e2e8f0;
+  --gray-300: #cbd5e1;
+  --gray-400: #94a3b8;
+  --gray-500: #64748b;
+  --gray-600: #475569;
+  --gray-700: #334155;
+  --gray-800: #1e293b;
+  --gray-900: #0f172a;
+
+  --text-primary: #0f172a;
+  --text-secondary: #475569;
+  --text-muted: #94a3b8;
+
+  --bg-surface: #ffffff;
+  --bg-default: #f8fafc;
+
+  --border-color: #e5e7eb;
+
+  --error: #ef4444;
+  --error-bg: #fef2f2;
+
+  --card-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
+  --card-shadow-hover: 0 10px 40px rgba(0, 0, 0, 0.08);
+  --border-radius: 24px;
+  --border-radius-sm: 14px;
+  --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.dark-theme {
+  --primary: #38bdf8;
+  --primary-rgb: 56, 189, 248;
+  --primary-dark: #0ea5e9;
+  --primary-light: #0c4a6e;
+  --primary-bg: #0f293e;
+  --secondary: #22d3ee;
+  --accent: #67e8f9;
+
+  --white: #1e293b;
+  --gray-50: #0f172a;
+  --gray-100: #1e293b;
+  --gray-200: #334155;
+  --gray-300: #475569;
+  --gray-400: #64748b;
+  --gray-500: #94a3b8;
+  --gray-600: #cbd5e1;
+  --gray-700: #e2e8f0;
+  --gray-800: #f1f5f9;
+  --gray-900: #f8fafc;
+
+  --text-primary: #f8fafc;
+  --text-secondary: #cbd5e1;
+  --text-muted: #94a3b8;
+
+  --bg-surface: #1e293b;
+  --bg-default: #0f172a;
+
+  --border-color: #334155;
+
+  --error: #f87171;
+  --error-bg: #450a0a;
+
+  --card-shadow: 0 4px 24px rgba(0, 0, 0, 0.4);
+  --card-shadow-hover: 0 8px 40px rgba(0, 0, 0, 0.6);
+
+  color-scheme: dark;
+}
+
+html,
+body {
+  height: 100%;
+  overflow-y: auto;
+}
+
+body {
+  font-family:
+    "Inter",
+    -apple-system,
+    BlinkMacSystemFont,
+    "Segoe UI",
+    sans-serif;
+  background-color: var(--white);
+  color: var(--text-primary);
+  line-height: 1.6;
+  overflow-x: hidden;
+  overscroll-behavior: none;
+  -webkit-font-smoothing: antialiased;
+}
+
+body.modal-scroll-lock {
+  overflow: hidden;
+}
+
+html.modal-scroll-lock {
+  overflow: hidden;
+}
+
+a {
+  text-decoration: none;
+  color: inherit;
+}
+
+ul,
+ol {
+  list-style: none;
+}
+
+img {
+  max-width: 100%;
+  display: block;
+}
+
+button {
+  cursor: pointer;
+  border: none;
+  background: none;
+  font-family: inherit;
+}
+
+/* Scrollbar */
+::-webkit-scrollbar {
+  width: 6px;
+}
+::-webkit-scrollbar-track {
+  background: var(--gray-100);
+}
+::-webkit-scrollbar-thumb {
+  background: var(--primary);
+  border-radius: 3px;
+}
+
+/* Utility */
+.container {
+  width: 100%;
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 24px;
+}
+
+.section-label {
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  color: var(--primary);
+  margin-bottom: 8px;
+}
+
+.section-title {
+  font-family: "Poppins", sans-serif;
+  font-size: clamp(1.6rem, 3vw, 2.4rem);
+  font-weight: 700;
+  color: var(--text-primary);
+  line-height: 1.2;
+}
+
+.btn-primary {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 12px 28px;
+  background: var(--primary);
+  color: var(--white);
+  font-size: 0.95rem;
+  font-weight: 600;
+  border-radius: 50px;
+  transition: var(--transition);
+  box-shadow: 0 4px 15px rgba(var(--primary-rgb), 0.25);
+  border: 1px solid var(--primary);
+}
+.btn-primary:hover {
+  background: var(--primary-dark);
+  border-color: var(--primary-dark);
+  color: var(--white);
+  transform: translateY(-2px);
+  box-shadow: 0 8px 25px rgba(var(--primary-rgb), 0.35);
+}
+
+.btn-outline {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 12px 28px;
+  border: 1px solid var(--primary);
+  background: transparent;
+  color: var(--primary);
+  font-size: 0.95rem;
+  font-weight: 600;
+  border-radius: 50px;
+  transition: var(--transition);
+}
+.btn-outline:hover {
+  background: var(--primary-light);
+  color: var(--primary-dark);
+  border-color: var(--primary-dark);
+  transform: translateY(-2px);
+}
+
+/* Card base */
+.card {
+  background: var(--white);
+  border-radius: var(--border-radius);
+  box-shadow: var(--card-shadow);
+  transition: var(--transition);
+}
+.card:hover {
+  box-shadow: var(--card-shadow-hover);
+  transform: translateY(-4px);
+}
+
+/* Dashboard Layout Styles */
+.app-layout {
+  display: flex;
+  min-height: 100vh;
+  width: 100%;
+  background: var(--bg-default);
+}
+
+/* For sidebar roles, the layout is horizontal (Sidebar | Viewport) */
+.app-layout.has-sidebar {
+  flex-direction: row;
+  min-height: 100vh;
+}
+
+/* For patient/public, the layout is vertical (Navbar | Content | Footer) */
+.app-layout:not(.has-sidebar) {
+  flex-direction: column;
+}
+
+.app-layout.has-fixed-navbar .main-viewport {
+  padding-top: 70px;
+}
+
+.main-viewport {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+  position: relative;
+  transition: var(--transition);
+}
+
+.app-layout.has-sidebar .main-viewport {
+  min-height: 100vh;
+}
+
+.main-viewport-sidebar {
+  margin-left: 0; /* Sidebar is fixed or flexed, handled by parent */
+}
+
+.content-scroll-container {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+.app-layout.has-sidebar .content-scroll-container {
+  overflow: visible;
+}
+
+.app-card {
+  padding: 1.5rem;
+  border-radius: 1.125rem;
+  background: linear-gradient(
+    60deg,
+    rgba(13, 110, 253, 0.03),
+    rgba(255, 255, 255, 0.9)
+  );
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.04);
+  border: 1px solid rgba(15, 23, 42, 0.06);
+}
+
+.app-card h3 {
+  font-size: 1rem;
+  font-weight: 600;
+  color: #1e293b;
+}
+
+.app-card p {
+  font-size: 0.8125rem;
+  color: #64748b;
+}
+
+.tab-content-wrapper {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.router-main {
+  flex: 1;
+}
+
+.app-layout.has-sidebar .router-main {
+  display: flex;
+  flex-direction: column;
+}
+
+.page-container {
+  padding: 20px;
+  min-height: calc(100vh - 80px);
+}
+
+body.layout-sidebar .dashboard-container {
+  margin-left: 0; /* Removed due to flex layout */
+  padding-top: 20px;
+  width: 100%;
+}
+
+@media (max-width: 1024px) {
+  body.layout-sidebar .dashboard-container {
+    margin-left: 0;
+  }
+}
+
+.dashboard-layout {
+  display: flex;
+  height: 100vh;
+  overflow: hidden;
+  background-color: var(--gray-50);
+}
+
+.dashboard-sidebar {
+  width: 250px;
+  background-color: var(--white);
+  border-right: 1px solid var(--gray-200);
+  display: flex;
+  flex-direction: column;
+}
+
+.sidebar-header {
+  padding: 1.5rem;
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: var(--primary);
+  border-bottom: 1px solid var(--gray-200);
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.sidebar-nav {
+  flex: 1;
+  padding: 1rem 0;
+  list-style: none;
+}
+
+.sidebar-nav li a {
+  display: block;
+  padding: 0.75rem 1.5rem;
+  color: var(--text-secondary);
+  font-weight: 500;
+  text-decoration: none;
+  transition: var(--transition);
+}
+
+.sidebar-nav li a:hover,
+.sidebar-nav li a.active {
+  background-color: var(--primary-bg);
+  color: var(--primary);
+  border-right: 4px solid var(--primary);
+}
+
+.dashboard-main {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  overflow-y: auto;
+}
+
+.dashboard-header {
+  height: 64px;
+  background-color: var(--white);
+  border-bottom: 1px solid var(--gray-200);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 2rem;
+}
+
+.dashboard-content {
+  padding: 2rem;
+}
+
+.dashboard-card {
+  background: var(--white);
+  border-radius: var(--border-radius);
+  padding: 1.5rem;
+  box-shadow: var(--card-shadow);
+  margin-bottom: 1.5rem;
+}
+
+.dashboard-card h3 {
+  margin-bottom: 1rem;
+  color: var(--text-primary);
+  font-weight: 600;
+  border-bottom: 1px solid var(--gray-100);
+  padding-bottom: 0.5rem;
+}
+
+/* Validation Errors */
+.field-error {
+  color: var(--error);
+  font-size: 0.85rem;
+  margin-top: 4px;
+  display: block;
+  font-weight: 500;
+  animation: fadeIn 0.3s ease;
+}
+
+input.invalid,
+select.invalid,
+textarea.invalid,
+.edit-input.invalid {
+  border-color: var(--error) !important;
+  background-color: var(--error-bg) !important;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(-4px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-up {
+  animation: fadeInUp 0.6s ease-out forwards;
+}
+
+/* Dashboard content spacing fix */
+body.layout-sidebar .dashboard-container {
+  max-width: 1400px;
+  padding: 100px 40px 40px;
+}
+
+/* Global Toast Notifications */
+.toast-success {
+  position: fixed;
+  bottom: 24px;
+  right: 24px;
+  background-color: #10b981;
+  color: white;
+  padding: 16px 24px;
+  border-radius: 12px;
+  font-weight: 600;
+  box-shadow: 0 10px 25px rgba(16, 185, 129, 0.3);
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  z-index: 1050;
+  animation: slideUp 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+}
+
+@keyframes slideUp {
+  from {
+    opacity: 0;
+    transform: translateY(100%);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}

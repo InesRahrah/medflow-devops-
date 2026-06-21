@@ -1,0 +1,219 @@
+<div class="pharmacist-stock-container">
+  <!-- Header -->
+  <div class="page-header">
+    <div class="header-content">
+      <h1 class="page-title">Stock Management</h1>
+      <p class="page-subtitle">Track and manage medication inventory</p>
+    </div>
+    <div class="header-actions">
+      <button class="btn-filter active" (click)="loadAll()" title="View all products">
+        ✓ All Items
+      </button>
+      <button class="btn-filter" (click)="loadLow()" title="View low stock">
+        ⚠ Low Stock
+      </button>
+    </div>
+  </div>
+
+  <!-- Stock Cards Grid -->
+  <div class="stocks-grid">
+    <div class="stock-card" *ngFor="let s of stocks" 
+         [ngClass]="{'stock-low': s.availableQuantity <= s.minThreshold}">
+      
+      <div class="card-header">
+        <h3 class="product-name">{{ s.product?.productName }}</h3>
+
+        <span class="stock-badge"
+          [ngClass]="{
+            'badge-low': s.availableQuantity <= s.minThreshold,
+            'badge-ok': s.availableQuantity > s.minThreshold
+          }"
+        >
+          {{ s.availableQuantity <= s.minThreshold ? '⚠ CRITICAL' : '✓ OK' }}
+        </span>
+      </div>
+
+      <div class="card-body">
+        <div class="stock-info-grid">
+          <div class="stock-info-item">
+            <span class="info-label">Available Quantity</span>
+            <p class="info-value">{{ s.availableQuantity }}</p>
+          </div>
+          <div class="stock-info-item">
+            <span class="info-label">Minimum Threshold</span>
+            <p class="info-value">{{ s.minThreshold }}</p>
+          </div>
+          <div class="stock-info-item">
+            <span class="info-label">Expiration Date</span>
+            <p class="info-value">{{ s.expirationDate | date: 'dd/MM/yyyy' }}</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="card-footer">
+        <button class="btn-action btn-reorder" (click)="reorderProduct(s.product)" title="Create a restock request for this product">
+          🔄 Restock
+        </button>
+        <button class="btn-action btn-details" (click)="viewDetails(s)" title="View stock details">
+          👁️ Details
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Details Modal -->
+  <div class="details-modal" *ngIf="showDetails && selectedStock">
+    <div class="details-modal-overlay" (click)="closeDetails()"></div>
+    <div class="details-modal-content">
+      <div class="details-modal-header">
+        <h2>Stock Details</h2>
+        <button class="btn-close-modal" (click)="closeDetails()">✕</button>
+      </div>
+
+      <div class="details-modal-body">
+        <!-- Product Info Section -->
+        <div class="details-section">
+          <h3 class="section-title">📦 Product Information</h3>
+          <div class="details-grid">
+            <div class="details-item">
+              <span class="details-label">Product Name</span>
+              <p class="details-value">{{ selectedStock.product?.productName || 'N/A' }}</p>
+            </div>
+            <div class="details-item">
+              <span class="details-label">Product Type</span>
+              <p class="details-value">{{ selectedStock.product?.type || 'N/A' }}</p>
+            </div>
+            <div class="details-item">
+              <span class="details-label">Product Form</span>
+              <p class="details-value">{{ selectedStock.product?.form || 'N/A' }}</p>
+            </div>
+            <div class="details-item">
+              <span class="details-label">Product Dosage</span>
+              <p class="details-value">{{ selectedStock.product?.dosage || 'N/A' }}</p>
+            </div>
+            <div class="details-item">
+              <span class="details-label">Product Manufacturer</span>
+              <p class="details-value">{{ selectedStock.product?.manufacturer || 'N/A' }}</p>
+            </div>
+            <div class="details-item">
+              <span class="details-label">Prescription Type</span>
+              <p class="details-value">{{ selectedStock.product?.prescriptionType || 'N/A' }}</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Stock Info Section -->
+        <div class="details-section">
+          <h3 class="section-title">📊 Stock Information</h3>
+          <div class="details-grid">
+            <div class="details-item">
+              <span class="details-label">Available Quantity</span>
+              <p class="details-value highlight">{{ selectedStock.availableQuantity }}</p>
+            </div>
+            <div class="details-item">
+              <span class="details-label">Minimum Threshold</span>
+              <p class="details-value">{{ selectedStock.minThreshold }}</p>
+            </div>
+            <div class="details-item">
+              <span class="details-label">Difference from Threshold</span>
+              <p class="details-value" 
+                 [ngClass]="{'text-danger': selectedStock.availableQuantity <= selectedStock.minThreshold, 'text-success': selectedStock.availableQuantity > selectedStock.minThreshold}">
+                {{ selectedStock.availableQuantity - selectedStock.minThreshold }}
+              </p>
+            </div>
+            <div class="details-item">
+              <span class="details-label">Status</span>
+              <p class="details-value">
+                <span class="status-badge" 
+                      [ngClass]="selectedStock.availableQuantity <= selectedStock.minThreshold ? 'badge-critical' : 'badge-ok'">
+                  {{ selectedStock.availableQuantity <= selectedStock.minThreshold ? '⚠️ CRITICAL' : '✓ OK' }}
+                </span>
+              </p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Date Info Section -->
+        <div class="details-section">
+          <h3 class="section-title">📅 Expiration Information</h3>
+          <div class="details-grid">
+            <div class="details-item span-2">
+              <span class="details-label">Expiration Date</span>
+              <p class="details-value">{{ selectedStock.expirationDate | date: 'dd MMMM yyyy' }}</p>
+            </div>
+            <div class="details-item span-2">
+              <span class="details-label">Days Until Expiration</span>
+              <p class="details-value" [ngClass]="getExpirationDaysClass(selectedStock.expirationDate)">
+                {{ getExpirationDays(selectedStock.expirationDate) }} days
+              </p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Additional Info Section -->
+        <div class="details-section" *ngIf="selectedStock.batchNumber || selectedStock.location || selectedStock.supplier">
+          <h3 class="section-title">ℹ️ Additional Information</h3>
+          <div class="details-grid">
+            <div class="details-item" *ngIf="selectedStock.batchNumber">
+              <span class="details-label">Batch Number</span>
+              <p class="details-value">{{ selectedStock.batchNumber }}</p>
+            </div>
+            <div class="details-item" *ngIf="selectedStock.location">
+              <span class="details-label">Location</span>
+              <p class="details-value">{{ selectedStock.location }}</p>
+            </div>
+            <div class="details-item" *ngIf="selectedStock.supplier">
+              <span class="details-label">Supplier</span>
+              <p class="details-value">{{ selectedStock.supplier }}</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- QR Code Section -->
+        <div class="details-section qr-code-section">
+          <h3 class="section-title">📱 QR Code</h3>
+          <p class="qr-code-description">Scan to view digital notice on mobile device</p>
+          
+          <div class="qr-code-container">
+            <div class="qr-code-box">
+              <img *ngIf="qrCodeDataUrl" [src]="qrCodeDataUrl" alt="QR Code" class="qr-code-image" />
+              <div *ngIf="!qrCodeDataUrl" class="qr-loading">
+                <div class="spinner"></div>
+                <p>Generating QR Code...</p>
+              </div>
+            </div>
+            
+            <div class="qr-code-info">
+              <div class="qr-code-actions">
+                <button class="btn-download-qr" (click)="downloadQRCode()" title="Download QR Code" *ngIf="qrCodeDataUrl">
+                  📥 Download
+                </button>
+                <button class="btn-copy-url" (click)="copyQRUrl()" title="Copy URL to clipboard">
+                  📋 Copy URL
+                </button>
+              </div>
+              
+              <div class="qr-code-info-box">
+                <p class="info-text">📲 Use any QR code scanner or mobile camera to scan</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="details-modal-footer">
+        <button class="btn-secondary" (click)="closeDetails()">Close</button>
+        <button class="btn-primary" (click)="reorderProduct(selectedStock.product)">
+          🔄 Restock
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Empty State -->
+  <div class="empty-state" *ngIf="!stocks || stocks.length === 0">
+    <div class="empty-icon">📭</div>
+    <h3>No products</h3>
+    <p>No items matching the selected criteria</p>
+  </div>
+</div>

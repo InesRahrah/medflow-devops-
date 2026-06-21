@@ -1,0 +1,229 @@
+.dashboard-container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 100px 24px 40px;
+}
+
+.dashboard-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 2rem;
+  border-bottom: none;
+}
+
+.welcome-text h1 {
+  font-size: 1.75rem;
+  font-weight: 800;
+  color: var(--text-primary);
+  letter-spacing: -0.01em;
+}
+
+.badge-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 0.5rem;
+}
+
+.role-chip {
+  background: var(--primary-light);
+  color: var(--primary-dark);
+  padding: 4px 10px;
+  border-radius: 6px;
+  font-size: 0.75rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.status-indicator {
+  font-size: 0.75rem;
+  color: var(--text-secondary);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.status-indicator::before {
+  content: "";
+  width: 8px;
+  height: 8px;
+  background: #10B981;
+  border-radius: 50%;
+  box-shadow: 0 0 6px #10B981;
+}
+
+.btn-primary-sm {
+  background: var(--primary);
+  color: white;
+  padding: 8px 16px;
+  border-radius: 10px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+/* Glass & Transparency */
+.glass {
+  background: var(--white);
+  backdrop-filter: blur(10px);
+  border: 1px solid var(--border-color);
+  box-shadow: 0 4px 20px rgba(var(--primary-rgb), 0.05);
+  border-radius: 20px;
+}
+
+/* Filter Bar */
+.filter-bar {
+  display: flex;
+  justify-content: space-between;
+  padding: 0.75rem 1rem;
+  margin-bottom: 1.5rem;
+}
+
+.search-input {
+  position: relative;
+  flex: 1;
+  max-width: 300px;
+}
+
+.search-input i {
+  position: absolute;
+  left: 10px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: var(--text-muted);
+  font-size: 0.8rem;
+}
+
+.search-input input {
+  width: 100%;
+  padding: 6px 12px 6px 30px;
+  border: 1px solid var(--gray-200);
+  border-radius: 8px;
+  font-size: 0.85rem;
+  background: transparent;
+}
+
+.filter-groups {
+  display: flex;
+  gap: 8px;
+}
+
+.select-sm {
+  padding: 6px 10px;
+  border-radius: 8px;
+  border: 1px solid var(--gray-200);
+  font-size: 0.8rem;
+  background: transparent;
+}
+
+.icon-tool-btn {
+  width: 34px;
+  height: 34px;
+  border: 1px solid var(--gray-200);
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--text-secondary);
+}
+
+/* Compact Table */
+.table-container {
+  overflow: hidden;
+}
+
+.compact-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.compact-table th {
+  text-align: left;
+  padding: 1rem;
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: var(--text-secondary);
+  border-bottom: 1px solid var(--gray-100);
+  background: rgba(248, 250, 252, 0.5);
+}
+
+.compact-table td {
+  padding: 0.75rem 1rem;
+  border-bottom: 1px solid var(--gray-50);
+  font-size: 0.85rem;
+}
+
+.asset-cell {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.asset-icon {
+  width: 32px;
+  height: 32px;
+  background: var(--primary-light);
+  color: var(--primary);
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.9rem;
+}
+
+.asset-name {
+  font-weight: 700;
+  color: var(--text-primary);
+}
+
+.id-badge {
+  background: var(--gray-100);
+  padding: 2px 6px;
+  border-radius: 4px;
+  font-family: monospace;
+  font-size: 0.75rem;
+}
+
+.loc-text { color: var(--text-secondary); }
+.date-text { color: var(--text-muted); font-size: 0.8rem; }
+
+.dot {
+  display: inline-block;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  margin-right: 4px;
+}
+
+.dot.active { background: #10B981; }
+.dot.warning { background: #F59E0B; }
+
+.status-txt { font-weight: 600; font-size: 0.8rem; }
+
+.action-row {
+  display: flex;
+  gap: 6px;
+}
+
+.action-btn-sm {
+  width: 28px;
+  height: 28px;
+  border-radius: 6px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.75rem;
+  background: var(--gray-100);
+  color: var(--text-secondary);
+  transition: var(--transition);
+}
+
+.action-btn-sm:hover {
+  background: var(--primary-light);
+  color: var(--primary);
+}
+

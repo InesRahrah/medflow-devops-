@@ -1,0 +1,84 @@
+<div class="sidebar-wrapper" *ngIf="patient">
+  <!-- Header with Back Button -->
+  <div class="sidebar-header">
+    <button
+      class="back-button"
+      (click)="goBackToDashboard()"
+      title="Back to patients"
+    >
+      <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+        <path
+          d="M19 12H5M12 19l-7-7 7-7"
+          stroke="currentColor"
+          stroke-width="2"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+        />
+      </svg>
+    </button>
+    <button
+      class="refresh-button"
+      (click)="refreshPatient()"
+      title="Refresh patient data"
+    >
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
+        <path
+          d="M23 4v6h-6M1 20v-6h6M3.51 9a9 9 0 0114.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0020.49 15"
+          stroke="currentColor"
+          stroke-width="2"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+        />
+      </svg>
+    </button>
+    <button
+      type="button"
+      class="collapse-button"
+      (click)="toggleSidebar()"
+      title="Hide profile sidebar"
+      aria-label="Hide profile sidebar"
+    >
+      <span aria-hidden="true">☰</span>
+    </button>
+  </div>
+
+  <!-- Patient Info Section -->
+  <div class="patient-info">
+    <div class="patient-identity-card">
+      <div
+        class="patient-avatar"
+        [style.background-image]="
+          'url(' + (patient.profilePictureUrl || '') + ')'
+        "
+      >
+        {{ getInitials() }}
+      </div>
+
+      <div class="patient-header-info">
+        <h2 class="patient-name">
+          {{ patient.firstName }} {{ patient.lastName }}
+        </h2>
+        <div class="status-badge">✓ Active</div>
+      </div>
+    </div>
+
+    <!-- Basic Details -->
+    <div class="patient-details">
+      <div class="detail-row" *ngIf="getAgeFromDOB() !== null">
+        <span class="detail-label">Age:</span>
+        <span class="detail-value">{{ getAgeFromDOB() }} years</span>
+      </div>
+      <div class="detail-row" *ngIf="patient.gender">
+        <span class="detail-label">Gender:</span>
+        <span class="detail-value">{{ patient.gender | titlecase }}</span>
+      </div>
+      <div class="detail-row" *ngIf="patient.phoneNumber">
+        <span class="detail-label">Phone:</span>
+        <span class="detail-value">{{ patient.phoneNumber }}</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Sidebar Footer Divider -->
+  <div class="sidebar-divider"></div>
+</div>

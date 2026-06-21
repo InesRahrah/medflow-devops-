@@ -1,0 +1,214 @@
+<div class="profile-container">
+  <div class="container">
+    <header class="profile-page-head">
+      <div>
+        <h1>Profile Center</h1>
+      </div>
+    </header>
+
+    <div class="profile-layout">
+      <aside class="profile-sidebar">
+        <div class="profile-card">
+          <div class="profile-card-top"></div>
+
+          <div class="profile-avatar-wrapper">
+            <div class="profile-avatar">
+              <img
+                *ngIf="userProfile.profilePictureUrl"
+                [src]="userProfile.profilePictureUrl"
+                alt="Profile"
+                class="avatar-img"
+              />
+              <span *ngIf="!userProfile.profilePictureUrl" class="avatar-initials">
+                {{ (userProfile.name ? userProfile.name[0] : 'H') | uppercase }}
+              </span>
+            </div>
+            <div class="avatar-actions">
+              <button class="edit-avatar-btn" (click)="fileInput.click()" title="Update Picture">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"></path>
+                  <circle cx="12" cy="13" r="4"></circle>
+                </svg>
+              </button>
+              <button *ngIf="userProfile.profilePictureUrl" class="remove-avatar-btn" (click)="removeProfilePicture()" title="Remove Picture">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <line x1="18" y1="6" x2="6" y2="18"></line>
+                  <line x1="6" y1="6" x2="18" y2="18"></line>
+                </svg>
+              </button>
+            </div>
+            <input type="file" #fileInput hidden accept="image/*" (change)="onFileSelected($event)" />
+          </div>
+
+          <div class="profile-identity-header">
+            <h2>{{ userProfile.name || 'Hospital Name' }}</h2>
+            <p class="specialty-badge">
+              <i class="fas fa-shield-heart"></i>
+              Healthcare Center
+            </p>
+          </div>
+
+          <div class="profile-quick-stats">
+            <div class="quick-stat">
+              <span class="stat-num">{{ userProfile.registrationNumber || '-' }}</span>
+              <span class="stat-label">Reg. Number</span>
+            </div>
+            <div class="quick-stat">
+              <i class="fas fa-hospital"></i>
+              <span class="stat-label">{{ userProfile.hospitalType || 'N/A' | titlecase }}</span>
+            </div>
+            <div class="quick-stat">
+              <i class="fas fa-envelope"></i>
+              <span class="stat-label">Primary Contact</span>
+            </div>
+          </div>
+
+          <nav class="profile-tabs">
+            <button class="tab-link active">Hospital Details</button>
+          </nav>
+        </div>
+      </aside>
+
+      <main class="profile-main">
+        <div class="content-card">
+          <div class="card-header">
+            <div>
+              <h3><i class="fas fa-id-card"></i> Profile Details</h3>
+              <p class="card-subtitle">Review and update your facility profile information.</p>
+            </div>
+            <div class="header-actions">
+              <button *ngIf="!isEditing" class="edit-btn" (click)="toggleEdit()">
+                <i class="fas fa-edit"></i>
+                Edit Profile
+              </button>
+
+              <ng-container *ngIf="isEditing">
+                <button class="cancel-btn" (click)="loadProfile(); toggleEdit()" [disabled]="isLoading">Cancel</button>
+                <button class="save-btn" (click)="saveProfile(profileForm)" [disabled]="isLoading">
+                  {{ isLoading ? 'Saving...' : 'Save Changes' }}
+                </button>
+              </ng-container>
+            </div>
+          </div>
+
+          <form class="profile-form" #profileForm="ngForm" novalidate>
+            <div class="section-split">
+              <section class="form-section-card facility-panel">
+                <div class="section-title-row">
+                  <h4><i class="fas fa-building"></i> Facility Details</h4>
+                </div>
+
+                <div class="form-grid">
+                  <div class="form-group">
+                    <label>Hospital Name</label>
+                    <input
+                      type="text"
+                      [(ngModel)]="userProfile.name"
+                      name="name"
+                      [readonly]="!isEditing"
+                      required
+                      [class.invalid]="isFieldInvalid(profileForm, 'name')"
+                    />
+                    <small class="field-error" *ngIf="isFieldInvalid(profileForm, 'name')">
+                      {{ getFieldError(profileForm, 'name', 'Hospital Name') }}
+                    </small>
+                  </div>
+
+                  <div class="form-group">
+                    <label>Registration Number</label>
+                    <input
+                      type="text"
+                      [(ngModel)]="userProfile.registrationNumber"
+                      name="registrationNumber"
+                      [readonly]="!isEditing"
+                      required
+                      [class.invalid]="isFieldInvalid(profileForm, 'registrationNumber')"
+                    />
+                    <small class="field-error" *ngIf="isFieldInvalid(profileForm, 'registrationNumber')">
+                      {{ getFieldError(profileForm, 'registrationNumber', 'Registration Number') }}
+                    </small>
+                  </div>
+
+                  <div class="form-group">
+                    <label>Email Address</label>
+                    <input type="email" [(ngModel)]="userProfile.email" name="email" readonly />
+                  </div>
+
+                  <div class="form-group">
+                    <label>Phone Number</label>
+                    <input
+                      type="text"
+                      pattern="^[0-9]{8}$"
+                      maxlength="8"
+                      [(ngModel)]="userProfile.phone"
+                      name="phone"
+                      [readonly]="!isEditing"
+                      required
+                      [class.invalid]="isFieldInvalid(profileForm, 'phone')"
+                    />
+                    <small class="field-error" *ngIf="isFieldInvalid(profileForm, 'phone')">
+                      {{ getFieldError(profileForm, 'phone', 'Phone Number') }}
+                    </small>
+                  </div>
+
+                  <div class="form-group full-width">
+                    <label>Address</label>
+                    <textarea
+                      [(ngModel)]="userProfile.address"
+                      name="address"
+                      [readonly]="!isEditing"
+                      rows="2"
+                      required
+                      [class.invalid]="isFieldInvalid(profileForm, 'address')"
+                    ></textarea>
+                    <small class="field-error" *ngIf="isFieldInvalid(profileForm, 'address')">
+                      {{ getFieldError(profileForm, 'address', 'Address') }}
+                    </small>
+                  </div>
+                </div>
+              </section>
+
+              <section class="form-section-card soft operations-panel">
+                <div class="section-title-row">
+                  <h4><i class="fas fa-sitemap"></i> Hospital Operations</h4>
+                </div>
+
+                <div class="form-grid operations-grid">
+                  <div class="form-group">
+                    <label>Hospital Type</label>
+                    <app-custom-dropdown
+                      [(ngModel)]="userProfile.hospitalType"
+                      name="hospitalType"
+                      [options]="hospitalTypeOptions"
+                      placeholder="Hospital Type"
+                      [disabled]="!isEditing"
+                      required
+                    ></app-custom-dropdown>
+                    <small class="field-error" *ngIf="isFieldInvalid(profileForm, 'hospitalType')">
+                      {{ getFieldError(profileForm, 'hospitalType', 'Hospital Type') }}
+                    </small>
+                  </div>
+                </div>
+              </section>
+            </div>
+          </form>
+        </div>
+      </main>
+    </div>
+  </div>
+</div>
+
+<div class="success-popup" [class.show]="showSuccessPopup">
+  <div class="popup-content">
+    <div class="success-icon">
+      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3">
+        <polyline points="20 6 9 17 4 12"></polyline>
+      </svg>
+    </div>
+    <div class="popup-text">
+      <h4>Success!</h4>
+      <p>{{ popupMessage || 'Your profile has been updated.' }}</p>
+    </div>
+    <button class="close-popup" (click)="closePopup()">&times;</button>
+  </div>
+</div>

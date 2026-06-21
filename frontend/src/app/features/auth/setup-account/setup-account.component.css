@@ -1,0 +1,692 @@
+/* Premium MedFlow Design System - Register Style Refinement */
+:root {
+  --primary: #0384c4;
+  --primary-light: #60a5fa;
+  --primary-dark: #1e3a8a;
+  --accent: #6366f1;
+  --surface: rgba(255, 255, 255, 0.98);
+  --background: #f1f7fe;
+  --text-main: #1e1b4b; /* Dark Navy from Register UI */
+  --text-muted: #64748b;
+  --border: #e2e8f0;
+  --error: #ef4444;
+  --success: #10b981;
+  --input-bg: #ffffff;
+}
+
+.setup-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 100vh;
+  padding: 1.5rem;
+  background: linear-gradient(135deg, #dfedfd 0%, #f1f7fe 100%);
+  font-family: "Inter", "Poppins", sans-serif;
+}
+
+.setup-card {
+  width: 100%;
+  max-width: 640px; /* Aligned with Register UI max-width */
+  background: var(--surface);
+  backdrop-filter: blur(18px);
+  -webkit-backdrop-filter: blur(18px);
+  border-radius: 24px;
+  padding: 2.5rem;
+  box-shadow: 0 24px 45px -18px rgba(0, 0, 0, 0.12);
+  border: 1px solid rgba(255, 255, 255, 0.85);
+  animation: cardAppear 0.55s ease;
+}
+
+@keyframes cardAppear {
+  from {
+    opacity: 0;
+    transform: translateY(20px) scale(0.98);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+/* Header & Progress */
+.setup-header {
+  text-align: center;
+  margin-bottom: 2rem;
+}
+
+.logo-text {
+  font-weight: 850;
+  font-size: 0.9rem;
+  color: var(--primary);
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+}
+
+.setup-header h2 {
+  margin: 0.5rem 0 1.5rem;
+  font-size: 1.75rem;
+  font-weight: 800;
+  color: var(--text-main);
+  letter-spacing: -0.02em;
+}
+
+.progress-section {
+  max-width: 400px;
+  margin: 0 auto;
+}
+
+.step-indicators {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1rem;
+  position: relative;
+}
+
+.step-indicator {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.5rem;
+  z-index: 2;
+}
+
+.step-num {
+  width: 28px;
+  height: 28px;
+  background: white;
+  border: 2px solid var(--border);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+  font-size: 0.75rem;
+  color: var(--text-muted);
+  transition: all 0.3s ease;
+}
+
+.step-label {
+  font-size: 0.7rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  color: var(--text-muted);
+}
+
+.step-indicator.active .step-num {
+  border-color: var(--primary);
+  color: var(--primary);
+}
+
+.step-indicator.completed .step-num {
+  background: var(--primary);
+  border-color: var(--primary);
+  color: white;
+}
+
+.step-connector {
+  position: absolute;
+  top: 14px;
+  left: 30px;
+  right: 30px;
+  height: 2px;
+  background: var(--border);
+  z-index: 1;
+}
+
+.step-connector.active {
+  background: var(--primary);
+}
+
+.progress-bar-container {
+  height: 4px;
+  background: #f1f5f9;
+  border-radius: 10px;
+  overflow: hidden;
+}
+
+.progress-bar {
+  height: 100%;
+  background: var(--primary);
+  transition: width 0.8s cubic-bezier(0.65, 0, 0.35, 1);
+}
+
+/* Step Content */
+.step-intro {
+  text-align: center;
+  margin-bottom: 2rem;
+}
+
+.step-title {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: var(--text-main);
+  margin-bottom: 0.5rem;
+}
+
+.step-subtitle {
+  color: var(--text-muted);
+  font-size: 0.9rem;
+}
+
+/* Role Selection - Register Style */
+.role-grid {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 16px;
+  margin-bottom: 2.5rem;
+}
+
+.role-card {
+  width: 110px;
+  height: 110px;
+  background: rgba(255, 255, 255, 0.6); /* Light glassy background */
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.4);
+  border-radius: 20px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  cursor: pointer;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  box-shadow: 0 8px 32px -8px rgba(30, 58, 138, 0.1);
+  padding: 12px;
+  color: var(--text-main); /* Dark text for light card */
+}
+
+.role-card:hover:not(.active) {
+  transform: translateY(-5px);
+  background: rgba(255, 255, 255, 0.85);
+  border-color: var(--primary-light);
+}
+
+.role-card.active {
+  background: var(--primary) !important;
+  color: white !important;
+  transform: translateY(-5px);
+  box-shadow: 0 15px 35px -10px rgba(3, 132, 196, 0.45) !important;
+  border-color: var(--primary);
+}
+
+.role-icon-wrapper {
+  width: 54px;
+  height: 54px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.3s ease;
+  color: var(--primary); /* Blue icons on light cards */
+}
+
+.role-icon {
+  width: 38px;
+  height: 38px;
+}
+
+.role-icon-image {
+  width: 38px;
+  height: 38px;
+  object-fit: contain;
+}
+
+/* Pharmacy icon styling */
+.pharmacy-icon .pharmacy-path {
+  fill: #009ce8;
+  transition: fill 0.3s ease;
+}
+
+.role-card.active .pharmacy-icon .pharmacy-path {
+  fill: #ffffff;
+}
+
+.role-card.active .role-icon-wrapper {
+  transform: scale(1.1);
+  color: white;
+}
+
+.role-name {
+  font-family: "Inter", sans-serif;
+  font-size: 0.9rem;
+  font-weight: 700;
+  text-align: center;
+}
+
+/* Forms - Aligned with Register UI */
+.setup-form {
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+}
+
+.form-section {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.form-row {
+  display: flex;
+  gap: 1rem;
+}
+
+.form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+}
+
+.form-group.full-width {
+  width: 100%;
+}
+
+.form-group label {
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: var(--text-muted);
+  margin-left: 0.25rem;
+}
+
+.input-wrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.input-wrapper input,
+.input-wrapper select,
+.input-wrapper textarea {
+  width: 100%;
+  padding: 12px 16px;
+  background: rgba(255, 255, 255, 0.5); /* Glassy input */
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  border: 1.5px solid rgba(255, 255, 255, 0.6);
+  border-radius: 12px;
+  font-size: 0.9rem;
+  font-weight: 500;
+  color: var(--text-main);
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  box-shadow: 0 2px 8px -2px rgba(30, 58, 138, 0.05);
+}
+
+.input-wrapper input:focus,
+.input-wrapper select:focus,
+.input-wrapper textarea:focus {
+  outline: none;
+  background: rgba(255, 255, 255, 0.9);
+  border-color: var(--primary-light);
+  box-shadow:
+    0 0 0 4px rgba(96, 165, 250, 0.15),
+    0 8px 16px -4px rgba(30, 58, 138, 0.1);
+  transform: translateY(-1px);
+}
+
+.input-wrapper.has-error input {
+  border-color: #f87171;
+  background: rgba(254, 242, 242, 0.7);
+}
+
+.field-icon {
+  position: absolute;
+  left: 14px;
+  width: 18px;
+  height: 18px;
+  color: #94a3b8;
+  pointer-events: none;
+  transition: color 0.3s ease;
+}
+
+.input-wrapper:has(.field-icon) input {
+  padding-left: 44px;
+}
+
+.input-wrapper:focus-within .field-icon {
+  color: var(--primary);
+  transform: scale(1.1);
+}
+
+.error-text {
+  font-size: 0.74rem;
+  color: #b91c1c;
+  margin-top: 0.25rem;
+  font-weight: 600;
+}
+
+/* Segmented Control (Gender) - Enhanced Spacing & Layout */
+.segmented-control {
+  display: flex;
+  background: rgba(255, 255, 255, 0.4);
+  backdrop-filter: blur(10px);
+  padding: 6px; /* Increased padding for more space */
+  border-radius: 16px;
+  gap: 12px; /* More gap between options */
+  border: 1.5px solid rgba(255, 255, 255, 0.6);
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.input-wrapper app-custom-multi-dropdown {
+  width: 100%;
+}
+
+.input-wrapper app-custom-multi-dropdown ::ng-deep .dropdown-trigger {
+  width: 100%;
+  min-height: 48px;
+  padding: 12px 16px;
+  background: rgba(255, 255, 255, 0.5);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  border: 1.5px solid rgba(255, 255, 255, 0.6);
+  border-radius: 12px;
+  font-size: 0.9rem;
+  font-weight: 500;
+  color: var(--text-main);
+  box-shadow: 0 2px 8px -2px rgba(30, 58, 138, 0.05);
+}
+
+.input-wrapper
+  app-custom-multi-dropdown
+  ::ng-deep
+  .custom-dropdown-container.open
+  .dropdown-trigger {
+  border-color: var(--primary-light);
+  box-shadow:
+    0 0 0 4px rgba(96, 165, 250, 0.15),
+    0 8px 16px -4px rgba(30, 58, 138, 0.1);
+}
+
+.control-option {
+  flex: 1;
+  position: relative;
+  cursor: pointer;
+}
+
+.control-option input {
+  position: absolute;
+  opacity: 0;
+}
+
+.control-option span {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 44px; /* Slightly taller for more presence */
+  background: transparent;
+  color: var(--text-muted);
+  font-size: 0.9rem;
+  font-weight: 700;
+  border-radius: 12px;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  padding: 0 16px;
+}
+
+.control-option.active span {
+  background: white;
+  color: var(--primary);
+  box-shadow: 0 6px 12px rgba(30, 58, 138, 0.1);
+  transform: translateY(-1px);
+}
+
+.control-option:hover:not(.active) span {
+  background: rgba(255, 255, 255, 0.3);
+  color: var(--text-main);
+}
+
+/* Custom Glassy Dropdown System */
+.custom-dropdown {
+  position: relative;
+  width: 100%;
+  z-index: 10;
+}
+
+.dropdown-trigger {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  padding: 12px 16px;
+  background: rgba(255, 255, 255, 0.5);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  border: 1.5px solid rgba(255, 255, 255, 0.6);
+  border-radius: 12px;
+  font-size: 0.9rem;
+  font-weight: 500;
+  color: var(--text-main);
+  cursor: pointer;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  box-shadow: 0 2px 8px -2px rgba(30, 58, 138, 0.05);
+}
+
+.custom-dropdown.open .dropdown-trigger {
+  border-color: var(--primary-light);
+  background: rgba(255, 255, 255, 0.9);
+  box-shadow: 0 0 0 4px rgba(96, 165, 250, 0.15);
+}
+
+.dropdown-arrow {
+  width: 18px;
+  height: 18px;
+  color: #94a3b8;
+  transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.custom-dropdown.open .dropdown-arrow {
+  transform: rotate(180deg);
+  color: var(--primary);
+}
+
+.dropdown-menu {
+  position: absolute;
+  top: calc(100% + 8px);
+  left: 0;
+  right: 0;
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid rgba(255, 255, 255, 0.8);
+  border-radius: 16px;
+  box-shadow: 0 20px 40px -15px rgba(0, 0, 0, 0.15);
+  padding: 8px;
+  animation: dropdownFadeIn 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+  z-index: 100;
+  max-height: 240px;
+  overflow-y: auto;
+}
+
+@keyframes dropdownFadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(-10px) scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+.dropdown-option {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 14px;
+  border-radius: 10px;
+  font-size: 0.88rem;
+  font-weight: 600;
+  color: var(--text-muted);
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.dropdown-option:hover {
+  background: rgba(3, 132, 196, 0.08);
+  color: var(--primary);
+  padding-left: 18px;
+}
+
+.dropdown-option.selected {
+  background: rgba(3, 132, 196, 0.12);
+  color: var(--primary);
+}
+
+.option-check {
+  width: 16px;
+  height: 16px;
+  color: var(--primary);
+}
+
+/* Scrollbar styling for menu */
+.dropdown-menu::-webkit-scrollbar {
+  width: 6px;
+}
+.dropdown-menu::-webkit-scrollbar-thumb {
+  background: #e2e8f0;
+  border-radius: 10px;
+}
+
+/* Pill Buttons */
+.step-footer {
+  margin-top: 2rem;
+  display: flex;
+  justify-content: center;
+  gap: 1rem;
+}
+
+.step-footer.split {
+  justify-content: space-between;
+}
+
+.btn-primary {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  height: 52px;
+  padding: 0 32px;
+  background: var(--primary);
+  color: white;
+  border: none;
+  border-radius: 999px; /* Pill */
+  font-size: 0.95rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: 0 8px 16px -4px rgba(3, 132, 196, 0.3);
+}
+
+.btn-primary:hover:not(:disabled) {
+  transform: translateY(-2px);
+  box-shadow: 0 12px 20px -4px rgba(3, 132, 196, 0.4);
+  filter: brightness(1.05);
+}
+
+.btn-primary:disabled {
+  background: #e5e7eb;
+  color: #9ca3af;
+  box-shadow: none;
+  cursor: not-allowed;
+}
+
+.btn-secondary {
+  height: 52px;
+  padding: 0 24px;
+  background: #f3f4f6;
+  color: #6b7280;
+  border: none;
+  border-radius: 999px; /* Pill */
+  font-size: 0.9rem;
+  font-weight: 600;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  transition: all 0.2s ease;
+}
+
+.btn-secondary:hover {
+  background: #e5e7eb;
+}
+
+.btn-icon {
+  width: 18px;
+  height: 18px;
+}
+
+/* Utils */
+.fade-in {
+  animation: cardFadeIn 0.4s ease;
+}
+
+@keyframes cardFadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.error-toast {
+  background: rgba(220, 38, 38, 0.1);
+  color: #991b1b;
+  padding: 12px 14px;
+  border-radius: 12px;
+  font-size: 0.8rem;
+  font-weight: 500;
+  border: 1px solid #fee2e2;
+  text-align: center;
+}
+
+.btn-loader {
+  width: 18px;
+  height: 18px;
+  border: 2px solid white;
+  border-radius: 50%;
+  border-top-color: transparent;
+  animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* Responsive */
+@media (max-width: 640px) {
+  .setup-card {
+    padding: 2rem 1.25rem;
+  }
+
+  .role-grid {
+    gap: 12px;
+  }
+
+  .role-card {
+    width: 100px;
+    height: 100px;
+    border-radius: 16px;
+  }
+
+  .form-row {
+    flex-direction: column;
+    gap: 1.25rem;
+  }
+
+  .step-footer.split {
+    flex-direction: column-reverse;
+    gap: 12px;
+  }
+
+  .btn-primary,
+  .btn-secondary {
+    width: 100%;
+  }
+}
+

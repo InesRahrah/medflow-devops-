@@ -1,0 +1,183 @@
+<section class="setup-hero">
+  <div class="container">
+    <div class="hero-copy">
+      <span class="section-label">PRECONSULTATION</span>
+      <h1 class="section-title">Build the questions your first-time patients will answer</h1>
+      <p>Set the intake once, keep it focused, and flag the answers you want highlighted before the consultation starts.</p>
+    </div>
+  </div>
+</section>
+
+<section class="setup-section">
+  <div class="container">
+    <div class="setup-shell" *ngIf="!isLoading; else loadingState">
+      <aside class="setup-sidebar">
+        <div class="sidebar-card">
+          <h3>Question types</h3>
+          <p>Use only what helps clinical triage. Keep the form short for first visits.</p>
+
+          <button
+            type="button"
+            class="type-card"
+            *ngFor="let type of questionTypes"
+            (click)="addQuestion(type.value)"
+          >
+            <strong>{{ type.label }}</strong>
+            <span>{{ type.description }}</span>
+          </button>
+        </div>
+
+        <div class="sidebar-card muted">
+          <h3>Recommended structure</h3>
+          <ul>
+            <li>Main complaint</li>
+            <li>Critical symptoms</li>
+            <li>Current medications</li>
+            <li>Allergies or chronic conditions</li>
+            <li>Pain or severity score</li>
+          </ul>
+        </div>
+      </aside>
+
+      <div class="setup-main">
+        <div class="toolbar-card">
+          <div>
+            <span class="toolbar-badge">{{ hasExistingTemplate ? 'Editing active template' : 'New doctor template' }}</span>
+            <h2>{{ questions.length }} question{{ questions.length === 1 ? '' : 's' }}</h2>
+          </div>
+
+          <div class="toolbar-actions">
+            <button class="btn-outline shell-btn" type="button" (click)="goBack()">Back</button>
+            <button class="btn-primary shell-btn" type="button" [disabled]="isSaving" (click)="saveTemplate()">
+              {{ isSaving ? 'Saving...' : 'Save template' }}
+            </button>
+          </div>
+        </div>
+
+        <p class="message success" *ngIf="saveSuccess">{{ saveSuccess }}</p>
+        <p class="message error" *ngIf="saveError">{{ saveError }}</p>
+
+        <div class="question-list" *ngIf="questions.length > 0; else emptyState">
+          <article class="question-card" *ngFor="let question of questions; let i = index; trackBy: trackQuestion">
+            <div class="question-header">
+              <div>
+                <span class="question-order">Question {{ i + 1 }}</span>
+                <input
+                  class="question-input"
+                  type="text"
+                  [(ngModel)]="question.text"
+                  [ngModelOptions]="{ standalone: true }"
+                  placeholder="Enter the question patients should answer"
+                />
+              </div>
+
+              <div class="question-actions">
+                <button type="button" class="icon-btn" (click)="moveQuestion(i, -1)" [disabled]="i === 0">↑</button>
+                <button type="button" class="icon-btn" (click)="moveQuestion(i, 1)" [disabled]="i === questions.length - 1">↓</button>
+                <button type="button" class="icon-btn danger" (click)="removeQuestion(i)">×</button>
+              </div>
+            </div>
+
+            <div class="config-grid">
+              <label>
+                <span>Type</span>
+                <select [(ngModel)]="question.type" [ngModelOptions]="{ standalone: true }" (ngModelChange)="onTypeChange(question)">
+                  <option *ngFor="let type of questionTypes" [ngValue]="type.value">{{ type.label }}</option>
+                </select>
+              </label>
+
+              <label class="toggle-label">
+                <input type="checkbox" [(ngModel)]="question.required" [ngModelOptions]="{ standalone: true }" />
+                <span>Required question</span>
+              </label>
+
+              <label class="toggle-label" *ngIf="question.type !== 'text'">
+                <input type="checkbox" [(ngModel)]="question.isRedFlag" [ngModelOptions]="{ standalone: true }" />
+                <span>Flag a concerning answer</span>
+              </label>
+            </div>
+
+            <div class="inline-grid" *ngIf="question.type === 'scale'">
+              <label>
+                <span>Scale min</span>
+                <input type="number" [(ngModel)]="question.scaleMin" [ngModelOptions]="{ standalone: true }" />
+              </label>
+              <label>
+                <span>Scale max</span>
+                <input type="number" [(ngModel)]="question.scaleMax" [ngModelOptions]="{ standalone: true }" />
+              </label>
+            </div>
+
+            <div class="options-box" *ngIf="question.type === 'single_choice' || question.type === 'multi_choice'">
+              <div class="options-header">
+                <strong>Answer options</strong>
+                <button type="button" class="text-btn" (click)="addOption(question)">Add option</button>
+              </div>
+
+              <div class="option-row" *ngFor="let option of question.options; let optionIndex = index">
+                <input
+                  type="text"
+                  [(ngModel)]="question.options![optionIndex]"
+                  [ngModelOptions]="{ standalone: true }"
+                  placeholder="Option label"
+                />
+                <button type="button" class="icon-btn danger" (click)="removeOption(question, optionIndex)">×</button>
+              </div>
+            </div>
+
+            <div class="inline-grid" *ngIf="question.isRedFlag && getRedFlagOptions(question).length > 0">
+              <label>
+                <span>Trigger urgent flag when answer is</span>
+                <select [(ngModel)]="question.redFlagValue" [ngModelOptions]="{ standalone: true }">
+                  <option [ngValue]="null">Select a trigger</option>
+                  <option *ngFor="let option of getRedFlagOptions(question)" [ngValue]="option.value">{{ option.label }}</option>
+                </select>
+              </label>
+            </div>
+
+            <div class="conditional-box">
+              <div class="options-header">
+                <strong>Conditional display</strong>
+                <span>Show this only when a previous answer matches.</span>
+              </div>
+
+              <div class="inline-grid">
+                <label>
+                  <span>Parent question</span>
+                  <select [(ngModel)]="question.conditionalParentId" [ngModelOptions]="{ standalone: true }" (ngModelChange)="onConditionalParentChange(question)">
+                    <option [ngValue]="null">Always show</option>
+                    <option *ngFor="let parent of getConditionalParents(i)" [ngValue]="parent.id ?? parent.order">
+                      {{ parent.text || ('Question ' + parent.order) }}
+                    </option>
+                  </select>
+                </label>
+
+                <label *ngIf="question.conditionalParentId && getConditionalValues(question).length > 0">
+                  <span>Trigger value</span>
+                  <select [(ngModel)]="question.conditionalTriggerValue" [ngModelOptions]="{ standalone: true }">
+                    <option [ngValue]="null">Select a value</option>
+                    <option *ngFor="let option of getConditionalValues(question)" [ngValue]="option.value">{{ option.label }}</option>
+                  </select>
+                </label>
+              </div>
+            </div>
+          </article>
+        </div>
+
+        <ng-template #emptyState>
+          <div class="empty-state-card">
+            <h3>No questions yet</h3>
+            <p>Start with the most important information you need before a first consultation.</p>
+            <button class="btn-primary" type="button" (click)="addQuestion('text')">Add your first question</button>
+          </div>
+        </ng-template>
+      </div>
+    </div>
+
+    <ng-template #loadingState>
+      <div class="loading-card">
+        <p>Loading your preconsultation setup...</p>
+      </div>
+    </ng-template>
+  </div>
+</section>
