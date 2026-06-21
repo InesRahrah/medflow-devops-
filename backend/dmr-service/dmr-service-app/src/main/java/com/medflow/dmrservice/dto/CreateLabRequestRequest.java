@@ -1,0 +1,19 @@
+package com.medflow.dmrservice.dto;
+
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
+import lombok.Data;
+
+import java.util.UUID;
+
+@Data
+public class CreateLabRequestRequest {
+
+    @NotNull
+    private UUID doctorId;
+
+    @NotBlank
+    private String testType;
+
+    private String notes;
+}

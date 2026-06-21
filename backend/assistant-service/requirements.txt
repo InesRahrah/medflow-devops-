@@ -1,0 +1,6 @@
+fastapi
+uvicorn
+PyJWT
+groq
+python-dotenv
+python-multipart
