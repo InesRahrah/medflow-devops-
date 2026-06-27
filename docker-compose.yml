@@ -1,0 +1,81 @@
+version: "3.9"
+
+services:
+
+  mysql:
+    image: mysql:8.0
+    container_name: medflow-mysql
+
+    restart: always
+
+    environment:
+      MYSQL_ROOT_PASSWORD: root
+
+    ports:
+      - "3306:3306"
+
+    volumes:
+      - mysql_data:/var/lib/mysql
+      - ./mysql-init:/docker-entrypoint-initdb.d
+
+    networks:
+      - medflow-network
+
+  user-service:
+    build:
+      context: ./backend/user-service/user-service-app
+
+    container_name: medflow-user-service
+
+    restart: always
+
+    ports:
+      - "8081:8080"
+
+    depends_on:
+      - mysql
+
+    networks:
+      - medflow-network
+
+  stock-service:
+    build:
+      context: ./backend/stock-service/stock-service-app
+
+    container_name: medflow-stock-service
+
+    restart: always
+
+    ports:
+      - "8086:8086"
+
+    depends_on:
+      - mysql
+
+    networks:
+      - medflow-network
+
+  frontend:
+    build:
+      context: ./frontend
+
+    container_name: medflow-frontend
+
+    restart: always
+
+    ports:
+      - "4200:80"
+
+    depends_on:
+      - user-service
+      - stock-service
+
+    networks:
+      - medflow-network
+
+volumes:
+  mysql_data:
+
+networks:
+  medflow-network:
+    driver: bridge

@@ -1,0 +1,2 @@
+CREATE DATABASE IF NOT EXISTS medflow_users;
+CREATE DATABASE IF NOT EXISTS medflow_stock;
