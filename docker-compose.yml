@@ -1,15 +1,16 @@
-version: "3.9"
-
 services:
 
   mysql:
     image: mysql:8.0
     container_name: medflow-mysql
 
-    restart: always
+    restart: unless-stopped
 
     environment:
       MYSQL_ROOT_PASSWORD: root
+      MYSQL_DATABASE: medflow
+      MYSQL_USER: medflow
+      MYSQL_PASSWORD: medflow123
 
     ports:
       - "3306:3306"
@@ -18,50 +19,63 @@ services:
       - mysql_data:/var/lib/mysql
       - ./mysql-init:/docker-entrypoint-initdb.d
 
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-uroot", "-proot"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 20s
+
     networks:
       - medflow-network
 
   user-service:
-    build:
-      context: ./backend/user-service/user-service-app
-
+    image: medflow-user-service:latest
     container_name: medflow-user-service
 
-    restart: always
+    restart: unless-stopped
 
     ports:
       - "8081:8080"
 
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:mysql://mysql:3306/medflow_users?createDatabaseIfNotExist=true&useSSL=false&serverTimezone=UTC&allowPublicKeyRetrieval=true
+      SPRING_DATASOURCE_USERNAME: medflow
+      SPRING_DATASOURCE_PASSWORD: medflow123
+
     depends_on:
-      - mysql
+      mysql:
+        condition: service_healthy
 
     networks:
       - medflow-network
 
   stock-service:
-    build:
-      context: ./backend/stock-service/stock-service-app
-
+    image: medflow-stock-service:latest
     container_name: medflow-stock-service
 
-    restart: always
+    restart: unless-stopped
 
     ports:
       - "8086:8086"
 
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:mysql://mysql:3306/medflow_stock?createDatabaseIfNotExist=true&useSSL=false&serverTimezone=UTC
+      SPRING_DATASOURCE_USERNAME: medflow
+      SPRING_DATASOURCE_PASSWORD: medflow123
+
     depends_on:
-      - mysql
+      mysql:
+        condition: service_healthy
 
     networks:
       - medflow-network
 
   frontend:
-    build:
-      context: ./frontend
-
+    image: medflow-frontend:latest
     container_name: medflow-frontend
 
-    restart: always
+    restart: unless-stopped
 
     ports:
       - "4200:80"
