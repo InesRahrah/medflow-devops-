@@ -11,5 +11,5 @@ export const environment = {
   
   // 🔥 FRONTEND BASE URL FOR QR CODES
   // Replace 192.168.0.156 with your PC's local IP
-  baseUrl: 'http://localhost:4200'
+   baseUrl: 'http://localhost:8081'
 };
