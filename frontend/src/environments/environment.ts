@@ -3,7 +3,7 @@ export const environment = {
   googleClientId: '510530397450-o9ubuldrpqe2qj3df1n5jv2ka0arq9mk.apps.googleusercontent.com',
   
   // 🔥 LOGIN & EXISTING API CALLS
-  apiUrl: 'http://localhost:8080/api/v1',
+  apiUrl: 'http://localhost:8081/api/v1',
   
   // 🔥 PROXY URL FOR MOBILE/QR SCANNING
   // Used by drug-details and QR mobile access
@@ -11,5 +11,5 @@ export const environment = {
   
   // 🔥 FRONTEND BASE URL FOR QR CODES
   // Replace 192.168.0.156 with your PC's local IP
-   baseUrl: 'http://localhost:8081'
+  baseUrl: 'http://localhost:4200'
 };
