@@ -23,28 +23,24 @@ public class SecurityConfiguration {
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
-            .csrf(AbstractHttpConfigurer::disable)
-            .authorizeHttpRequests(auth -> auth
-    .requestMatchers("/api/v1/auth/google/setup").authenticated()
-    .requestMatchers("/api/v1/auth/**").permitAll()
-    .requestMatchers("/api/v1/internal/**").permitAll()
-    .requestMatchers("/api/v1/users/doctors/**").permitAll()
-    .requestMatchers("/api/v1/users", "/api/v1/users/**").permitAll()
-    .requestMatchers("/error").permitAll()
-    .requestMatchers("/uploads/**").permitAll()
-    .requestMatchers("/actuator/health").permitAll()
-    .anyRequest().authenticated()
-)
-            .sessionManagement(session -> session
-                .sessionCreationPolicy(SessionCreationPolicy.STATELESS)
-            )
-            .exceptionHandling(exception -> exception
-                .authenticationEntryPoint(new HttpStatusEntryPoint(HttpStatus.UNAUTHORIZED))
-                .accessDeniedHandler((request, response, accessDeniedException) ->
-                    response.setStatus(HttpStatus.FORBIDDEN.value())
-                )
-            )
-            .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class);
+                .csrf(AbstractHttpConfigurer::disable)
+                .authorizeHttpRequests(auth -> auth
+                        .requestMatchers("/actuator/**").permitAll()
+                        .requestMatchers("/api/v1/auth/google/setup").authenticated()
+                        .requestMatchers("/api/v1/auth/**").permitAll()
+                        .requestMatchers("/api/v1/internal/**").permitAll()
+                        .requestMatchers("/api/v1/users/doctors/**").permitAll()
+                        .requestMatchers("/api/v1/users", "/api/v1/users/**").permitAll()
+                        .requestMatchers("/error").permitAll()
+                        .requestMatchers("/uploads/**").permitAll()
+                        .anyRequest().authenticated())
+                .sessionManagement(session -> session
+                        .sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+                .exceptionHandling(exception -> exception
+                        .authenticationEntryPoint(new HttpStatusEntryPoint(HttpStatus.UNAUTHORIZED))
+                        .accessDeniedHandler((request, response, accessDeniedException) -> response
+                                .setStatus(HttpStatus.FORBIDDEN.value())))
+                .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class);
 
         return http.build();
     }
