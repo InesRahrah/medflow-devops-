@@ -1,0 +1,24 @@
+global:
+  resolve_timeout: 5m
+
+  smtp_smarthost: 'smtp.gmail.com:587'
+  smtp_from: 'ines.rahrah@esprit.tn'
+  smtp_auth_username: 'ines.rahrah@esprit.tn'
+  smtp_auth_password: 'sjnv ojyw wmhw wngh'
+  smtp_require_tls: true
+
+route:
+  receiver: 'email-notifications'
+
+  group_wait: 10s
+  group_interval: 30s
+  repeat_interval: 1h
+
+receivers:
+  - name: 'email-notifications'
+
+    email_configs:
+      - to: 'ines.rahrah@esprit.tn'
+        send_resolved: true
+
+templates: []
