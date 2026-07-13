@@ -157,6 +157,52 @@ services:
 
     depends_on:
       - prometheus
+      - loki
+
+    networks:
+      - medflow-network
+
+
+  loki:
+    image: grafana/loki:3.0.0
+    container_name: medflow-loki
+
+    restart: unless-stopped
+
+    ports:
+      - "3100:3100"
+
+    command:
+      - "-config.file=/etc/loki/loki-config.yml"
+
+    volumes:
+      - ./loki/loki-config.yml:/etc/loki/loki-config.yml
+      - loki_data:/loki
+
+    depends_on:
+      - user-service
+      - stock-service
+
+    networks:
+      - medflow-network
+
+
+  promtail:
+    image: grafana/promtail:3.0.0
+    container_name: medflow-promtail
+
+    restart: unless-stopped
+
+    command:
+      - "-config.file=/etc/promtail/promtail-config.yml"
+
+    volumes:
+      - ./promtail/promtail-config.yml:/etc/promtail/promtail-config.yml
+      - /var/lib/docker/containers:/var/lib/docker/containers:ro
+      - /var/run/docker.sock:/var/run/docker.sock
+
+    depends_on:
+      - loki
 
     networks:
       - medflow-network
@@ -166,6 +212,7 @@ volumes:
   mysql_data:
   prometheus_data:
   grafana_data:
+  loki_data:
 
 
 networks:
