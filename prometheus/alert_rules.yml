@@ -1,0 +1,79 @@
+groups:
+
+  - name: medflow-alerts
+
+    rules:
+
+      # ============================
+      # User Service DOWN
+      # ============================
+      - alert: UserServiceDown
+        expr: up{job="user-service"} == 0
+        for: 30s
+
+        labels:
+          severity: critical
+
+        annotations:
+          summary: "User Service DOWN"
+          description: "The User Service has been unreachable for more than 30 seconds."
+
+
+      # ============================
+      # Inventory Management Service DOWN
+      # ============================
+      - alert: InventoryServiceDown
+        expr: up{job="stock-service"} == 0
+        for: 30s
+
+        labels:
+          severity: critical
+
+        annotations:
+          summary: "Inventory Management Service DOWN"
+          description: "The Inventory Management Service has been unreachable for more than 30 seconds."
+
+
+      # ============================
+      # High CPU Usage
+      # ============================
+      - alert: HighCPUUsage
+        expr: process_cpu_usage > 0.80
+        for: 2m
+
+        labels:
+          severity: warning
+
+        annotations:
+          summary: "High CPU Usage"
+          description: "CPU usage is above 80%."
+
+
+      # ============================
+      # High Heap Memory
+      # ============================
+      - alert: HighHeapMemory
+        expr: jvm_memory_used_bytes{area="heap"} / jvm_memory_max_bytes{area="heap"} > 0.85
+        for: 2m
+
+        labels:
+          severity: warning
+
+        annotations:
+          summary: "High Heap Memory"
+          description: "Heap Memory usage is above 85%."
+
+
+      # ============================
+      # Too many HTTP Requests
+      # ============================
+      - alert: HighHTTPRequestRate
+        expr: rate(http_server_requests_seconds_count[1m]) > 50
+        for: 1m
+
+        labels:
+          severity: warning
+
+        annotations:
+          summary: "High HTTP Request Rate"
+          description: "Application receives more than 50 requests per second."

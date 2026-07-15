@@ -1,0 +1,39 @@
+global:
+  scrape_interval: 15s
+
+# ==========================================
+# Alertmanager
+# ==========================================
+alerting:
+  alertmanagers:
+    - static_configs:
+        - targets:
+            - "alertmanager:9093"
+
+# ==========================================
+# Alert Rules
+# ==========================================
+rule_files:
+  - "alert_rules.yml"
+
+# ==========================================
+# Scraping des métriques
+# ==========================================
+scrape_configs:
+
+  - job_name: 'user-service'
+
+    metrics_path: '/actuator/prometheus'
+
+    static_configs:
+      - targets:
+          - 'user-service:8080'
+
+
+  - job_name: 'stock-service'
+
+    metrics_path: '/actuator/prometheus'
+
+    static_configs:
+      - targets:
+          - 'stock-service:8086'
