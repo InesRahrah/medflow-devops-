@@ -20,16 +20,16 @@ pipeline {
                 sh '''
                 cd ${PROJECT_DIR}
 
-                echo "===== Current Directory ====="
+                echo "======================================="
+                echo "Current Directory"
+                echo "======================================="
                 pwd
 
                 echo ""
-                echo "===== Project Structure ====="
+                echo "======================================="
+                echo "Project Files"
+                echo "======================================="
                 ls -la
-
-                echo ""
-                echo "===== Docker Compose ====="
-                ls docker-compose.yml
                 '''
             }
         }
@@ -119,9 +119,7 @@ pipeline {
 
                 sh """
                 docker tag medflow-user-service:latest ${DOCKERHUB_USERNAME}/medflow-user-service:latest
-
                 docker tag medflow-stock-service:latest ${DOCKERHUB_USERNAME}/medflow-stock-service:latest
-
                 docker tag medflow-frontend:latest ${DOCKERHUB_USERNAME}/medflow-frontend:latest
                 """
 
@@ -135,9 +133,7 @@ pipeline {
 
                 sh """
                 docker push ${DOCKERHUB_USERNAME}/medflow-user-service:latest
-
                 docker push ${DOCKERHUB_USERNAME}/medflow-stock-service:latest
-
                 docker push ${DOCKERHUB_USERNAME}/medflow-frontend:latest
                 """
 
@@ -152,7 +148,9 @@ pipeline {
                 sh '''
                 cd ${PROJECT_DIR}
 
-                echo "===== Stopping Previous Containers ====="
+                echo "======================================="
+                echo "Stopping Previous Containers"
+                echo "======================================="
 
                 docker compose down --remove-orphans || true
 
@@ -170,11 +168,13 @@ pipeline {
                 sh '''
                 cd ${PROJECT_DIR}
 
-                echo "===== Deploying Application ====="
+                echo "======================================="
+                echo "Deploying Application"
+                echo "======================================="
 
                 docker compose up -d
 
-                sleep 25
+                sleep 30
                 '''
 
             }
@@ -187,23 +187,23 @@ pipeline {
 
                 sh '''
 
-                echo "===== Health Check ====="
+                echo ""
+                echo "======================================="
+                echo "USER SERVICE HEALTH CHECK"
+                echo "======================================="
+
+                USER_OK=0
 
                 for i in $(seq 1 30)
                 do
 
-                    if curl --silent --fail \
-                    http://localhost:8081/actuator/health \
-                    > /dev/null
-
+                    if docker exec medflow-user-service \
+                    wget -qO- http://localhost:8080/actuator/health \
+                    | grep '"status":"UP"' >/dev/null
                     then
 
-                        echo ""
-                        echo "================================="
-                        echo "User Service is UP"
-                        echo "================================="
-
-                        exit 0
+                        USER_OK=1
+                        break
 
                     fi
 
@@ -213,10 +213,58 @@ pipeline {
 
                 done
 
-                echo ""
-                echo "User Service FAILED"
+                if [ $USER_OK -eq 0 ]; then
 
-                exit 1
+                    echo ""
+                    echo "User Service FAILED"
+
+                    docker logs medflow-user-service || true
+
+                    exit 1
+
+                fi
+
+                echo ""
+                echo "======================================="
+                echo "STOCK SERVICE HEALTH CHECK"
+                echo "======================================="
+
+                STOCK_OK=0
+
+                for i in $(seq 1 30)
+                do
+
+                    if docker exec medflow-stock-service \
+                    wget -qO- http://localhost:8086/actuator/health \
+                    | grep '"db"' >/dev/null
+                    then
+
+                        STOCK_OK=1
+                        break
+
+                    fi
+
+                    echo "Attempt $i / 30"
+
+                    sleep 5
+
+                done
+
+                if [ $STOCK_OK -eq 0 ]; then
+
+                    echo ""
+                    echo "Stock Service FAILED"
+
+                    docker logs medflow-stock-service || true
+
+                    exit 1
+
+                fi
+
+                echo ""
+                echo "======================================="
+                echo "APPLICATION IS HEALTHY"
+                echo "======================================="
 
                 '''
 
@@ -231,9 +279,15 @@ pipeline {
                 sh '''
 
                 echo ""
-                echo "===== Running Containers ====="
+                echo "======================================="
+                echo "Running Containers"
+                echo "======================================="
 
                 docker ps
+
+                echo ""
+
+                docker compose ps
 
                 '''
 
@@ -247,30 +301,32 @@ pipeline {
 
         success {
 
-            echo '================================='
+            echo '======================================='
             echo 'PIPELINE SUCCESSFUL'
-            echo '================================='
+            echo '======================================='
 
         }
 
         failure {
 
-            echo '================================='
+            echo '======================================='
             echo 'PIPELINE FAILED'
-            echo '================================='
+            echo '======================================='
 
             sh '''
+
             cd ${PROJECT_DIR}
 
             echo ""
-            echo "===== Docker Compose Logs ====="
-
-            docker compose logs --tail=100 || true
-
-            echo ""
-            echo "===== Running Containers ====="
+            echo "============= DOCKER PS ============="
 
             docker ps -a
+
+            echo ""
+            echo "============= COMPOSE LOGS ============="
+
+            docker compose logs --tail=200 || true
+
             '''
 
         }
@@ -278,7 +334,9 @@ pipeline {
         always {
 
             sh '''
+
             docker image prune -f || true
+
             '''
 
             cleanWs()
